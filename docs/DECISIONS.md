@@ -1,15 +1,18 @@
 # Hares AI Web: Decisions (source of truth)
 
 ## Scope
+
 Web only: React frontend (3 role dashboards + public pages) and NestJS backend API.
 The browser extension is built separately. The API contract is the bridge.
 Source requirements: Hares AI project report (Part-I). Any technology named there is NOT binding.
 
 ## Stack
+
 TypeScript everywhere. React (Vite), NestJS, PostgreSQL.
 Monorepo: web/, api/, contract/ (OpenAPI). ORM and UI library: to be proposed by the architect.
 
 ## Decisions
+
 1. Single organization per deployment. Keep a clean path to multi-tenant later.
 2. The backend NEVER receives or stores prompt text: no original, no masked, no revised.
    It stores metadata only: event time, platform, data categories, risk level, action.
@@ -33,8 +36,21 @@ Monorepo: web/, api/, contract/ (OpenAPI). ORM and UI library: to be proposed by
    - Arabic and English are both first-class, with full RTL support and content parity. Language switching is available on every page.
    - Target accessibility: WCAG 2.1 AA, mobile-first responsive layout.
    - Do not claim official DGA certification; compliance is checked by review and manual validation.
+10. NONE-risk events are logged (needed for totals and allow-vs-block ratios).
+11. Activity logs are retained 90 days, then deleted. The admin audit trail is append-only and never deleted.
+12. The extension authenticates with an access token issued at login. Tokens are revoked immediately when a user is deactivated or rejected. Role or department changes take effect on the next policy bundle fetch.
+13. Default risk for categories the report left unassigned: Health/Medical = HIGH, Account & Application = MEDIUM, Universal Identifiers = LOW, Region-Specific Banking & Identity = HIGH.
+14. Only System Admin edits organization policy, department policy overrides, custom rules, and departments. Department Admin is read-only on these.
+15. Password reset: emailed single-use link, 30-minute expiry, rate limited.
+16. Users cannot export their own logs. CSV export is for administrators only.
+17. Multiple System Admins are allowed. Only a System Admin can grant or revoke SYSTEM_ADMIN. Nobody can deactivate or demote their own account.
+18. Departments are managed by System Admin only. Deactivating a department blocks log ingestion for its users.
+19. Audit trail fields: acting admin, action, target, timestamp, non-sensitive details.
+20. Deactivated users keep their historical logs. Reactivation is done by System Admin.
+21. Log events carry a user_decision field (what the user did after the warning) and an optional rule_id (custom rule that matched). The ingestion contract is versioned with schema_version.
 
 ## Schema (adapted from the old ER)
+
 Keep: Department, User, ActivityLog.
 Remove: Prompt, RevisedPrompt, DetectionResult.
 User: status enum (PENDING/ACTIVE/REJECTED/DEACTIVATED), role and department_id nullable until approval, passwordHash, unique email.
@@ -44,9 +60,11 @@ Add: DataCategory, PolicyCategoryAction, CustomRule, CustomRuleDepartment, Polic
 Final schema is produced by the Systems Architect.
 
 ## Open items
+
 - Whether NONE-risk events are logged (volume and retention).
 - Extension authentication method and token revocation on deactivation.
 - Retention period for logs.
 
 ## Testing rules
+
 Synthetic data only. Never real personal data.
