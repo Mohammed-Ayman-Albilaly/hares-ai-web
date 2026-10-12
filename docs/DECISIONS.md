@@ -48,22 +48,23 @@ Monorepo: web/, api/, contract/ (OpenAPI). ORM and UI library: to be proposed by
 19. Audit trail fields: acting admin, action, target, timestamp, non-sensitive details.
 20. Deactivated users keep their historical logs. Reactivation is done by System Admin.
 21. Log events carry a user_decision field (what the user did after the warning) and an optional rule_id (custom rule that matched). The ingestion contract is versioned with schema_version.
+22. Password policy: minimum 8 characters with at least one uppercase letter, one lowercase letter, one digit, and one symbol. Login uses progressive throttling per account and per source address (increasing delay after repeated failures). There is no hard account lockout.
+23. Logs of a deactivated department stay visible to administrators until the normal 90-day retention purge removes them.
+24. A REJECTED account stays terminal. A System Admin may re-open it to PENDING. Rejected records are not deleted or purged.
 
 ## Schema (adapted from the old ER)
 
 Keep: Department, User, ActivityLog.
 Remove: Prompt, RevisedPrompt, DetectionResult.
 User: status enum (PENDING/ACTIVE/REJECTED/DEACTIVATED), role and department_id nullable until approval, passwordHash, unique email.
-ActivityLog: log_id UUID, user_id, department_id (snapshot), platform, risk_level, action, classification_source, event_time, received_at.
+ActivityLog: log_id UUID, user_id and department_id (both derived server-side from the access token; department is a snapshot), platform, risk_level, action, classification_source, user_decision, rule_id (nullable), schema_version, event_time, received_at.
 LogCategory: log_id, category_code (many per log).
 Add: DataCategory, PolicyCategoryAction, CustomRule, CustomRuleDepartment, PolicyVersion, AdminAuditLog.
 Final schema is produced by the Systems Architect.
 
 ## Open items
 
-- Whether NONE-risk events are logged (volume and retention).
-- Extension authentication method and token revocation on deactivation.
-- Retention period for logs.
+None. All items are resolved by decisions 10-24.
 
 ## Testing rules
 

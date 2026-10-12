@@ -1,6 +1,6 @@
 # Hares AI — Web & Backend API Specification
 
-> Document: `docs/SPEC-WEB.md` · Version 1.1 (draft) · Part of the Hares AI graduation project (web scope).
+> Document: `docs/SPEC-WEB.md` · Version 1.2 (draft) · Part of the Hares AI graduation project (web scope).
 > **Source of truth:** `docs/DECISIONS.md`. Where the source project report (`docs/source/hares-report.txt`) conflicts with DECISIONS.md, DECISIONS.md wins; conflicts are recorded in Section 8.
 > **Conventions:** Requirements are atomic and testable. IDs are `WEB-FR-###` (functional) and `WEB-NFR-###` (non-functional). Each requirement states an actor, a “shall” statement, measurable acceptance criteria, and a Source. Sources are a report requirement ID (e.g. `6.1.4.2`), a report test-case ID (e.g. `TC-9`), `DECISIONS.md #n`, or `NEW`. No technology, library, or database is chosen in this document.
 
@@ -359,9 +359,9 @@ When several categories or rules match a single event, the system SHALL apply th
 
 **WEB-NFR-018 Modular architecture.** The system SHALL be built modularly (separation of public pages, dashboards, and API) so components can be updated independently. **Target:** a change to one component does not require updating unrelated components. **Source:** 6.2.5.2.
 
-**WEB-NFR-019 Password policy.** The system SHALL enforce a minimum password length and a complexity requirement at registration, password change, and password reset. **Target:** minimum length 8 characters; passwords must contain at least one uppercase letter, one lowercase letter, one digit, and one non-alphanumeric character. **Source:** NEW (numeric values to be confirmed — see Section 10).
+**WEB-NFR-019 Password policy.** The system SHALL enforce a minimum password length and a complexity requirement at registration, password change, and password reset. **Target:** minimum length 8 characters; passwords must contain at least one uppercase letter, one lowercase letter, one digit, and one non-alphanumeric character. **Source:** DECISIONS.md #22.
 
-**WEB-NFR-020 Login rate limiting / lockout.** The system SHALL rate-limit failed login attempts and lock the account after repeated failures. **Target:** a user exceeding 5 consecutive failed attempts within 15 minutes is locked out for 30 minutes or until reset by a System Admin. **Source:** NEW (numeric values to be confirmed — see Section 10).
+**WEB-NFR-020 Login throttling.** The system SHALL slow down repeated failed login attempts using a progressive delay per account and per source address, without permanently locking the account. **Target:** after 5 consecutive failures within 15 minutes, each further attempt incurs an increasing delay (doubling, capped at 15 minutes); a successful login or a password reset clears the counter; the response never reveals whether the email exists. **Source:** DECISIONS.md #22.
 
 **WEB-NFR-021 Ingestion contract versioning.** The system SHALL version the ingestion contract with `schema_version` and SHALL reject unknown enum VALUES rather than silently dropping them. **Target:** a payload with an enum value not defined in the current `schema_version` is rejected (HTTP 400) with an actionable error so the extension can retry or alert; adding a new enum value requires a new `schema_version`. **Source:** DECISIONS.md #21, NEW.
 
@@ -476,15 +476,13 @@ The gaps identified in version 1.0 (G1–G12) have been resolved by DECISIONS #1
 | G9 | Whether a User can export their own activity log | DECISIONS #16 (admins only) |
 | G10 | Multiple System Admins / promote or deactivate by another | DECISIONS #17; WEB-FR-060, WEB-FR-061 |
 | G11 | Exact fields and immutability of the admin audit trail | DECISIONS #11/#19; WEB-FR-050, WEB-FR-051, WEB-FR-052 |
-| G12 | Login brute-force / rate limiting | WEB-NFR-020 |
+| G12 | Login brute-force / rate limiting | WEB-NFR-020 (DECISIONS #22) |
 
 > The secondary-classification latency discrepancy (3.1.4 says 1.3 s, 6.2.1.2 says 1.2 s, 15.4 uses 800 ms) is extension-side and out of web scope; it is resolved in the extension spec, not here.
 
 ## 10. Open questions for the product owner
 
-1. **Values for WEB-NFR-019 (password policy) and WEB-NFR-020 (rate limit / lockout).** Reasonable defaults are specified (min 8 chars + complexity; 5 failures / 15 min / 30-min lockout), but the exact length, composition rule, attempt threshold, window, and lockout duration need confirmation. *(G12)*
-2. **Historical logs of a deactivated department.** When a department is deactivated (WEB-FR-056), new ingestion is blocked, but it is not stated whether its already-ingested historical logs remain visible to admins or are handled differently from the 90-day rule. *(DECISIONS #18/#20)*
-3. **Re-registration after `REJECTED` remediation.** WEB-FR-062 requires a System Admin to re-open a `REJECTED` account (set back to `PENDING`). Whether the rejected record should instead be soft-deleted/purged to permit a brand-new registration is not decided.
+No open questions. All previously open items are resolved by DECISIONS #22–#24.
 
 ---
 
