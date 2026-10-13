@@ -51,6 +51,12 @@ Monorepo: web/, api/, contract/ (OpenAPI). ORM and UI library: to be proposed by
 22. Password policy: minimum 8 characters with at least one uppercase letter, one lowercase letter, one digit, and one symbol. Login uses progressive throttling per account and per source address (increasing delay after repeated failures). There is no hard account lockout.
 23. Logs of a deactivated department stay visible to administrators until the normal 90-day retention purge removes them.
 24. A REJECTED account stays terminal. A System Admin may re-open it to PENDING. Rejected records are not deleted or purged.
+25. Activity counters (aggregates) are retained indefinitely and carry no user identity. Only detail logs are purged at 90 days.
+26. The per-user dashboard reads detail logs, so it shows at most the last 90 days.
+27. Deployment assumption: web and API are served from one origin behind a reverse proxy, and the API runs as a single instance.
+28. The extension-facing contract is defined as Zod schemas in contract/ and the OpenAPI document is generated from them.
+29. Registration may reveal that an email is already registered (accepted). Login and password reset never reveal whether an account exists.
+30. The extension session uses an access token of at most 1 hour plus a rotating refresh token that is revocable server-side. The extension never stores the user's password. This refines decision 12.
 
 ## Schema (adapted from the old ER)
 
