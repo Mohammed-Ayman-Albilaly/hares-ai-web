@@ -1,6 +1,6 @@
 # Hares AI — Web & Backend API Specification
 
-> Document: `docs/SPEC-WEB.md` · Version 1.2 (draft) · Part of the Hares AI graduation project (web scope).
+> Document: `docs/SPEC-WEB.md` · Version 1.3 (draft) · Part of the Hares AI graduation project (web scope).
 > **Source of truth:** `docs/DECISIONS.md`. Where the source project report (`docs/source/hares-report.txt`) conflicts with DECISIONS.md, DECISIONS.md wins; conflicts are recorded in Section 8.
 > **Conventions:** Requirements are atomic and testable. IDs are `WEB-FR-###` (functional) and `WEB-NFR-###` (non-functional). Each requirement states an actor, a “shall” statement, measurable acceptance criteria, and a Source. Sources are a report requirement ID (e.g. `6.1.4.2`), a report test-case ID (e.g. `TC-9`), `DECISIONS.md #n`, or `NEW`. No technology, library, or database is chosen in this document.
 
@@ -133,7 +133,7 @@ _Acceptance:_ Given a fresh deployment with no users, when the seed runs, then e
 _Acceptance:_ Given at least one `PENDING` account, when the System Admin opens “Pending Approvals”, then the list shows each with name, email, and registration timestamp. **Source:** DECISIONS.md #3.
 
 **WEB-FR-010 Approve pending user.** The system SHALL allow a System Admin to approve a `PENDING` account by assigning a department and a role, transitioning it to `ACTIVE`. **Actor:** System Admin.
-_Acceptance:_ Given a `PENDING` account, when the System Admin selects a department and a role (`DEPARTMENT_ADMIN` or `USER`; `SYSTEM_ADMIN` is not selectable here — see WEB-FR-060) and approves, then the account becomes `ACTIVE` with those values and can log in. **Source:** DECISIONS.md #3.
+_Acceptance:_ Given a `PENDING` account, when the System Admin selects a department and a role (`DEPARTMENT_ADMIN` or `USER`; `SYSTEM_ADMIN` is not selectable here — see WEB-FR-060) and approves, then the account becomes `ACTIVE` with those values and can log in; only an `ACTIVE` department can be selected. **Source:** DECISIONS.md #3.
 
 **WEB-FR-011 Reject pending user.** The system SHALL allow a System Admin to reject a `PENDING` account, transitioning it to `REJECTED`. **Actor:** System Admin.
 _Acceptance:_ Given a `PENDING` account, when the System Admin rejects with confirmation, then the status becomes `REJECTED` and it cannot log in. **Source:** DECISIONS.md #3.
@@ -148,7 +148,7 @@ _Acceptance:_ Given a `DEACTIVATED` user, when the System Admin reactivates with
 _Acceptance:_ Given an authenticated user, when they open their profile page, then the page shows their name, email, department (or “none” if pending), and role. **Source:** NEW.
 
 **WEB-FR-058 Change own password.** The system SHALL allow an authenticated user to change their own password by providing their current password and a new password meeting policy. **Actor:** User (all roles).
-_Acceptance:_ Given an authenticated user, when they submit their current password and a new password meeting policy, then the new password is stored (WEB-NFR-004) and the change is effective on next login. Given an incorrect current password or a new password violating policy, then the change is rejected with a message. **Source:** NEW.
+_Acceptance:_ Given an authenticated user, when they submit their current password and a new password meeting policy, then the new password is stored (WEB-NFR-004), all existing access and refresh tokens of the user are revoked (WEB-FR-059), and a new session is issued for the current device. Given an incorrect current password or a new password violating policy, then the change is rejected with a message. **Source:** NEW.
 
 **WEB-FR-062 Re-registration after REJECTED.** The system SHALL not allow a `REJECTED` account to re-register with the same email through the register page; the email remains reserved, and a System Admin must re-open the account to allow access. **Actor:** Visitor, System.
 _Acceptance:_ Given an email on a `REJECTED` record, when a visitor attempts to register with that email, then registration is rejected with “email already in use”. Given a `REJECTED` account, when a System Admin re-opens it, then the status becomes `PENDING` and the normal approval flow applies. **Source:** DECISIONS.md #24.
@@ -165,7 +165,7 @@ _Acceptance:_ Given an `ACTIVE` user, when the System Admin deactivates with con
 _Acceptance:_ Given an `ACTIVE` user in the department admin's department, when they deactivate with confirmation, then status becomes `DEACTIVATED` and the user cannot log in. Given a user outside the department, when they attempt deactivation, then it is denied. **Source:** 6.1.7.2, TC-10.
 
 **WEB-FR-016 Change user department.** The system SHALL allow a System Admin to change a user's department to another department. **Actor:** System Admin.
-_Acceptance:_ Given a user, when the System Admin assigns a different department, then the user's department is updated and the change is recorded in the audit trail. **Source:** 6.1.6.5.
+_Acceptance:_ Given a user, when the System Admin assigns a different department, tthen the user's department is updated and the change is recorded in the audit trail; only an `ACTIVE` department can be selected.hen the user's department is updated and the change is recorded in the audit trail. **Source:** 6.1.6.5.
 
 **WEB-FR-017 Assign role.** The system SHALL allow a System Admin to assign a user the `DEPARTMENT_ADMIN` or `USER` role. **Actor:** System Admin.
 _Acceptance:_ Given a user, when the System Admin assigns the `DEPARTMENT_ADMIN` or `USER` role, then the role is updated and the user's next login redirects to the corresponding dashboard; the change is recorded in the audit trail. (`SYSTEM_ADMIN` is assigned via WEB-FR-060, not here.) **Source:** 6.1.6.6, TC-9/TC-10.
@@ -186,7 +186,7 @@ _Acceptance:_ Given an existing department, when the System Admin renames it, th
 _Acceptance:_ Given an `ACTIVE` department, when the System Admin deactivates it with confirmation, then the department is deactivated, ingested events from that department's users are rejected at ingestion, and the action is recorded in the audit trail. Given an already-deactivated department, when logs for its users are posted, then they are rejected. Historical logs of the department remain visible until purged by the retention rule (WEB-FR-067). **Source:** DECISIONS.md #18, #23.
 
 **WEB-FR-060 Grant / revoke SYSTEM_ADMIN.** The system SHALL allow an existing System Admin to grant or revoke the `SYSTEM_ADMIN` role to or from another `ACTIVE` user, enabling multiple System Admins. **Actor:** System Admin.
-_Acceptance:_ Given an `ACTIVE`, non-System-Admin user, when a System Admin grants `SYSTEM_ADMIN`, then the user becomes a System Admin and can access System Admin features. Given a System Admin, when another System Admin revokes the role, then the user loses System Admin access and is reassigned to a non-`SYSTEM_ADMIN` role. **Source:** DECISIONS.md #17.
+_Acceptance:_ Given an `ACTIVE`, non-System-Admin user, when a System Admin grants `SYSTEM_ADMIN`, then the user becomes a System Admin and can access System Admin features. Given a System Admin, when another System Admin revokes the role, then the user loses System Admin access; the revoking System Admin SHALL choose the new role (`DEPARTMENT_ADMIN` or `USER`) and an `ACTIVE` department for that user. **Source:** DECISIONS.md #17.
 
 **WEB-FR-061 Cannot deactivate or demote self.** The system SHALL prevent any user from deactivating or demoting their own account. **Actor:** System (enforced).
 _Acceptance:_ Given an authenticated user, when they attempt to deactivate or demote their own account (including a System Admin revoking their own `SYSTEM_ADMIN`), then the operation is denied (403) and no state change occurs. **Source:** DECISIONS.md #17.
@@ -293,8 +293,8 @@ When several categories or rules match a single event, the system SHALL apply th
 
 ### 4.6 Extension-facing API
 
-**WEB-FR-043 Extension login.** The system SHALL allow the extension to authenticate a user via email and password and return an access token scoped to that user. **Actor:** Extension.
-_Acceptance:_ Given valid `ACTIVE` credentials, when the extension requests login, then an access token is returned for the user; `PENDING`/`REJECTED`/`DEACTIVATED` accounts are denied. **Source:** 6.1.1.2, 8.2.1; authentication method (access token per DECISIONS #12) **Source:** DECISIONS.md #12.
+**WEB-FR-043 Extension login.** The system SHALL allow the extension to authenticate a user via email and password and return a short-lived access token and a rotating refresh token scoped to that user (DECISIONS #30). **Actor:** Extension.
+_Acceptance:_ Given valid `ACTIVE` credentials, when the extension requests login, then an access token (1 hour or less) and a refresh token are returned for the user; `PENDING`/`REJECTED`/`DEACTIVATED` accounts are denied. **Source:** 6.1.1.2, 8.2.1, DECISIONS.md #12, #30.
 
 **WEB-FR-044 Policy bundle endpoint.** The system SHALL provide the policy bundle fetch endpoint used by the extension (see WEB-FR-042). **Actor:** Extension.
 _Acceptance:_ Given an authenticated extension session, when it calls the bundle endpoint, then the applicable policy bundle (org rules + department policy) with version is returned. **Source:** DECISIONS.md #5–#7.
@@ -317,9 +317,18 @@ _Acceptance:_ Given an event with an invalid enum value, when posted, then it is
 **WEB-FR-059 Extension token revocation.** The system SHALL revoke a user's extension access tokens immediately when that account is deactivated or rejected, or when its password is changed or reset. **Actor:** System.
 _Acceptance:_ Given a valid extension token, when the account is deactivated, rejected, or its password changes, then any later request with that token is denied (401). **Source:** DECISIONS.md #12; password-change revocation **Source:** NEW.
 
+**WEB-FR-068 Extension token refresh.** The system SHALL allow the extension to exchange a valid refresh token for a new access token and a new refresh token, and SHALL revoke the whole token family when an already-used refresh token is presented again. **Actor:** Extension.
+_Acceptance:_ Given a valid refresh token, when the extension requests a refresh, then a new access token (1 hour or less) and a new refresh token are returned and the old refresh token becomes unusable. Given a refresh token that was already used, when it is presented again, then the request is denied (401) and every token of that family is revoked. Given an expired or revoked refresh token, then the request is denied (401). **Source:** DECISIONS.md #30.
+
+**WEB-FR-069 Department Admin read-only policy view.** The system SHALL allow a Department Admin to view, read-only, the effective policy and the custom detection rules that apply to their department. **Actor:** Department Admin.
+_Acceptance:_ Given a Department Admin session, when they open the policy or rules page, then the effective category actions and applicable rules are listed and no create, edit, enable, or disable control is available; any write request is denied (403). **Source:** DECISIONS.md #14, permission matrix.
+
+**WEB-FR-070 Bundle for a user without a department.** The system SHALL return, for a user with no department, a policy bundle containing only the organization default policy and the organization-wide custom rules. **Actor:** Extension.
+_Acceptance:_ Given a System Admin with no department, when the extension fetches the bundle, then the bundle contains organization defaults and organization-wide rules only. **Source:** NEW (WEB-FR-064).
+
 ### 4.7 Audit trail of admin actions
 
-**WEB-FR-050 Record admin actions.** The system SHALL record an audit entry for each privileged administrative action: account approve/reject, reactivate, deactivate, role change (including grant/revoke `SYSTEM_ADMIN`), department change, department create/rename/deactivate, policy change, and custom rule change. **Actor:** System.
+**WEB-FR-050 Record admin actions.** The system SHALL record an audit entry for each privileged administrative action: account approve/reject, reactivate, deactivate, re-opening of a rejected account, role change (including grant/revoke `SYSTEM_ADMIN`), department change, department create/rename/deactivate, policy change, and custom rule change. **Actor:** System.
 _Acceptance:_ Given an admin performs one of the listed actions, when the action commits, then an audit entry is written with acting admin id, action, target, and timestamp. **Source:** DECISIONS.md #3 (AdminAuditLog), #19, TC-9.
 
 **WEB-FR-051 View audit trail.** The system SHALL allow a System Admin to view the audit trail with timestamp, acting admin, action, and target. **Actor:** System Admin.
@@ -413,6 +422,11 @@ Full name, email, password hash, role, department_id, status, registration/appro
 ### What the backend MAY store for admin audit
 
 Acting admin id, action type, target user id / target resource, timestamp, and any non-sensitive detail. It must never include prompt text.
+
+### What the backend MAY store for sessions and aggregates
+
+- **Sessions:** hashed refresh tokens (with a family id and a used flag) and hashed password-reset tokens with their expiry. Never plaintext tokens.
+- **Aggregates:** event-level and category-level counters that carry no user identity (DECISIONS #25).
 
 ### What the backend MUST NEVER store anywhere (any table, request, response, or log)
 

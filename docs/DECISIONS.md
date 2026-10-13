@@ -9,7 +9,7 @@ Source requirements: Hares AI project report (Part-I). Any technology named ther
 ## Stack
 
 TypeScript everywhere. React (Vite), NestJS, PostgreSQL.
-Monorepo: web/, api/, contract/ (OpenAPI). ORM and UI library: to be proposed by the architect.
+Monorepo: web/, api/, contract/ (Zod schemas, generated OpenAPI). ORM: Prisma. UI: shadcn/ui with Radix and Tailwind (pending evaluation of the DGA Platform Code library).
 
 ## Decisions
 
@@ -65,12 +65,12 @@ Remove: Prompt, RevisedPrompt, DetectionResult.
 User: status enum (PENDING/ACTIVE/REJECTED/DEACTIVATED), role and department_id nullable until approval, passwordHash, unique email.
 ActivityLog: log_id UUID, user_id and department_id (both derived server-side from the access token; department is a snapshot), platform, risk_level, action, classification_source, user_decision, rule_id (nullable), schema_version, event_time, received_at.
 LogCategory: log_id, category_code (many per log).
-Add: DataCategory, PolicyCategoryAction, CustomRule, CustomRuleDepartment, PolicyVersion, AdminAuditLog.
+Add: DataCategory, PolicyCategoryAction, CustomRule, CustomRuleDepartment, PolicyVersion, AdminAuditLog, EventCounter, CategoryCounter, RefreshToken (hashed), PasswordResetToken (hashed).
 Final schema is produced by the Systems Architect.
 
 ## Open items
 
-None. All items are resolved by decisions 10-24.
+None. All items are resolved by decisions 10-30.
 
 ## Testing rules
 
