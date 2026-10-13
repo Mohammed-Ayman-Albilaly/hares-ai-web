@@ -134,7 +134,36 @@ flowchart TB
   OAS -. "generates types" .-> Ext
 ```
 
-**(b) Extension login, policy bundle fetch, refresh + re-login fallback (G2)**
+**(b) Extension login, policy bundle fetch, refresh + re-login fallback**
+
+```mermaid
+sequenceDiagram
+  participant E as Extension
+  participant A as API
+  participant DB as PostgreSQL
+  E->>A: POST /extension/login (email, password)
+  A->>DB: verify ACTIVE + password hash
+  A-->>E: 200 { accessToken(1h), refreshToken }
+  E->>A: GET /policy/bundle (Bearer, If-None-Match: ETag)
+  A->>DB: read bundle for user's scope/department
+  alt unchanged version
+    A-->>E: 304 Not Modified
+  else changed
+    A-->>E: 200 { version, orgPolicy, departmentPolicy, rules } + ETag
+  end
+  Note over E: access token expires (~1h)
+  E->>A: POST /extension/refresh (refreshToken)
+  A->>DB: validate + rotate refresh family
+  alt valid
+    A->>DB: mark old refresh used, mint new pair
+    A-->>E: 200 { accessToken(1h), refreshToken (rotated) }
+  else expired / revoked / replay detected
+    A-->>E: 401 Unauthorized
+    Note over E: fall back to re-login prompt
+  end
+```
+
+**(c) Log ingestion with rejection paths**
 
 ```mermaid
 sequenceDiagram
@@ -169,31 +198,6 @@ sequenceDiagram
   end
 ```
 
-**(c) Log ingestion with rejection paths (G2)**
-
-```mermaid
-sequenceDiagram
-  participant E as Extension
-  participant A as API
-  participant DB as PostgreSQL
-  E->>A: POST /logs (Bearer token, allowlisted event)
-  alt payload too large or per-user rate limit exceeded
-    A-->>E: 413 / 429 Rejected
-  else unknown field, or enum invalid for schema_version
-    A-->>E: 400 { unknown field } / { invalid enum, accepted values }
-  else token invalid, expired or revoked
-    A-->>E: 401 Unauthorized
-  else user not ACTIVE, or department inactive
-    A-->>E: 403 { reason }
-  else duplicate log_id
-    A->>DB: insert ON CONFLICT DO NOTHING RETURNING
-    A-->>E: 200 idempotent ack (no new row)
-  else valid
-    A->>DB: insert ActivityLog + LogCategory; increment counters (same tx)
-    A-->>E: 201 accepted
-  end
-```
-
 **(d) Register → Pending → Approve**
 
 ```mermaid
@@ -208,7 +212,7 @@ sequenceDiagram
   SA->>A: GET /admin/users/pending
   A-->>SA: 200 list of PENDING
   SA->>A: POST /admin/users/:id/approve (department, role)
-  A->>DB: set ACTIVE, role, department; write audit entry
+  A->>DB: set ACTIVE, role, department, write audit entry
   A-->>SA: 200 { user }
 ```
 
