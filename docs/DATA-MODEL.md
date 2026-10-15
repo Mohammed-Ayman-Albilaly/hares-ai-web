@@ -59,3 +59,199 @@ Notes:
 - LoginAttempt is standalone (keyed by account email or source address).
 - PolicyVersion is a single counter row, no relationships. The policy bundle is built from the current rows.
 - AdminAuditLog target is polymorphic (target_type and target_id), no foreign key for the target.
+
+## L1: Columns, types and nullability
+
+### Enums (all, once)
+
+| Enum (PG type) | Values |
+|---|---|
+| `user_status` | `PENDING`, `ACTIVE`, `REJECTED`, `DEACTIVATED` |
+| `role` | `SYSTEM_ADMIN`, `DEPARTMENT_ADMIN`, `USER` |
+| `rule_kind` | `PATTERN`, `KEYWORD`, `TOPIC` |
+| `risk_level` | `HIGH`, `MEDIUM`, `LOW`, `NONE` |
+| `log_action` | `BLOCKED`, `WARNED`, `ALLOWED` |
+| `classification_source` | `LOCAL`, `LOCAL_AI`, `LOCAL_ONLY_FALLBACK` |
+| `user_decision` | `NONE`, `SUBMITTED_ANYWAY`, `EDITED`, `REVISION_USED`, `CANCELLED` |
+| `policy_action` | `ALLOW`, `WARN`, `BLOCK` |
+| `platform` | `CHATGPT`, `GEMINI`, `CLAUDE` |
+| `rule_scope` | `ORG_WIDE`, `DEPARTMENTS` |
+| `audit_action_type` | `USER_APPROVED`, `USER_REJECTED`, `USER_REOPENED`, `USER_DEACTIVATED`, `USER_REACTIVATED`, `USER_ROLE_CHANGED`, `USER_DEPARTMENT_CHANGED`, `SYSTEM_ADMIN_GRANTED`, `SYSTEM_ADMIN_REVOKED`, `DEPARTMENT_CREATED`, `DEPARTMENT_RENAMED`, `DEPARTMENT_DEACTIVATED`, `POLICY_CHANGED`, `RULE_CHANGED` |
+| `target_type` | `USER`, `DEPARTMENT`, `CUSTOM_RULE`, `POLICY` |
+| `key_type` | `ACCOUNT`, `SOURCE` |
+
+### 1. Department
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK (D#18/#23). |
+| `name` | `text` | no | — | Unique; deferred (D#18/#23). |
+| `active` | `boolean` | no | `true` | `active/status` (D#18/#23). |
+
+### 2. User
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK (D#3). |
+| `full_name` | `text` | no | — | Full name (D#3). |
+| `email` | `text` | no | — | Unique; deferred (D#3). |
+| `password_hash` | `text` | no | — | One-way hash (WEB-NFR-004). |
+| `role` | `role` | yes | — | Null until approval (D#3). |
+| `department_id` | `uuid` (FK → Department) | yes | — | Null until approval (D#3). |
+| `approved_by` | `uuid` (FK → User) | yes | — | Approving admin; optional. |
+| `status` | `user_status` | no | `PENDING` | Defaults to PENDING (D#3). |
+| `token_version` | `integer` | no | `0` | Revocation counter (D#12). |
+| `registered_at` | `timestamptz` | no | — | Registration (D#3). |
+| `approved_at` | `timestamptz` | yes | — | Approval (D#3). |
+
+### 3. DataCategory
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `category_code` | `text` | no | — | PK; stable UPPER_SNAKE (decision 2). |
+| `name` | `text` | no | — | Name (SPEC §7). |
+| `default_risk_level` | `risk_level` | no | — | Default risk (SPEC §7). |
+
+### 4. PolicyVersion
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK (D#5/#6/#7). |
+| `version` | `integer` | no | — | Global incremental; ETag source (D#5/#6/#7). |
+
+### 5. PolicyCategoryAction
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK; surrogate. |
+| `department_id` | `uuid` (FK → Department) | yes | — | NULL = org default (D#6). |
+| `category_code` | `text` (FK → DataCategory) | no | — | Per category (D#6). |
+| `action` | `policy_action` | no | — | ALLOW/WARN/BLOCK (D#6). |
+| `enabled` | `boolean` | no | `true` | Enabled flag (D#6). |
+
+### 6. CustomRule
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK (D#5). |
+| `created_by` | `uuid` (FK → User) | no | — | Creator. |
+| `kind` | `rule_kind` | no | — | PATTERN/KEYWORD/TOPIC (D#5). |
+| `name` | `text` | no | — | Name (D#5). |
+| `definition` | `text` | no | — | PATTERN ≤512 & ReDoS; TOPIC free text; KEYWORD one per line (D#5). |
+| `risk_level` | `risk_level` | no | — | Risk level (D#5). |
+| `action` | `policy_action` | no | — | ALLOW/WARN/BLOCK (D#5). |
+| `scope` | `rule_scope` | no | — | ORG_WIDE/DEPARTMENTS (D#5). |
+| `enabled` | `boolean` | no | `true` | Enabled flag (D#5). |
+
+### 7. CustomRuleDepartment
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `custom_rule_id` | `uuid` (FK → CustomRule) | no | — | Composite PK part (D#5). |
+| `department_id` | `uuid` (FK → Department) | no | — | Composite PK part (D#5). |
+
+*PK = `(custom_rule_id, department_id)`.*
+
+### 8. ActivityLog
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `log_id` | `uuid` | no | — | PK; unique index (D#2/#8/#21). |
+| `user_id` | `uuid` (FK → User) | no | — | From token (D#2). |
+| `department_id` | `uuid` (FK → Department) | yes | — | Snapshot; null for System Admin (D#2). |
+| `platform` | `platform` | no | — | Platform (SPEC §6). |
+| `risk_level` | `risk_level` | no | — | Risk level (SPEC §6). |
+| `action` | `log_action` | no | — | BLOCKED/WARNED/ALLOWED (SPEC §6). |
+| `classification_source` | `classification_source` | no | — | Source (SPEC §6). |
+| `user_decision` | `user_decision` | no | — | Decision (SPEC §6; D#21). |
+| `rule_id` | `uuid` (FK → CustomRule) | yes | — | Null when no rule (ARCH §5). |
+| `schema_version` | `integer` | no | — | Starts at 1 (decision 5). |
+| `event_time` | `timestamptz` | no | — | Event time (SPEC §6). |
+| `received_at` | `timestamptz` | no | — | Received time (SPEC §6). |
+
+### 9. LogCategory
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `log_id` | `uuid` (FK → ActivityLog) | no | — | Composite PK part; many per log (DECISIONS; SPEC §6). |
+| `category_code` | `text` (FK → DataCategory) | no | — | Composite PK part (DECISIONS; SPEC §6). |
+
+*PK = `(log_id, category_code)`.*
+
+### 10. EventCounter
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | Surrogate PK (nullable keys). |
+| `day` | `date` | no | — | Day in UTC (ARCH §5; D#25). |
+| `department_id` | `uuid` (FK → Department) | yes | — | NULL = System Admin / org-wide (ARCH §5; D#25). |
+| `platform` | `platform` | no | — | Platform (ARCH §5). |
+| `risk_level` | `risk_level` | no | — | Risk level (ARCH §5). |
+| `action` | `log_action` | no | — | Rolls up log action (DECISIONS). |
+| `user_decision` | `user_decision` | no | — | Decision (SPEC §6; D#21). |
+| `rule_id` | `uuid` (FK → CustomRule) | yes | — | NULL when no rule (ARCH §5). |
+| `event_count` | `bigint` | no | `0` | Count (ARCH §5). |
+
+*Totals only; no user identity; key uniqueness via `NULLS NOT DISTINCT` deferred (L2).*
+
+### 11. CategoryCounter
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | Surrogate PK (nullable keys). |
+| `day` | `date` | no | — | Day in UTC (ARCH §5). |
+| `department_id` | `uuid` (FK → Department) | yes | — | NULL = org-wide (ARCH §5). |
+| `platform` | `platform` | no | — | Platform (ARCH §5). |
+| `category_code` | `text` (FK → DataCategory) | no | — | Per-category (ARCH §5). |
+| `risk_level` | `risk_level` | no | — | Risk level (ARCH §5). |
+| `event_count` | `bigint` | no | `0` | Count (ARCH §5). |
+
+*Same as EventCounter; uniqueness via `NULLS NOT DISTINCT` deferred (L2).*
+
+### 12. AdminAuditLog
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK; surrogate. |
+| `acting_admin_id` | `uuid` (FK → User) | no | — | Acting admin (D#11/#19). |
+| `action_type` | `audit_action_type` | no | — | Admin action (D#11/#19). |
+| `target_type` | `target_type` | no | — | Polymorphic target kind (D#11/#19). |
+| `target_id` | `uuid` | yes | — | Polymorphic; POLICY = dept id, NULL = org default (D#11/#19). |
+| `created_at` | `timestamptz` | no | — | Timestamp (D#11/#19). |
+| `detail` | `jsonb` | yes | — | Before/after; never prompt text (D#11/#19). |
+
+*Append-only; no update/delete; never purged.*
+
+### 13. RefreshToken
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK; surrogate. |
+| `user_id` | `uuid` (FK → User) | no | — | Owner (D#12/#30). |
+| `token_hash` | `text` | no | — | Hashed; never plaintext (D#12/#30). |
+| `family_id` | `uuid` | no | — | Family; reuse revokes family (D#12/#30). |
+| `used` | `boolean` | no | `false` | Used flag; rotated (D#12/#30). |
+| `token_version` | `integer` | no | — | Carries token_version (D#12/#30). |
+| `expires_at` | `timestamptz` | no | — | Expiry (D#12/#30). |
+
+### 14. PasswordResetToken
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `id` | `uuid` | no | — | PK; surrogate. |
+| `user_id` | `uuid` (FK → User) | no | — | Owner (D#15). |
+| `token_hash` | `text` | no | — | Hashed; never plaintext (D#15). |
+| `used` | `boolean` | no | `false` | Single-use (D#15). |
+| `expires_at` | `timestamptz` | no | — | 30-minute expiry (D#15). |
+
+### 15. LoginAttempt
+
+| Column | Type | Nullable | Default | Note |
+|---|---|---|---|---|
+| `key` | `text` | no | — | Composite PK part; hash of normalized email/address. |
+| `key_type` | `key_type` | no | — | Composite PK part; ACCOUNT/SOURCE (D#22). |
+| `failure_count` | `integer` | no | `0` | Failure counter; progressive delay (D#22). |
+| `window_start` | `timestamptz` | no | — | Window start; 5-in-15 rule (D#22). |
+| `next_allowed_at` | `timestamptz` | yes | — | Next allowed; NULL when none (D#22). |
+
+*PK = `(key, key_type)`; standalone (no user FK); survives restarts; no hard lockout.*
