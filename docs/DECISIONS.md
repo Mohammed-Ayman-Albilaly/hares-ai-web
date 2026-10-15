@@ -57,6 +57,7 @@ Monorepo: web/, api/, contract/ (Zod schemas, generated OpenAPI). ORM: Prisma. U
 28. The extension-facing contract is defined as Zod schemas in contract/ and the OpenAPI document is generated from them.
 29. Registration may reveal that an email is already registered (accepted). Login and password reset never reveal whether an account exists.
 30. The extension session uses an access token of at most 1 hour plus a rotating refresh token that is revocable server-side. The extension never stores the user's password. This refines decision 12.
+31. Policy, logs and dashboards work at the level of the 24 data categories. Organization-specific data types are handled by custom detection rules. The category codes are stable UPPER_SNAKE strings shared with the extension and are listed in docs/DATA-MODEL-BRIEF.md.
 
 ## Schema (adapted from the old ER)
 
