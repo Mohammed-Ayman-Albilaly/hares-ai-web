@@ -331,3 +331,53 @@ Users, departments, categories and rules are **never deleted** (only deactivated
 | AdminAuditLog | `BEFORE UPDATE` + `BEFORE DELETE` → raise (append-only; no mutate/purge) | Raw SQL |
 | ActivityLog | `BEFORE UPDATE` → raise; **do NOT** block DELETE (purge is allowed). Recommend blocking UPDATE since rows are immutable after insert. | Raw SQL |
 | AdminAuditLog | `BEFORE TRUNCATE` (statement-level) → raise. Also `REVOKE UPDATE, DELETE, TRUNCATE ON "AdminAuditLog" FROM <app_role>` so the application's database role cannot mutate it even if a trigger is dropped. | Raw SQL |
+
+## L3: Indexes
+
+### Indexes (10)
+
+| Table | Columns (in order) | Purpose / queries served | Prisma or raw SQL |
+|---|---|---|---|
+| ActivityLog | `(department_id, event_time, log_id)` | Admin log review for one department — department equality, date range, `event_time DESC, log_id DESC`, keyset. | Prisma |
+| ActivityLog | `(event_time, log_id)` | Admin review across all departments (date range + newest-first + keyset); also the 90-day retention purge `WHERE event_time < cutoff`. | Prisma |
+| ActivityLog | `(user_id, event_time, log_id)` | A user's own log, newest first; also supports "Blocked Messages" (`action = 'BLOCKED'` via residual filter) and Query 1's optional `user_id` filter. | Prisma |
+| User | `(status, registered_at)` | Pending approvals — `status = 'PENDING'`, oldest first. | Prisma |
+| User | `(department_id, status)` | User management lists by department + status. | Prisma |
+| AdminAuditLog | `(created_at, id)` | Audit trail newest-first, no filter; `id` tiebreaks identical `created_at` and anchors keyset. | Prisma |
+| RefreshToken | `(family_id)` | Reuse detection — fetch/revoke every token in a family. | Prisma |
+| RefreshToken | `(user_id)` | Revoke/deactivate all of a user's tokens (logout-all, deactivation). | Prisma |
+| RefreshToken | `(expires_at)` | Cleanup of expired tokens (`expires_at < now()`). | Prisma |
+| LogCategory | `(category_code, log_id)` | Reverse of the PK — find/group logs by `category_code`; also makes the optional category filter cheap. | Prisma |
+
+*All 10 are plain composite B-tree indexes, expressed via Prisma `@@index` (ascending; `DESC` order is achieved by backward scan). No partial/functional/`NULLS NOT DISTINCT` indexes remain, so no raw SQL.*
+
+### Indexes deliberately NOT created
+
+| Index | Reason |
+|---|---|
+| ActivityLog `(user_id, event_time, log_id) WHERE action='BLOCKED'` (partial) | Dropped — the kept `(user_id, event_time, log_id)` index already serves "Blocked Messages" via a residual `action = 'BLOCKED'` filter; the extra index was redundant (and raw SQL). |
+| AdminAuditLog `(acting_admin_id, created_at, id)` | Dropped — the global `(created_at, id)` index covers the default newest-first trail; acting-admin is a residual filter unless that drill-down is hot. |
+| AdminAuditLog `(target_type, target_id, created_at, id)` | Dropped — polymorphic target drill-down is residual over the time scan; target-type lookups are uncommon. |
+| PasswordResetToken `(expires_at)` | Dropped — reset tokens are short-lived (30 min) and low-volume; the cleanup `WHERE expires_at < now()` is a cheap scan. |
+| CustomRule `(enabled, scope)` | Dropped — tiny reference table (dozens of rows); policy-bundle build is a trivial full scan. |
+| ActivityLog optional-filter combos (`risk_level`, `platform`, `user_decision`, ...) | Each is optional and may be absent, so it can't be a fixed leading prefix; inserting one before `event_time` breaks the date-range + ordering/keyset. Applied as residual filters over the time scan. |
+| ActivityLog dedicated `(event_time DESC, log_id DESC)` | Redundant — ascending `(event_time, log_id)` scanned backward yields the same order. |
+| EventCounter / CategoryCounter covering index including `event_count` | Unique keys already contain every group-by column; only `event_count` needs a heap fetch, acceptable since the day/dept predicate already narrows rows. |
+| CustomRuleDepartment reverse `(department_id, custom_rule_id)` | PK `(custom_rule_id, department_id)` already serves the per-rule `EXISTS` probe; table is tiny. |
+| RefreshToken `(revoked_at)` | Only needed if long-revoked rows are also purged (beyond "expired" as stated). |
+| User partial `(registered_at) WHERE status='PENDING'` | Skipped in favor of the Prisma-expressible composite `(status, registered_at)`. |
+| AdminAuditLog `(created_at)` without `id` | `id` is folded in as the tiebreak. |
+| ActivityLog `received_at` | Not needed — retention stays on `event_time`; ingestion validates `event_time` (rejects future > 5 min and older than 90 days), so no received-time index. |
+
+### New index count per table
+
+| Table | New indexes |
+|---|---|
+| ActivityLog | 3 |
+| RefreshToken | 3 |
+| User | 2 |
+| AdminAuditLog | 1 |
+| LogCategory | 1 |
+| **Total** | **10** |
+
+Tables with **zero new indexes** (covered by existing PK/unique): EventCounter, CategoryCounter, PolicyCategoryAction, CustomRuleDepartment, DataCategory, PolicyVersion, LoginAttempt, Department, PasswordResetToken.
