@@ -25,7 +25,7 @@
 | DataCategory | CategoryCounter | one-to-many | CategoryCounter (`category_code`) | — |
 
 
-### Entities
+### Diagram
 
 ```mermaid
 erDiagram
@@ -116,8 +116,8 @@ Notes:
 
 | Column | Type | Nullable | Default | Note |
 |---|---|---|---|---|
-| `id` | `uuid` | no | — | PK (D#5/#6/#7). |
-| `version` | `integer` | no | — | Global incremental; ETag source (D#5/#6/#7). |
+| `id` | `smallint` | no | — | PRIMARY KEY CHECK (id = 1). |
+| `version` | `integer` | no | `1` | Global incremental; ETag source (D#5/#6/#7). |
 
 ### 5. PolicyCategoryAction
 
@@ -217,7 +217,7 @@ Notes:
 | `action_type` | `audit_action_type` | no | — | Admin action (D#11/#19). |
 | `target_type` | `target_type` | no | — | Polymorphic target kind (D#11/#19). |
 | `target_id` | `uuid` | yes | — | Polymorphic; POLICY = dept id, NULL = org default (D#11/#19). |
-| `created_at` | `timestamptz` | no | — | Timestamp (D#11/#19). |
+| `created_at` | `timestamptz` | no | `now()` | Timestamp (D#11/#19). |
 | `detail` | `jsonb` | yes | — | Before/after; never prompt text (D#11/#19). |
 
 *Append-only; no update/delete; never purged.*
@@ -233,6 +233,8 @@ Notes:
 | `used` | `boolean` | no | `false` | Used flag; rotated (D#12/#30). |
 | `token_version` | `integer` | no | — | Carries token_version (D#12/#30). |
 | `expires_at` | `timestamptz` | no | — | Expiry (D#12/#30). |
+| `revoked_at` | `timestamptz` | yes | — | Set when the family is revoked (reuse detected, logout, deactivation) (D#12/#30). |
+| `created_at` | `timestamptz` | no | now() | — |
 
 ### 14. PasswordResetToken
 
@@ -243,6 +245,8 @@ Notes:
 | `token_hash` | `text` | no | — | Hashed; never plaintext (D#15). |
 | `used` | `boolean` | no | `false` | Single-use (D#15). |
 | `expires_at` | `timestamptz` | no | — | 30-minute expiry (D#15). |
+| `created_at` | `timestamptz` | no | now() | — |
+
 
 ### 15. LoginAttempt
 
@@ -255,3 +259,75 @@ Notes:
 | `next_allowed_at` | `timestamptz` | yes | — | Next allowed; NULL when none (D#22). |
 
 *PK = `(key, key_type)`; standalone (no user FK); survives restarts; no hard lockout.*
+
+## L2: Constraints and integrity rules
+
+### 1. UNIQUE
+
+| Constraint | Definition | Prisma? |
+|---|---|---|
+| User.email (case-insensitive) | `CREATE UNIQUE INDEX uq_user_email_lower ON "User" (lower(email));` | Raw SQL |
+| Department.name (case-insensitive) | `CREATE UNIQUE INDEX uq_department_name_lower ON "Department" (lower(name));` | Raw SQL |
+| PolicyCategoryAction `(department_id, category_code)` | `CREATE UNIQUE INDEX ... ON "PolicyCategoryAction" (department_id, category_code) NULLS NOT DISTINCT;` | Raw SQL |
+| EventCounter all key columns | `(day, department_id, platform, risk_level, action, user_decision, rule_id) NULLS NOT DISTINCT` | Raw SQL |
+| CategoryCounter all key columns | `(day, department_id, platform, category_code, risk_level) NULLS NOT DISTINCT` | Raw SQL |
+| RefreshToken.token_hash | `@unique` | Plain DDL |
+| PasswordResetToken.token_hash | `@unique` | Plain DDL |
+| LoginAttempt `(key_type, key)` | covered by PK (no extra index) | Plain DDL |
+
+### 2. CHECK (all Raw SQL — Prisma has no CHECK)
+
+| Table | CHECK |
+|---|---|
+| User | `CHK_User_status_role`: `((status IN ('PENDING','REJECTED') AND role IS NULL AND department_id IS NULL) OR (status IN ('ACTIVE','DEACTIVATED') AND role IS NOT NULL))` |
+| User | `CHK_User_role_department`: `(role IS NULL OR role = 'SYSTEM_ADMIN' OR department_id IS NOT NULL)` |
+| EventCounter | `event_count >= 0` |
+| CategoryCounter | `event_count >= 0` |
+| ActivityLog | `schema_version >= 1` |
+| PolicyVersion | `version >= 1`; single row via `id smallint PRIMARY KEY CHECK (id = 1)` |
+| CustomRule | `(kind <> 'PATTERN' OR char_length(definition) <= 512)` |
+| AdminAuditLog | `(target_type = 'POLICY' OR target_id IS NOT NULL)` |
+| RefreshToken | `expires_at > created_at` |
+| PasswordResetToken | `expires_at > created_at` |
+| CustomRule | `(kind = 'PATTERN' OR char_length(definition) <= 4000)` |
+| CustomRule | `char_length(definition) >= 1` |
+
+### 3. CustomRule scope rule
+
+| Rule | Enforcement | Prisma? |
+|---|---|---|
+| `DEPARTMENTS` requires ≥1 CustomRuleDepartment; `ORG_WIDE` requires none | **Deferred constraint trigger** (raw SQL): after INSERT/UPDATE on CustomRule and after INSERT/UPDATE/DELETE on CustomRuleDepartment, raises if violated; `DEFERRABLE INITIALLY DEFERRED`. App-level as fallback. | Raw SQL |
+
+### 4. FOREIGN KEY delete behavior
+
+Users, departments, categories and rules are **never deleted** (only deactivated/disabled) → `RESTRICT`; ActivityLog purge cascades to LogCategory → `CASCADE`.
+
+| FK | ON DELETE | Prisma? |
+|---|---|---|
+| User.department_id → Department | RESTRICT | Plain |
+| User.approved_by → User | RESTRICT | Plain |
+| PolicyCategoryAction.department_id → Department | RESTRICT | Plain |
+| PolicyCategoryAction.category_code → DataCategory | RESTRICT | Plain |
+| CustomRule.created_by → User | RESTRICT | Plain |
+| CustomRuleDepartment.custom_rule_id → CustomRule | RESTRICT | Plain |
+| CustomRuleDepartment.department_id → Department | RESTRICT | Plain |
+| ActivityLog.user_id → User | RESTRICT | Plain |
+| ActivityLog.department_id → Department | RESTRICT | Plain |
+| ActivityLog.rule_id → CustomRule | RESTRICT | Plain |
+| LogCategory.log_id → ActivityLog | **CASCADE** (purge) | Plain |
+| LogCategory.category_code → DataCategory | RESTRICT | Plain |
+| EventCounter.department_id → Department | RESTRICT | Plain |
+| EventCounter.rule_id → CustomRule | RESTRICT | Plain |
+| CategoryCounter.department_id → Department | RESTRICT | Plain |
+| CategoryCounter.category_code → DataCategory | RESTRICT | Plain |
+| AdminAuditLog.acting_admin_id → User | RESTRICT | Plain |
+| RefreshToken.user_id → User | RESTRICT | Plain |
+| PasswordResetToken.user_id → User | RESTRICT | Plain |
+
+### 5. TRIGGERS
+
+| Table | Trigger | Prisma? |
+|---|---|---|
+| AdminAuditLog | `BEFORE UPDATE` + `BEFORE DELETE` → raise (append-only; no mutate/purge) | Raw SQL |
+| ActivityLog | `BEFORE UPDATE` → raise; **do NOT** block DELETE (purge is allowed). Recommend blocking UPDATE since rows are immutable after insert. | Raw SQL |
+| AdminAuditLog | `BEFORE TRUNCATE` (statement-level) → raise. Also `REVOKE UPDATE, DELETE, TRUNCATE ON "AdminAuditLog" FROM <app_role>` so the application's database role cannot mutate it even if a trigger is dropped. | Raw SQL |
