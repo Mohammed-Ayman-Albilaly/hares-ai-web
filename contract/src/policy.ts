@@ -49,7 +49,7 @@ export type ResolvedPolicy = z.infer<typeof ResolvedPolicySchema>;
  * Only enabled rules are sent, so `enabled` is not part of the bundle payload.
  */
 export const PolicyRuleSchema = z.object({
-  id: z.string(),
+  id: z.string().uuid(),
   name: z.string(),
   kind: RuleKindSchema,
   definition: z.string(),
@@ -59,7 +59,7 @@ export const PolicyRuleSchema = z.object({
 export type PolicyRule = z.infer<typeof PolicyRuleSchema>;
 
 /** Global incremental policy bundle version (WEB-FR-041); positive integer, starts at 1. */
-export const PolicyBundleVersionSchema = z.number().int().positive().min(1);
+export const PolicyBundleVersionSchema = z.number().int().positive();
 export type PolicyBundleVersion = z.infer<typeof PolicyBundleVersionSchema>;
 
 /** Body of a 200 policy-bundle response. */
