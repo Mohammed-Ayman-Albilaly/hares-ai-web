@@ -43,9 +43,9 @@ Web (dashboards + public pages) and backend API for Hares AI. Source of truth: `
 - **LogsModule** — scoped log review + filters (date/user/risk/category/platform/user_decision), blocked-messages subset, CSV export (streamed). *WEB-FR-021–027, 031–032, 066.*
 - **AnalyticsModule** — role-scoped dashboard aggregates and the counter-reconcile job. *WEB-FR-028–033; WEB-NFR-007/010.*
 - **AuditModule** — append-only admin audit trail: record + query; no update/delete path. *WEB-FR-050–052; DECISIONS #11/#19.*
-- **RetentionModule** — scheduled purge of `ActivityLog` older than 90 days, preserving counters; never touches audit trail. *WEB-FR-067; DECISIONS #11.*
+- **RetentionModule** — scheduled purge of `ActivityLog` older than 90 days (application-side batched DELETE loop, see DATA-MODEL-L4.md), preserving counters; never touches audit trail. *WEB-FR-067; DECISIONS #11.*
 - **SeedModule** — idempotent bootstrap of exactly one initial System Admin. *WEB-FR-008; DECISIONS #3.*
-- **CommonModule** — JWT guard, roles/RBAC guard, extension guard, validation pipe, error-format filter, redacting logging interceptor (`requestId`), config, correlation ID.
+- **CommonModule** — JWT guard, roles/RBAC guard, extension guard, validation pipe, error-format filter, redacting logging interceptor (`request_id`), config, correlation ID.
 
 **Scheduled jobs (F6).** Retention purge (**@nestjs/schedule** everyday cron) and counter reconcile/backfill run inside Analytics/Retention modules. **Assumption:** a single API instance per organization (matches simple/no-microservices), so jobs run on that instance; if replicated, take a **PostgreSQL advisory lock** (`pg_advisory_lock`) or a lock row so exactly one instance executes the job at a time. *(WEB-NFR-010/011, WEB-FR-067.)*
 
@@ -57,23 +57,23 @@ Web (dashboards + public pages) and backend API for Hares AI. Source of truth: `
 
 **Identity derivation on ingestion.** The ingestion request carries **no** `user_id` or `department_id`. `user_id` is read from the token `sub`; `department_id` is resolved from the **current** user record at ingest time and snapshotted onto the log (so a department change is reflected and a deactivated department/user is rejected, WEB-FR-056). Any client-supplied identity field is rejected as non-allowlisted. *(Assumption: department snapshotted from the live user record rather than a token claim.)* *(WEB-FR-048; DECISIONS #2/#8/#21.)*
 
-**Strict allowlist validation.** A Zod `.strict()` schema built only from the Section-6 allowlist rejects any unknown field (400) — including any prompt-text-named field — and stores nothing on failure. Enum values are validated against the set allowed by the incoming `schema_version`; unknown values are rejected with an actionable error listing accepted values (never silently dropped, WEB-NFR-021). A test posts a prompt-text field and expects rejection (WEB-NFR-002). *(WEB-FR-046, WEB-FR-049; WEB-NFR-005/011/021; DECISIONS #2.)*
+**Strict allowlist validation.** A Zod `.strict()` schema built only from the Section-6 allowlist rejects any unknown field (400) — including any prompt-text-named field — and stores nothing on failure. Enum values are validated against the set allowed by the incoming `schema_version`; unknown values are rejected with an actionable error listing accepted values (never silently dropped, WEB-NFR-021). A test posts a prompt-text field and expects rejection (WEB-NFR-002). The server also validates `event_time` (not more than 5 minutes in the future, not older than 90 days) and returns EVENT_TIME_OUT_OF_RANGE (WEB-FR-072). Validation errors return only the error code, the field name and the accepted values, and never echo the received value. *(WEB-FR-046, WEB-FR-049; WEB-NFR-005/011/021; DECISIONS #2.)*
 
 **Idempotent ingestion by `log_id`.** Unique index on `ActivityLog.log_id`. Insert uses `INSERT ... ON CONFLICT (log_id) DO NOTHING RETURNING`. If a row is returned, the event was newly created; if none is returned, it is a duplicate → return the prior acknowledgement (idempotent success). Only a newly-created row increments counters. *(Assumption: duplicate `log_id` returns success and ignores the new payload rather than rejecting a mismatch.)* *(WEB-FR-047; DECISIONS #8.)*
 
 **Audit logging.** `AdminAuditLog` rows are append-only: acting admin id, action enum, target, timestamp, non-sensitive detail; written in the **same transaction** as the admin action. No update/delete write path plus a DB-level guard/trigger prevents mutation (WEB-FR-052). Never contains prompt text. *(WEB-FR-050–052; DECISIONS #11/#19.)*
 
-**Login throttling.** Progressive delay **per account and per source address**, no hard lockout, no System-Admin reset. After 5 consecutive failures within 15 min, each further attempt doubles the delay (capped at 15 min); successful login or password reset clears the counter; the response never reveals whether the email exists. A persisted failure counter (per account + per IP) lives across restarts; `@nestjs/throttler` enforces the per-endpoint window; extension login is throttled independently. *(DECISIONS #22; WEB-NFR-020, WEB-FR-007.)*
+**Login throttling.** Progressive delay **per account and per source address**, no hard lockout, no System-Admin reset. After 5 consecutive failures within 15 min, each further attempt doubles the delay (capped at 15 min); successful login or password reset clears the counter; the response never reveals whether the email exists. A persisted failure counter (per account + per IP, keys stored as hashes) lives across restarts; `@nestjs/throttler` enforces the per-endpoint window; extension login is throttled independently. *(DECISIONS #22; WEB-NFR-020, WEB-FR-007.)*
 
 **CSV export (F1).** Admin-only, department-scoped (WEB-FR-025; DECISIONS #16). Prisma has no native streaming, so export uses **keyset pagination in chunks**: order by the stable tuple `(event_time DESC, log_id DESC)`, fetch in batches (e.g., 1000 rows) using a cursor (`where (event_time, log_id) < (lastEventTime, lastLogId)`), and write each batch to the response stream until exhausted — an index-friendly, memory-bounded cursor. Only allowed metadata columns are emitted, never prompt text. Formula-injection safety: any cell starting with `=`, `+`, `-`, `@`, tab, or CR is prefixed (treated as text) then CSV-quoted. *(WEB-FR-025/026; WEB-NFR-022.)*
 
-**API error format.** Consistent envelope `{ status, code, message, details?, path, timestamp, requestId }`. `code` is a machine-readable, localized key (client maps codes to Arabic/English via i18next); `message` is a safe human fallback; `details` carries field-level validation errors. HTTP 400/401/403/404/409/429. `requestId` (correlation ID) propagates to request logs; the logging interceptor redacts request/response bodies so nothing prompt-like is ever logged. *(WEB-NFR-002; DECISIONS #2.)*
+**API error format.** Consistent envelope `{ status, code, message, details?, path, timestamp, request_id }`. `code` is a machine-readable, localized key (client maps codes to Arabic/English via i18next); `message` is a safe human fallback; `details` carries field-level validation errors. HTTP 400/401/403/404/409/429. `request_id` (correlation ID) propagates to request logs; the logging interceptor redacts request/response bodies so nothing prompt-like is ever logged. *(WEB-NFR-002; DECISIONS #2.)*
 
 **Revocation design (F1).** Every guarded request checks, against the token and one DB read: (1) **signature + expiry** (stateless JWT verify), (2) **account status = ACTIVE** (deny PENDING/REJECTED/DEACTIVATED), (3) **`token_version` claim equals the user's current `token_version`** — a counter bumped on deactivate/reject/password change/reset, and (4) for ingestion, **department is ACTIVE**. **Cost:** one indexed SELECT on the user primary key returning `status, token_version, role, department_id` in a single row (a few milliseconds at single-organization scale); no cache is used by default, so revocation is immediate; if one is added later it must be an in-process cache invalidated synchronously on every user or department mutation (valid only under the single-instance assumption, DECISIONS #27). **Immediate effect:** bumping `token_version` in the same transaction as the admin action invalidates all outstanding access **and** refresh tokens on their next request (401); role/department changes take effect at next login/policy fetch per DECISIONS #12. *(WEB-FR-014/015/059; DECISIONS #12.)*
 
 **Token flows (F4).**
 - **Web:** login → access JWT (15 min, in memory) + HTTP-only `SameSite=Strict`/`Secure` refresh cookie (30-day). On access expiry, call `/auth/refresh`; the server **rotates** the refresh token (new refresh + new access, old refresh marked used). **Reuse detection:** if an already-used refresh token is presented, the whole refresh *family* is revoked (forcibly re-login). Logout clears the refresh cookie. *(WEB-FR-006.)*
-- **Extension:** login → access JWT (≤1 h) + a **rotating refresh token stored in the extension's `chrome.storage` (not encrypted; protected by rotation, reuse detection, and server-side revocation)** (30-day); both carry `token_version`. On access expiry the extension calls `/extension/refresh`; each refresh **rotates** the token and records the family; reuse detection revokes the family. **If the refresh token expires or is revoked**, refresh returns 401 and the extension falls back to a **re-login prompt** (user re-enters credentials) — it never stores or re-sends the password. *(WEB-FR-043/059; DECISIONS #12.)*
+- **Extension:** login → access JWT (≤1 h) + a **rotating refresh token stored in the extension's `chrome.storage` (not encrypted; protected by rotation, reuse detection, and server-side revocation)** (30-day); both carry `token_version`. On access expiry the extension calls `/extension/refresh`; each refresh **rotates** the token and records the family; reuse detection revokes the family. **If the refresh token expires or is revoked**, refresh returns 401 and the extension falls back to a **re-login prompt** (user re-enters credentials) — it never stores or re-sends the password. On sign-out the extension calls `/extension/logout`, which revokes the whole refresh family (WEB-FR-071). *(WEB-FR-043/059; DECISIONS #12.)*
 
 ---
 
@@ -143,20 +143,20 @@ sequenceDiagram
   participant DB as PostgreSQL
   E->>A: POST /extension/login (email, password)
   A->>DB: verify ACTIVE + password hash
-  A-->>E: 200 { accessToken(1h), refreshToken }
+  A-->>E: 200 { access_token, refresh_token, expires_in }
   E->>A: GET /policy/bundle (Bearer, If-None-Match: ETag)
   A->>DB: read bundle for user's scope/department
   alt unchanged version
     A-->>E: 304 Not Modified
   else changed
-    A-->>E: 200 { version, orgPolicy, departmentPolicy, rules } + ETag
+    A-->>E: 200 { version, policy, rules } + ETag
   end
   Note over E: access token expires (~1h)
   E->>A: POST /extension/refresh (refreshToken)
   A->>DB: validate + rotate refresh family
   alt valid
     A->>DB: mark old refresh used, mint new pair
-    A-->>E: 200 { accessToken(1h), refreshToken (rotated) }
+    A-->>E: 200 { access_token, refresh_token (rotated), expires_in }
   else expired / revoked / replay detected
     A-->>E: 401 Unauthorized
     Note over E: fall back to re-login prompt

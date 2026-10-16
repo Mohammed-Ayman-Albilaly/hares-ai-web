@@ -58,6 +58,9 @@ Monorepo: web/, api/, contract/ (Zod schemas, generated OpenAPI). ORM: Prisma. U
 29. Registration may reveal that an email is already registered (accepted). Login and password reset never reveal whether an account exists.
 30. The extension session uses an access token of at most 1 hour plus a rotating refresh token that is revocable server-side. The extension never stores the user's password. This refines decision 12.
 31. Policy, logs and dashboards work at the level of the 24 data categories. Organization-specific data types are handled by custom detection rules. The category codes are stable UPPER_SNAKE strings shared with the extension and are listed in docs/DATA-MODEL-BRIEF.md.
+32. Password hashing uses bcrypt with cost 12 or higher. Passwords longer than 72 bytes are rejected.
+33. Log ingestion validates event_time: events more than 5 minutes in the future or older than 90 days are rejected. Retention is based on event_time.
+34. The extension has a logout endpoint that revokes the refresh token family. All JSON fields in the contract are snake_case. The policy bundle is one resolved list of 24 category entries plus the enabled custom rules and a version.
 
 ## Schema (adapted from the old ER)
 
@@ -71,7 +74,7 @@ Final schema is produced by the Systems Architect.
 
 ## Open items
 
-None. All items are resolved by decisions 10-30.
+None. All items are resolved by decisions 10-34.
 
 ## Testing rules
 
