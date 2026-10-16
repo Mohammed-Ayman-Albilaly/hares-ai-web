@@ -1,6 +1,6 @@
 # Hares AI — Web & Backend API Specification
 
-> Document: `docs/SPEC-WEB.md` · Version 1.3 (draft) · Part of the Hares AI graduation project (web scope).
+> Document: `docs/SPEC-WEB.md` · Version 1.4 (draft) · Part of the Hares AI graduation project (web scope).
 > **Source of truth:** `docs/DECISIONS.md`. Where the source project report (`docs/source/hares-report.txt`) conflicts with DECISIONS.md, DECISIONS.md wins; conflicts are recorded in Section 8.
 > **Conventions:** Requirements are atomic and testable. IDs are `WEB-FR-###` (functional) and `WEB-NFR-###` (non-functional). Each requirement states an actor, a “shall” statement, measurable acceptance criteria, and a Source. Sources are a report requirement ID (e.g. `6.1.4.2`), a report test-case ID (e.g. `TC-9`), `DECISIONS.md #n`, or `NEW`. No technology, library, or database is chosen in this document.
 
@@ -275,7 +275,7 @@ _Acceptance:_ Given a department, when the System Admin sets a category action a
 **WEB-FR-041 Policy bundle versioning.** The system SHALL maintain a versioned policy bundle and assign a new version whenever policy or custom rules change. **Actor:** System.
 _Acceptance:_ Given a policy/rule change, when published, then a new bundle version is created and the version identifier is incremented; the bundle endpoint serves the new version. **Source:** DECISIONS.md #5, #7.
 
-**WEB-FR-042 Policy bundle fetch (extension).** The system SHALL provide an endpoint that returns the current policy bundle for a user (org-wide rules plus their department policy) with a version identifier. **Actor:** Extension.
+**WEB-FR-042 Policy bundle fetch (extension).** The system SHALL provide an endpoint that returns the current policy bundle for a user as one resolved policy (one entry per data category, with the organization defaults and the user's department overrides already applied), the applicable enabled custom rules, and a version identifier. **Actor:** Extension.
 _Acceptance:_ Given a version check, when the extension requests the bundle, then the latest applicable bundle and version are returned; a request using the current version returns the same version without duplication. **Source:** DECISIONS.md #7.
 
 **WEB-FR-065 Organization default policy.** The system SHALL allow a System Admin to configure an organization-wide default policy (category → action and enabled flag) that applies to every department without an override. **Actor:** System Admin.
@@ -297,7 +297,7 @@ When several categories or rules match a single event, the system SHALL apply th
 _Acceptance:_ Given valid `ACTIVE` credentials, when the extension requests login, then an access token (1 hour or less) and a refresh token are returned for the user; `PENDING`/`REJECTED`/`DEACTIVATED` accounts are denied. **Source:** 6.1.1.2, 8.2.1, DECISIONS.md #12, #30.
 
 **WEB-FR-044 Policy bundle endpoint.** The system SHALL provide the policy bundle fetch endpoint used by the extension (see WEB-FR-042). **Actor:** Extension.
-_Acceptance:_ Given an authenticated extension session, when it calls the bundle endpoint, then the applicable policy bundle (org rules + department policy) with version is returned. **Source:** DECISIONS.md #5–#7.
+_Acceptance:_ Given an authenticated extension session, when it calls the bundle endpoint, then the applicable resolved policy bundle with its version is returned. **Source:** DECISIONS.md #5–#7.
 
 **WEB-FR-045 Log ingestion endpoint.** The system SHALL accept activity log events from the extension via an ingestion endpoint. **Actor:** Extension.
 _Acceptance:_ Given a well-formed log event, when the extension posts it, then the event is persisted and an acknowledgement is returned. **Source:** 6.1.5.1, DECISIONS.md #2.
@@ -325,6 +325,12 @@ _Acceptance:_ Given a Department Admin session, when they open the policy or rul
 
 **WEB-FR-070 Bundle for a user without a department.** The system SHALL return, for a user with no department, a policy bundle containing only the organization default policy and the organization-wide custom rules. **Actor:** Extension.
 _Acceptance:_ Given a System Admin with no department, when the extension fetches the bundle, then the bundle contains organization defaults and organization-wide rules only. **Source:** NEW (WEB-FR-064).
+
+**WEB-FR-071 Extension logout.** The system SHALL allow the extension to sign out by presenting its refresh token, which revokes that refresh token's whole family. **Actor:** Extension.
+_Acceptance:_ Given a valid refresh token, when the extension calls logout, then the whole token family is revoked, the response is 204 with no body, and any later refresh with a token of that family is denied (401). **Source:** NEW.
+
+**WEB-FR-072 Event time validation.** The system SHALL reject a log event whose `event_time` is more than 5 minutes in the future or older than 90 days. **Actor:** System.
+_Acceptance:_ Given an event with `event_time` more than 5 minutes ahead of the server clock or older than 90 days, when it is posted, then it is rejected (HTTP 400, error code EVENT_TIME_OUT_OF_RANGE) and nothing is stored. **Source:** NEW (retention basis, see DATA-MODEL L3).
 
 ### 4.7 Audit trail of admin actions
 
@@ -394,16 +400,16 @@ _Acceptance:_ Given an audit entry, when any admin attempts to edit/delete it, t
 |                `log_id` | UUID                                                                             | generated by the extension; idempotency key (WEB-FR-047)                  |
 |               `user_id` | identifier                                                                       | derived server-side from the access token; never trusted from the payload |
 |         `department_id` | identifier                                                                       | derived server-side from the access token; never trusted from the payload |
-|              `platform` | enum: `CHATGPT` \| `GEMINI` \| `CLAUDE` \| other supported code                  |                                                                           |
+|              `platform` | enum: `CHATGPT` \| `GEMINI` \| `CLAUDE`                  |                                                                           |
 |            `risk_level` | enum: `HIGH` \| `MEDIUM` \| `LOW` \| `NONE`                                      |                                                                           |
 |                `action` | enum: `BLOCKED` \| `WARNED` \| `ALLOWED`                                         |                                                                           |
-| `classification_source` | enum: `LOCAL` \| `LOCAL+AI` \| `LOCAL_ONLY_FALLBACK`                             | from the report's LOCAL / LOCAL+GEMINI / LOCAL_ONLY_FALLBACK              |
+| `classification_source` | enum: `LOCAL` \| `LOCAL_AI` \| `LOCAL_ONLY_FALLBACK`                             | from the report's LOCAL / LOCAL+GEMINI / LOCAL_ONLY_FALLBACK              |
 |         `user_decision` | enum: `NONE` \| `SUBMITTED_ANYWAY` \| `EDITED` \| `REVISION_USED` \| `CANCELLED` | what the user did after a warning (DECISIONS #21)                         |
-|               `rule_id` | identifier (nullable)                                                            | the custom rule that matched; `null` otherwise (DECISIONS #21)            |
-|        `schema_version` | enum/identifier                                                                  | the ingestion contract version (DECISIONS #21)                            |
+|               `rule_id` | identifier (nullable)                                                            | the custom rule that determined the final decision (the highest-precedence match); `null` otherwise (DECISIONS #21)            |
+|        `schema_version` | positive integer, starts at 1                                                                  | the ingestion contract version (DECISIONS #21)                            |
 |            `event_time` | UTC timestamp                                                                    | as reported by the extension                                              |
 |           `received_at` | UTC timestamp                                                                    | as received by the backend                                                |
-|            `categories` | list of category codes                                                           | category names/codes only; no values                                      |
+|            `categories` | list of category codes (the 24 stable codes, DECISIONS #31)                                                           | category names/codes only; no values                                      |
 
 **Contract evolution rule.** The ingestion contract is versioned by `schema_version`. Unknown FIELDS are always rejected (WEB-FR-046). New enum VALUES are introduced only by publishing a new `schema_version`; an enum value that is not valid for the current `schema_version` is rejected with a clear, actionable error — it is **never** silently dropped — so the extension can retry or alert (WEB-NFR-021).
 
