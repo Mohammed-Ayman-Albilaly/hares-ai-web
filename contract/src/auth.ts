@@ -1,15 +1,13 @@
 import { z } from 'zod';
 
 /**
- * Extension authentication contract (ARCHITECTURE.md §7(b), plus decisions):
- *   POST /extension/login  (email, password)          -> 200 { accessToken, refreshToken, expiresIn }
- *   POST /extension/refresh (refreshToken)            -> 200 { accessToken, refreshToken (rotated), expiresIn }
- *   POST /extension/logout (refreshToken)             -> 204 No Content          [NEW — not in SPEC]
- *   Access token TTL <= 1h; refresh token rotating, ~30-day, in extension storage.
+ * Extension authentication contract (ARCHITECTURE.md §7(b), plus decisions).
+ * All JSON fields are snake_case.
  *
- * NOTE: written against the Zod v3 API (`z.string().email()`, `z.enum`).
- * Zod v4 moves `.email()`/`.datetime()` to top-level helpers — see the
- * "Zod v4" note in this module's docs.
+ *   POST /extension/login  (email, password)          -> 200 { access_token, refresh_token, expires_in }
+ *   POST /extension/refresh (refresh_token)           -> 200 { access_token, refresh_token (rotated), expires_in }
+ *   POST /extension/logout (refresh_token)            -> 204 No Content          [NEW — not in SPEC]
+ *   Access token TTL <= 1h; refresh token rotating, ~30-day, in extension storage.
  */
 export const ExtensionTokenSchema = z.string().min(1);
 
@@ -21,10 +19,10 @@ export type ExtensionLoginRequest = z.infer<typeof ExtensionLoginRequestSchema>;
 
 /** Shared auth response shape: access token + rotating refresh token + access TTL (seconds). */
 export const ExtensionAuthResponseSchema = z.object({
-  accessToken: ExtensionTokenSchema,
-  refreshToken: ExtensionTokenSchema,
+  access_token: ExtensionTokenSchema,
+  refresh_token: ExtensionTokenSchema,
   /** Access-token TTL in seconds (positive integer). */
-  expiresIn: z.number().int().positive(),
+  expires_in: z.number().int().positive(),
 });
 export type ExtensionAuthResponse = z.infer<typeof ExtensionAuthResponseSchema>;
 
@@ -32,7 +30,7 @@ export const ExtensionLoginResponseSchema = ExtensionAuthResponseSchema;
 export type ExtensionLoginResponse = z.infer<typeof ExtensionLoginResponseSchema>;
 
 export const ExtensionRefreshRequestSchema = z.object({
-  refreshToken: ExtensionTokenSchema,
+  refresh_token: ExtensionTokenSchema,
 });
 export type ExtensionRefreshRequest = z.infer<typeof ExtensionRefreshRequestSchema>;
 
@@ -44,7 +42,7 @@ export type ExtensionRefreshResponse = z.infer<typeof ExtensionRefreshResponseSc
  * Returns 204 No Content (no response body). [NEW]
  */
 export const ExtensionLogoutRequestSchema = z.object({
-  refreshToken: ExtensionTokenSchema,
+  refresh_token: ExtensionTokenSchema,
 });
 export type ExtensionLogoutRequest = z.infer<typeof ExtensionLogoutRequestSchema>;
 
