@@ -30,6 +30,9 @@ import {
 export const LogEventSchema = z
   .object({
     log_id: z.string().uuid(),
+    // ISO 8601 UTC with a trailing Z. The server also rejects values more than 5 minutes in the
+    // future or older than 90 days (EVENT_TIME_OUT_OF_RANGE). That check needs the server clock,
+    // so it is done in code, not in this schema.
     event_time: z.string().datetime(),
     platform: PlatformSchema,
     risk_level: RiskLevelSchema,
@@ -44,7 +47,7 @@ export const LogEventSchema = z
       }),
     classification_source: ClassificationSourceSchema,
     user_decision: UserDecisionSchema,
-    rule_id: z.string().nullable().optional(),
+    rule_id: z.string().uuid().nullable().optional(),
     schema_version: SchemaVersionSchema,
   })
   .strict();
