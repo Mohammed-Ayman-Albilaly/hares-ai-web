@@ -1,0 +1,23 @@
+{
+  "name": "hares-ai-web",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.13.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "eslint . --ext .ts",
+    "test": "pnpm -r --if-present test",
+    "build": "pnpm -r --if-present build",
+    "generate:openapi": "pnpm --filter contract generate:openapi"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.71.2",
+    "@typescript-eslint/parser": "^8.71.2",
+    "eslint": "^8.57.1",
+    "vitest": "^2.1.9"
+  }
+}

@@ -1,0 +1,1822 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Hares AI Web API",
+    "version": "1.0.0",
+    "description": "API contract for the Hares AI Web extension and web application (batch B1)."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000"
+    }
+  ],
+  "tags": [
+    {
+      "name": "extension",
+      "description": "Extension authentication and log ingestion."
+    },
+    {
+      "name": "policy",
+      "description": "Policy bundle delivery to the extension."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "CategoryCode": {
+        "type": "string",
+        "enum": [
+          "CONTACT_INFO",
+          "PERSONAL_IDENTITY",
+          "FINANCIAL_BANKING",
+          "AUTH_SECRETS",
+          "NETWORK_SYSTEM",
+          "WEB_LINKS",
+          "LOCATION",
+          "HEALTH_MEDICAL",
+          "LEGAL_GOVERNMENT",
+          "VEHICLE",
+          "CORPORATE_DOCUMENTS",
+          "FILE_PATH",
+          "DIGITAL_FINGERPRINTS",
+          "SHIPPING_LOGISTICS",
+          "CRYPTO_CERTIFICATES",
+          "ACCOUNT_APPLICATION",
+          "DATES_TIME",
+          "KEYWORD_PATTERNS",
+          "LOGS_HEADERS",
+          "NUMERIC_SENSITIVE",
+          "DEVELOPER_SECRETS",
+          "EDUCATION_IDS",
+          "UNIVERSAL_IDS",
+          "REGION_BANKING_IDENTITY"
+        ]
+      },
+      "ClassificationSource": {
+        "type": "string",
+        "enum": [
+          "LOCAL",
+          "LOCAL_AI",
+          "LOCAL_ONLY_FALLBACK"
+        ]
+      },
+      "LogAction": {
+        "type": "string",
+        "enum": [
+          "BLOCKED",
+          "WARNED",
+          "ALLOWED"
+        ]
+      },
+      "Platform": {
+        "type": "string",
+        "enum": [
+          "CHATGPT",
+          "GEMINI",
+          "CLAUDE"
+        ]
+      },
+      "PolicyAction": {
+        "type": "string",
+        "enum": [
+          "ALLOW",
+          "WARN",
+          "BLOCK"
+        ]
+      },
+      "RiskLevel": {
+        "type": "string",
+        "enum": [
+          "HIGH",
+          "MEDIUM",
+          "LOW",
+          "NONE"
+        ]
+      },
+      "RuleKind": {
+        "type": "string",
+        "enum": [
+          "PATTERN",
+          "KEYWORD",
+          "TOPIC"
+        ]
+      },
+      "SchemaVersion": {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+        "minimum": 1
+      },
+      "UserDecision": {
+        "type": "string",
+        "enum": [
+          "NONE",
+          "SUBMITTED_ANYWAY",
+          "EDITED",
+          "REVISION_USED",
+          "CANCELLED"
+        ]
+      },
+      "ErrorCode": {
+        "type": "string",
+        "enum": [
+          "VALIDATION_ERROR",
+          "UNKNOWN_FIELD",
+          "INVALID_ENUM",
+          "UNSUPPORTED_SCHEMA_VERSION",
+          "EVENT_TIME_OUT_OF_RANGE",
+          "INVALID_CREDENTIALS",
+          "ACCOUNT_INACTIVE",
+          "ACCOUNT_NO_ACCESS",
+          "INVALID_TOKEN",
+          "TOKEN_EXPIRED",
+          "TOKEN_REVOKED",
+          "REFRESH_REUSED",
+          "USER_NOT_ACTIVE",
+          "DEPARTMENT_INACTIVE",
+          "FORBIDDEN",
+          "PAYLOAD_TOO_LARGE",
+          "RATE_LIMITED",
+          "INTERNAL_ERROR",
+          "SERVICE_UNAVAILABLE"
+        ]
+      },
+      "ApiErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "path": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "message",
+          "path",
+          "timestamp",
+          "request_id"
+        ]
+      },
+      "ExtensionErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "VALIDATION_ERROR",
+              "UNKNOWN_FIELD",
+              "INVALID_ENUM",
+              "UNSUPPORTED_SCHEMA_VERSION",
+              "EVENT_TIME_OUT_OF_RANGE",
+              "INVALID_CREDENTIALS",
+              "ACCOUNT_INACTIVE",
+              "ACCOUNT_NO_ACCESS",
+              "INVALID_TOKEN",
+              "TOKEN_EXPIRED",
+              "TOKEN_REVOKED",
+              "REFRESH_REUSED",
+              "USER_NOT_ACTIVE",
+              "DEPARTMENT_INACTIVE",
+              "FORBIDDEN",
+              "PAYLOAD_TOO_LARGE",
+              "RATE_LIMITED",
+              "INTERNAL_ERROR",
+              "SERVICE_UNAVAILABLE"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "path": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "message",
+          "path",
+          "timestamp",
+          "request_id"
+        ]
+      },
+      "ExtensionLoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ExtensionLoginResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "refresh_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expires_in": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in"
+        ]
+      },
+      "ExtensionRefreshRequest": {
+        "type": "object",
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "refresh_token"
+        ]
+      },
+      "ExtensionRefreshResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "refresh_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expires_in": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in"
+        ]
+      },
+      "ExtensionLogoutRequest": {
+        "type": "object",
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "refresh_token"
+        ]
+      },
+      "PolicyEntry": {
+        "type": "object",
+        "properties": {
+          "category_code": {
+            "type": "string",
+            "enum": [
+              "CONTACT_INFO",
+              "PERSONAL_IDENTITY",
+              "FINANCIAL_BANKING",
+              "AUTH_SECRETS",
+              "NETWORK_SYSTEM",
+              "WEB_LINKS",
+              "LOCATION",
+              "HEALTH_MEDICAL",
+              "LEGAL_GOVERNMENT",
+              "VEHICLE",
+              "CORPORATE_DOCUMENTS",
+              "FILE_PATH",
+              "DIGITAL_FINGERPRINTS",
+              "SHIPPING_LOGISTICS",
+              "CRYPTO_CERTIFICATES",
+              "ACCOUNT_APPLICATION",
+              "DATES_TIME",
+              "KEYWORD_PATTERNS",
+              "LOGS_HEADERS",
+              "NUMERIC_SENSITIVE",
+              "DEVELOPER_SECRETS",
+              "EDUCATION_IDS",
+              "UNIVERSAL_IDS",
+              "REGION_BANKING_IDENTITY"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "ALLOW",
+              "WARN",
+              "BLOCK"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "category_code",
+          "action",
+          "enabled"
+        ]
+      },
+      "ResolvedPolicy": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "category_code": {
+              "type": "string",
+              "enum": [
+                "CONTACT_INFO",
+                "PERSONAL_IDENTITY",
+                "FINANCIAL_BANKING",
+                "AUTH_SECRETS",
+                "NETWORK_SYSTEM",
+                "WEB_LINKS",
+                "LOCATION",
+                "HEALTH_MEDICAL",
+                "LEGAL_GOVERNMENT",
+                "VEHICLE",
+                "CORPORATE_DOCUMENTS",
+                "FILE_PATH",
+                "DIGITAL_FINGERPRINTS",
+                "SHIPPING_LOGISTICS",
+                "CRYPTO_CERTIFICATES",
+                "ACCOUNT_APPLICATION",
+                "DATES_TIME",
+                "KEYWORD_PATTERNS",
+                "LOGS_HEADERS",
+                "NUMERIC_SENSITIVE",
+                "DEVELOPER_SECRETS",
+                "EDUCATION_IDS",
+                "UNIVERSAL_IDS",
+                "REGION_BANKING_IDENTITY"
+              ]
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "ALLOW",
+                "WARN",
+                "BLOCK"
+              ]
+            },
+            "enabled": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "category_code",
+            "action",
+            "enabled"
+          ]
+        }
+      },
+      "PolicyRule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PATTERN",
+              "KEYWORD",
+              "TOPIC"
+            ]
+          },
+          "definition": {
+            "type": "string"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "NONE"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "ALLOW",
+              "WARN",
+              "BLOCK"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "definition",
+          "risk_level",
+          "action"
+        ]
+      },
+      "PolicyBundleVersion": {
+        "type": "integer",
+        "exclusiveMinimum": 0
+      },
+      "PolicyBundleResponse": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "policy": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "category_code": {
+                  "type": "string",
+                  "enum": [
+                    "CONTACT_INFO",
+                    "PERSONAL_IDENTITY",
+                    "FINANCIAL_BANKING",
+                    "AUTH_SECRETS",
+                    "NETWORK_SYSTEM",
+                    "WEB_LINKS",
+                    "LOCATION",
+                    "HEALTH_MEDICAL",
+                    "LEGAL_GOVERNMENT",
+                    "VEHICLE",
+                    "CORPORATE_DOCUMENTS",
+                    "FILE_PATH",
+                    "DIGITAL_FINGERPRINTS",
+                    "SHIPPING_LOGISTICS",
+                    "CRYPTO_CERTIFICATES",
+                    "ACCOUNT_APPLICATION",
+                    "DATES_TIME",
+                    "KEYWORD_PATTERNS",
+                    "LOGS_HEADERS",
+                    "NUMERIC_SENSITIVE",
+                    "DEVELOPER_SECRETS",
+                    "EDUCATION_IDS",
+                    "UNIVERSAL_IDS",
+                    "REGION_BANKING_IDENTITY"
+                  ]
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "ALLOW",
+                    "WARN",
+                    "BLOCK"
+                  ]
+                },
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "category_code",
+                "action",
+                "enabled"
+              ]
+            }
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "PATTERN",
+                    "KEYWORD",
+                    "TOPIC"
+                  ]
+                },
+                "definition": {
+                  "type": "string"
+                },
+                "risk_level": {
+                  "type": "string",
+                  "enum": [
+                    "HIGH",
+                    "MEDIUM",
+                    "LOW",
+                    "NONE"
+                  ]
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "ALLOW",
+                    "WARN",
+                    "BLOCK"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "kind",
+                "definition",
+                "risk_level",
+                "action"
+              ]
+            }
+          }
+        },
+        "required": [
+          "version",
+          "policy",
+          "rules"
+        ]
+      },
+      "LogEvent": {
+        "type": "object",
+        "properties": {
+          "log_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "event_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "CHATGPT",
+              "GEMINI",
+              "CLAUDE"
+            ]
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "NONE"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "BLOCKED",
+              "WARNED",
+              "ALLOWED"
+            ]
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CONTACT_INFO",
+                "PERSONAL_IDENTITY",
+                "FINANCIAL_BANKING",
+                "AUTH_SECRETS",
+                "NETWORK_SYSTEM",
+                "WEB_LINKS",
+                "LOCATION",
+                "HEALTH_MEDICAL",
+                "LEGAL_GOVERNMENT",
+                "VEHICLE",
+                "CORPORATE_DOCUMENTS",
+                "FILE_PATH",
+                "DIGITAL_FINGERPRINTS",
+                "SHIPPING_LOGISTICS",
+                "CRYPTO_CERTIFICATES",
+                "ACCOUNT_APPLICATION",
+                "DATES_TIME",
+                "KEYWORD_PATTERNS",
+                "LOGS_HEADERS",
+                "NUMERIC_SENSITIVE",
+                "DEVELOPER_SECRETS",
+                "EDUCATION_IDS",
+                "UNIVERSAL_IDS",
+                "REGION_BANKING_IDENTITY"
+              ]
+            },
+            "maxItems": 24
+          },
+          "classification_source": {
+            "type": "string",
+            "enum": [
+              "LOCAL",
+              "LOCAL_AI",
+              "LOCAL_ONLY_FALLBACK"
+            ]
+          },
+          "user_decision": {
+            "type": "string",
+            "enum": [
+              "NONE",
+              "SUBMITTED_ANYWAY",
+              "EDITED",
+              "REVISION_USED",
+              "CANCELLED"
+            ]
+          },
+          "rule_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "schema_version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "log_id",
+          "event_time",
+          "platform",
+          "risk_level",
+          "action",
+          "categories",
+          "classification_source",
+          "user_decision",
+          "schema_version"
+        ],
+        "additionalProperties": false
+      },
+      "LogIngestionResponse": {
+        "type": "object",
+        "properties": {
+          "log_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "log_id"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/extension/login": {
+      "post": {
+        "summary": "Extension login",
+        "tags": [
+          "extension"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication succeeded; returns access and refresh tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "refresh_token": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "expires_in": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "access_token",
+                    "refresh_token",
+                    "expires_in"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid email/password.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Missing or invalid email/password.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Wrong credentials or account not active.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_CREDENTIALS",
+                  "message": "Wrong credentials or account not active.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/extension/refresh": {
+      "post": {
+        "summary": "Rotate a refresh token",
+        "tags": [
+          "extension"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh_token": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "refresh_token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens rotated; returns the new access and refresh token pair.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "refresh_token": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "expires_in": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    }
+                  },
+                  "required": [
+                    "access_token",
+                    "refresh_token",
+                    "expires_in"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Missing or invalid refresh token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token expired, revoked or replayed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "REFRESH_REUSED",
+                  "message": "Refresh token expired, revoked or replayed.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/extension/logout": {
+      "post": {
+        "summary": "Revoke a refresh token family",
+        "tags": [
+          "extension"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refresh_token": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "refresh_token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content; the refresh token family has been revoked."
+          },
+          "401": {
+            "description": "Invalid or already-revoked refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Invalid or already-revoked refresh token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logs": {
+      "post": {
+        "summary": "Ingest an activity log event",
+        "tags": [
+          "extension"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "log_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "event_time": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "CHATGPT",
+                      "GEMINI",
+                      "CLAUDE"
+                    ]
+                  },
+                  "risk_level": {
+                    "type": "string",
+                    "enum": [
+                      "HIGH",
+                      "MEDIUM",
+                      "LOW",
+                      "NONE"
+                    ]
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "BLOCKED",
+                      "WARNED",
+                      "ALLOWED"
+                    ]
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "CONTACT_INFO",
+                        "PERSONAL_IDENTITY",
+                        "FINANCIAL_BANKING",
+                        "AUTH_SECRETS",
+                        "NETWORK_SYSTEM",
+                        "WEB_LINKS",
+                        "LOCATION",
+                        "HEALTH_MEDICAL",
+                        "LEGAL_GOVERNMENT",
+                        "VEHICLE",
+                        "CORPORATE_DOCUMENTS",
+                        "FILE_PATH",
+                        "DIGITAL_FINGERPRINTS",
+                        "SHIPPING_LOGISTICS",
+                        "CRYPTO_CERTIFICATES",
+                        "ACCOUNT_APPLICATION",
+                        "DATES_TIME",
+                        "KEYWORD_PATTERNS",
+                        "LOGS_HEADERS",
+                        "NUMERIC_SENSITIVE",
+                        "DEVELOPER_SECRETS",
+                        "EDUCATION_IDS",
+                        "UNIVERSAL_IDS",
+                        "REGION_BANKING_IDENTITY"
+                      ]
+                    },
+                    "maxItems": 24
+                  },
+                  "classification_source": {
+                    "type": "string",
+                    "enum": [
+                      "LOCAL",
+                      "LOCAL_AI",
+                      "LOCAL_ONLY_FALLBACK"
+                    ]
+                  },
+                  "user_decision": {
+                    "type": "string",
+                    "enum": [
+                      "NONE",
+                      "SUBMITTED_ANYWAY",
+                      "EDITED",
+                      "REVISION_USED",
+                      "CANCELLED"
+                    ]
+                  },
+                  "rule_id": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "schema_version": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "minimum": 1
+                  }
+                },
+                "required": [
+                  "log_id",
+                  "event_time",
+                  "platform",
+                  "risk_level",
+                  "action",
+                  "categories",
+                  "classification_source",
+                  "user_decision",
+                  "schema_version"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent acknowledgement for a duplicate log_id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "log_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "log_id"
+                  ]
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Event accepted and stored.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "log_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "log_id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Event failed the strict allowlist or enum checks.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Event failed the strict allowlist or enum checks.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing or invalid access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/policy/bundle": {
+      "get": {
+        "summary": "Fetch the resolved policy bundle",
+        "tags": [
+          "policy"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current policy bundle with ETag (Cache-Control: private).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "policy": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "category_code": {
+                            "type": "string",
+                            "enum": [
+                              "CONTACT_INFO",
+                              "PERSONAL_IDENTITY",
+                              "FINANCIAL_BANKING",
+                              "AUTH_SECRETS",
+                              "NETWORK_SYSTEM",
+                              "WEB_LINKS",
+                              "LOCATION",
+                              "HEALTH_MEDICAL",
+                              "LEGAL_GOVERNMENT",
+                              "VEHICLE",
+                              "CORPORATE_DOCUMENTS",
+                              "FILE_PATH",
+                              "DIGITAL_FINGERPRINTS",
+                              "SHIPPING_LOGISTICS",
+                              "CRYPTO_CERTIFICATES",
+                              "ACCOUNT_APPLICATION",
+                              "DATES_TIME",
+                              "KEYWORD_PATTERNS",
+                              "LOGS_HEADERS",
+                              "NUMERIC_SENSITIVE",
+                              "DEVELOPER_SECRETS",
+                              "EDUCATION_IDS",
+                              "UNIVERSAL_IDS",
+                              "REGION_BANKING_IDENTITY"
+                            ]
+                          },
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "ALLOW",
+                              "WARN",
+                              "BLOCK"
+                            ]
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "category_code",
+                          "action",
+                          "enabled"
+                        ]
+                      }
+                    },
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "PATTERN",
+                              "KEYWORD",
+                              "TOPIC"
+                            ]
+                          },
+                          "definition": {
+                            "type": "string"
+                          },
+                          "risk_level": {
+                            "type": "string",
+                            "enum": [
+                              "HIGH",
+                              "MEDIUM",
+                              "LOW",
+                              "NONE"
+                            ]
+                          },
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "ALLOW",
+                              "WARN",
+                              "BLOCK"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "kind",
+                          "definition",
+                          "risk_level",
+                          "action"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "version",
+                    "policy",
+                    "rules"
+                  ]
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not Modified — version unchanged since the If-None-Match ETag."
+          },
+          "401": {
+            "description": "Missing or invalid access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing or invalid access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

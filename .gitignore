@@ -9,3 +9,6 @@ build/
 .vscode/
 .idea/
 coverage/
+*.tsbuildinfo
+.pnpm-debug.log
+.pnpm-store/

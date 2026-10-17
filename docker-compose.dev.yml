@@ -1,0 +1,38 @@
+name: hares-ai-dev
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hares-postgres
+    environment:
+      POSTGRES_USER: hares
+      POSTGRES_PASSWORD: hares
+      POSTGRES_DB: hares
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hares -d hares"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: hares-mailpit
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    healthcheck:
+      test: ["CMD", "/mailpit", "readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
