@@ -1,6 +1,8 @@
 node_modules/
 dist/
 build/
+api/src/prisma/generated/
+build/
 .env
 .env.*
 !.env.example

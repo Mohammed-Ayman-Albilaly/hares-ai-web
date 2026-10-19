@@ -1,0 +1,358 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/prisma/generated"
+}
+
+datasource db {
+  provider     = "postgresql"
+  relationMode = "foreignKeys"
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+  DEACTIVATED
+
+  @@map("user_status")
+}
+
+enum Role {
+  SYSTEM_ADMIN
+  DEPARTMENT_ADMIN
+  USER
+
+  @@map("role")
+}
+
+enum RuleKind {
+  PATTERN
+  KEYWORD
+  TOPIC
+
+  @@map("rule_kind")
+}
+
+enum RiskLevel {
+  HIGH
+  MEDIUM
+  LOW
+  NONE
+
+  @@map("risk_level")
+}
+
+enum LogAction {
+  BLOCKED
+  WARNED
+  ALLOWED
+
+  @@map("log_action")
+}
+
+enum ClassificationSource {
+  LOCAL
+  LOCAL_AI
+  LOCAL_ONLY_FALLBACK
+
+  @@map("classification_source")
+}
+
+enum UserDecision {
+  NONE
+  SUBMITTED_ANYWAY
+  EDITED
+  REVISION_USED
+  CANCELLED
+
+  @@map("user_decision")
+}
+
+enum PolicyAction {
+  ALLOW
+  WARN
+  BLOCK
+
+  @@map("policy_action")
+}
+
+enum Platform {
+  CHATGPT
+  GEMINI
+  CLAUDE
+
+  @@map("platform")
+}
+
+enum RuleScope {
+  ORG_WIDE
+  DEPARTMENTS
+
+  @@map("rule_scope")
+}
+
+enum AuditActionType {
+  USER_APPROVED
+  USER_REJECTED
+  USER_REOPENED
+  USER_DEACTIVATED
+  USER_REACTIVATED
+  USER_ROLE_CHANGED
+  USER_DEPARTMENT_CHANGED
+  SYSTEM_ADMIN_GRANTED
+  SYSTEM_ADMIN_REVOKED
+  DEPARTMENT_CREATED
+  DEPARTMENT_RENAMED
+  DEPARTMENT_DEACTIVATED
+  POLICY_CHANGED
+  RULE_CHANGED
+
+  @@map("audit_action_type")
+}
+
+enum TargetType {
+  USER
+  DEPARTMENT
+  CUSTOM_RULE
+  POLICY
+
+  @@map("target_type")
+}
+
+enum KeyType {
+  ACCOUNT
+  SOURCE
+
+  @@map("key_type")
+}
+
+model Department {
+  id     String  @id @db.Uuid @map("id")
+  name   String  @map("name")
+  active Boolean @default(true) @map("active")
+
+  users                  User[]                 @relation("UserDepartment")
+  policyActions          PolicyCategoryAction[] @relation("PolicyDepartment")
+  activityLogs           ActivityLog[]          @relation("DepartmentActivity")
+  customRuleDepartments  CustomRuleDepartment[] @relation("DepartmentCustomRule")
+  eventCounters          EventCounter[]         @relation("DepartmentEventCounter")
+  categoryCounters       CategoryCounter[]      @relation("DepartmentCategoryCounter")
+
+  @@map("Department")
+}
+
+model User {
+  id            String     @id @db.Uuid @map("id")
+  fullName      String     @map("full_name")
+  email         String     @map("email")
+  passwordHash  String     @map("password_hash")
+  role          Role?      @map("role")
+  departmentId  String?    @db.Uuid @map("department_id")
+  approvedBy    String?    @db.Uuid @map("approved_by")
+  status        UserStatus @default(PENDING) @map("status")
+  tokenVersion  Int        @default(0) @map("token_version")
+  registeredAt  DateTime   @db.Timestamptz @map("registered_at")
+  approvedAt    DateTime?  @db.Timestamptz @map("approved_at")
+
+  department          Department?          @relation("UserDepartment", fields: [departmentId], references: [id], onDelete: Restrict)
+  approvedByUser      User?                @relation("UserApprovedBy", fields: [approvedBy], references: [id], onDelete: Restrict)
+  approvedUsers       User[]               @relation("UserApprovedBy")
+  activityLogs        ActivityLog[]        @relation("UserActivity")
+  refreshTokens       RefreshToken[]       @relation("RefreshTokenOwner")
+  passwordResetTokens PasswordResetToken[] @relation("ResetTokenOwner")
+  adminAuditLogs      AdminAuditLog[]      @relation("AdminActingUser")
+  customRules         CustomRule[]         @relation("RuleCreator")
+
+  @@index([status, registeredAt])
+  @@index([departmentId, status])
+  @@map("User")
+}
+
+model DataCategory {
+  categoryCode     String    @id @map("category_code")
+  name             String    @map("name")
+  defaultRiskLevel RiskLevel @map("default_risk_level")
+
+  policyActions    PolicyCategoryAction[] @relation("PolicyCategory")
+  logCategories    LogCategory[]          @relation("CategoryLog")
+  categoryCounters CategoryCounter[]      @relation("CategoryCounterCategory")
+
+  @@map("DataCategory")
+}
+
+model PolicyVersion {
+  id      Int       @id @db.SmallInt @map("id")
+  version Int       @default(1) @map("version")
+
+  @@map("PolicyVersion")
+}
+
+model PolicyCategoryAction {
+  id           String       @id @db.Uuid @map("id")
+  departmentId String?      @db.Uuid @map("department_id")
+  categoryCode String       @map("category_code")
+  action       PolicyAction @map("action")
+  enabled      Boolean      @default(true) @map("enabled")
+
+  department   Department?  @relation("PolicyDepartment", fields: [departmentId], references: [id], onDelete: Restrict)
+  dataCategory DataCategory @relation("PolicyCategory", fields: [categoryCode], references: [categoryCode], onDelete: Restrict)
+
+  @@map("PolicyCategoryAction")
+}
+
+model CustomRule {
+  id         String       @id @db.Uuid @map("id")
+  createdBy  String       @db.Uuid @map("created_by")
+  kind       RuleKind     @map("kind")
+  name       String       @map("name")
+  definition String       @map("definition")
+  riskLevel  RiskLevel    @map("risk_level")
+  action     PolicyAction @map("action")
+  scope      RuleScope    @map("scope")
+  enabled    Boolean      @default(true) @map("enabled")
+
+  createdByUser          User                    @relation("RuleCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  customRuleDepartments  CustomRuleDepartment[]  @relation("CustomRuleDept")
+  activityLogs           ActivityLog[]           @relation("RuleActivity")
+  eventCounters          EventCounter[]          @relation("RuleEventCounter")
+
+  @@map("CustomRule")
+}
+
+model CustomRuleDepartment {
+  customRuleId String @db.Uuid @map("custom_rule_id")
+  departmentId String @db.Uuid @map("department_id")
+
+  customRule CustomRule @relation("CustomRuleDept", fields: [customRuleId], references: [id], onDelete: Restrict)
+  department Department @relation("DepartmentCustomRule", fields: [departmentId], references: [id], onDelete: Restrict)
+
+  @@id([customRuleId, departmentId])
+  @@map("CustomRuleDepartment")
+}
+
+model ActivityLog {
+  logId               String               @id @db.Uuid @map("log_id")
+  userId              String               @db.Uuid @map("user_id")
+  departmentId        String?              @db.Uuid @map("department_id")
+  platform            Platform             @map("platform")
+  riskLevel           RiskLevel            @map("risk_level")
+  action              LogAction            @map("action")
+  classificationSource ClassificationSource @map("classification_source")
+  userDecision        UserDecision         @map("user_decision")
+  ruleId              String?              @db.Uuid @map("rule_id")
+  schemaVersion       Int                  @map("schema_version")
+  eventTime           DateTime             @db.Timestamptz @map("event_time")
+  receivedAt          DateTime             @db.Timestamptz @map("received_at")
+
+  user       User           @relation("UserActivity", fields: [userId], references: [id], onDelete: Restrict)
+  department Department?    @relation("DepartmentActivity", fields: [departmentId], references: [id], onDelete: Restrict)
+  rule       CustomRule?    @relation("RuleActivity", fields: [ruleId], references: [id], onDelete: Restrict)
+  categories LogCategory[]  @relation("ActivityLogCategory")
+
+  @@index([departmentId, eventTime, logId])
+  @@index([eventTime, logId])
+  @@index([userId, eventTime, logId])
+  @@map("ActivityLog")
+}
+
+model LogCategory {
+  logId        String @db.Uuid @map("log_id")
+  categoryCode String @map("category_code")
+
+  log          ActivityLog  @relation("ActivityLogCategory", fields: [logId], references: [logId], onDelete: Cascade)
+  dataCategory DataCategory @relation("CategoryLog", fields: [categoryCode], references: [categoryCode], onDelete: Restrict)
+
+  @@id([logId, categoryCode])
+  @@index([categoryCode, logId])
+  @@map("LogCategory")
+}
+
+model EventCounter {
+  id           String       @id @db.Uuid @map("id")
+  day          DateTime     @db.Date @map("day")
+  departmentId String?      @db.Uuid @map("department_id")
+  platform     Platform     @map("platform")
+  riskLevel    RiskLevel    @map("risk_level")
+  action       LogAction    @map("action")
+  userDecision UserDecision @map("user_decision")
+  ruleId       String?      @db.Uuid @map("rule_id")
+  eventCount   BigInt       @default(0) @map("event_count")
+
+  department Department? @relation("DepartmentEventCounter", fields: [departmentId], references: [id], onDelete: Restrict)
+  rule       CustomRule? @relation("RuleEventCounter", fields: [ruleId], references: [id], onDelete: Restrict)
+
+  @@map("EventCounter")
+}
+
+model CategoryCounter {
+  id           String    @id @db.Uuid @map("id")
+  day          DateTime  @db.Date @map("day")
+  departmentId String?   @db.Uuid @map("department_id")
+  platform     Platform  @map("platform")
+  categoryCode String    @map("category_code")
+  riskLevel    RiskLevel @map("risk_level")
+  eventCount   BigInt    @default(0) @map("event_count")
+
+  department   Department?  @relation("DepartmentCategoryCounter", fields: [departmentId], references: [id], onDelete: Restrict)
+  dataCategory DataCategory @relation("CategoryCounterCategory", fields: [categoryCode], references: [categoryCode], onDelete: Restrict)
+
+  @@map("CategoryCounter")
+}
+
+model AdminAuditLog {
+  id            String          @id @db.Uuid @map("id")
+  actingAdminId String          @db.Uuid @map("acting_admin_id")
+  actionType    AuditActionType @map("action_type")
+  targetType    TargetType      @map("target_type")
+  targetId      String?         @db.Uuid @map("target_id")
+  createdAt     DateTime        @default(now()) @db.Timestamptz @map("created_at")
+  detail        Json?           @map("detail")
+
+  actingAdmin User @relation("AdminActingUser", fields: [actingAdminId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt, id])
+  @@map("AdminAuditLog")
+}
+
+model RefreshToken {
+  id           String    @id @db.Uuid @map("id")
+  userId       String    @db.Uuid @map("user_id")
+  tokenHash    String    @unique @map("token_hash")
+  familyId     String    @db.Uuid @map("family_id")
+  used         Boolean   @default(false) @map("used")
+  tokenVersion Int       @map("token_version")
+  expiresAt    DateTime  @db.Timestamptz @map("expires_at")
+  revokedAt    DateTime? @db.Timestamptz @map("revoked_at")
+  createdAt    DateTime  @default(now()) @db.Timestamptz @map("created_at")
+
+  user User @relation("RefreshTokenOwner", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([familyId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("RefreshToken")
+}
+
+model PasswordResetToken {
+  id        String   @id @db.Uuid @map("id")
+  userId    String   @db.Uuid @map("user_id")
+  tokenHash String   @unique @map("token_hash")
+  used      Boolean  @default(false) @map("used")
+  expiresAt DateTime @db.Timestamptz @map("expires_at")
+  createdAt DateTime @default(now()) @db.Timestamptz @map("created_at")
+
+  user User @relation("ResetTokenOwner", fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("PasswordResetToken")
+}
+
+model LoginAttempt {
+  key           String    @map("key")
+  keyType       KeyType   @map("key_type")
+  failureCount  Int       @default(0) @map("failure_count")
+  windowStart   DateTime  @db.Timestamptz @map("window_start")
+  nextAllowedAt DateTime? @db.Timestamptz @map("next_allowed_at")
+
+  @@id([key, keyType])
+  @@map("LoginAttempt")
+}
