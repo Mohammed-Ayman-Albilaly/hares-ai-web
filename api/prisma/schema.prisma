@@ -197,6 +197,9 @@ model PolicyCategoryAction {
   department   Department?  @relation("PolicyDepartment", fields: [departmentId], references: [id], onDelete: Restrict)
   dataCategory DataCategory @relation("PolicyCategory", fields: [categoryCode], references: [categoryCode], onDelete: Restrict)
 
+  // The real index is created with NULLS NOT DISTINCT in the raw SQL migration
+  // add_org_unique_indexes and must never be recreated from the schema alone.
+  @@unique([departmentId, categoryCode], map: "uq_policy_category_action")
   @@map("PolicyCategoryAction")
 }
 
@@ -281,6 +284,9 @@ model EventCounter {
   department Department? @relation("DepartmentEventCounter", fields: [departmentId], references: [id], onDelete: Restrict)
   rule       CustomRule? @relation("RuleEventCounter", fields: [ruleId], references: [id], onDelete: Restrict)
 
+  // The real index is created with NULLS NOT DISTINCT in the raw SQL migration
+  // add_org_unique_indexes and must never be recreated from the schema alone.
+  @@unique([day, departmentId, platform, riskLevel, action, userDecision, ruleId], map: "uq_event_counter")
   @@map("EventCounter")
 }
 
@@ -296,6 +302,9 @@ model CategoryCounter {
   department   Department?  @relation("DepartmentCategoryCounter", fields: [departmentId], references: [id], onDelete: Restrict)
   dataCategory DataCategory @relation("CategoryCounterCategory", fields: [categoryCode], references: [categoryCode], onDelete: Restrict)
 
+  // The real index is created with NULLS NOT DISTINCT in the raw SQL migration
+  // add_org_unique_indexes and must never be recreated from the schema alone.
+  @@unique([day, departmentId, platform, categoryCode, riskLevel], map: "uq_category_counter")
   @@map("CategoryCounter")
 }
 

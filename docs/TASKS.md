@@ -4,7 +4,7 @@ One unchecked line per batch. Tick a line when the `verify` command passes.
 
 - [x] **B1** — Monorepo & contract publishing (+ dev docker-compose) — `pnpm -w typecheck && pnpm --filter contract generate:openapi && docker compose -f docker-compose.dev.yml up -d`
 - [x] **B2a** — Prisma schema + init migration — `pnpm --filter api prisma migrate dev --name init`
-- [ ] **B2b** — Raw SQL migrations + seed + DB tests + roles — `pnpm --filter api prisma migrate dev && pnpm --filter api prisma db seed && pnpm --filter api test`
+- [x] **B2b** — Raw SQL migrations + seed + DB tests + roles — `pnpm --filter api prisma migrate dev && pnpm --filter api prisma db seed && pnpm --filter api test`
 - [ ] **B3** — API core (CommonModule) — `pnpm --filter api test && curl -s localhost:3000/api/health`
 - [ ] **B4a** — Web auth (register, login, logout, refresh) — `pnpm --filter api test`
 - [ ] **B4b** — Extension auth + rotation/reuse detection — `pnpm --filter api test`
