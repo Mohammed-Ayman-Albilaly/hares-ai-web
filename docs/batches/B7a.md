@@ -1,0 +1,6 @@
+## B7a — Ingestion (with counter increments)
+**Goal:** Metadata-only strict ingestion.
+**Delivers:** Zod `.strict()` allowlist + enum/`schema_version` gating (unknown field → 400 with accepted values, prompt-text field rejected), identity from token + live user row (snapshot department), inactive user/department → 403, `EVENT_TIME_OUT_OF_RANGE`, raw-SQL `ON CONFLICT (log_id) DO NOTHING RETURNING` idempotency, EventCounter/CategoryCounter upsert in the same transaction (raw SQL for `NULLS NOT DISTINCT`), per-user rate limit + payload cap. (Contract schemas: `IngestLogRequest` (allowlisted metadata), `IngestLogResponse`, `SchemaVersion` enum, ingestion error codes.)
+**Depends on:** B6, B5a, B2b.
+**Verify:** `pnpm --filter api test` (201 new, 200 dup idempotent, 400 unknown/prompt-text field, 401 revoked, 403 inactive dept, counter incremented exactly once on duplicate).
+**Expected files:** `api/src/ingestion/**`, `api/src/ingestion/*allowlist*`, `api/src/ingestion/*raw-sql*`, `contract/src/**`, `api/src/ingestion/*.spec.ts`.

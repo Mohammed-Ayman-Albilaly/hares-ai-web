@@ -1,0 +1,6 @@
+## B4c — Forgot/reset password + login throttling (+ MailerService)
+**Goal:** Password recovery, brute-force defense, and reset-email delivery.
+**Delivers:** forgot/reset (single-use hashed 30-min token, rate-limited, no user enumeration), progressive per-account + per-IP login throttle (doubles after 5 failures/15 min, capped 15 min, clears on success, never lockout), persisted failure counter, `@nestjs/throttler` windows, independent extension throttling, and a **MailerService** (SMTP in production, Mailpit in development) used by the reset flow. (Contract schemas: `ForgotPasswordRequest/Response`, `ResetPasswordRequest/Response`, throttle config types.)
+**Depends on:** B4b.
+**Verify:** `pnpm --filter api test` (reset single-use + expiry, enumeration-consistent responses, throttle doubling + clear-on-success), plus a test asserting the reset email contains only the reset link (no prompt text, no password, no placeholders).
+**Expected files:** `api/src/auth/password/**`, `api/src/mail/mailer.service.ts`, `api/src/mail/mailer.module.ts`, `api/src/auth/throttle.ts`, `api/src/auth/*failure-store*`, `contract/src/**`, `api/package.json`.
