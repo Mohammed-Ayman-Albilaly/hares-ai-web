@@ -367,8 +367,8 @@ describe('CHECK constraints reject bad data', () => {
     const e = await violating(async (c) => {
       const uid = await seedUser(c);
       await c.query(
-        `insert into "RefreshToken" (id, user_id, token_hash, family_id, token_version, expires_at)
-         values ($1, $2, $3, $4, 0, now() - interval '1 hour')`,
+        `insert into "RefreshToken" (id, user_id, token_hash, family_id, token_version, expires_at, client_type)
+         values ($1, $2, $3, $4, 0, now() - interval '1 hour', 'WEB')`,
         [id(), uid, `hash-${randomUUID()}`, id()],
       );
     });

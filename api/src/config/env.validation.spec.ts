@@ -3,6 +3,7 @@ import { validateEnv } from './env.validation';
 
 const DATABASE_URL = 'postgresql://hares:hares@localhost:5432/hares';
 const APP_DATABASE_URL = 'postgresql://hares_app:pw@localhost:5432/hares';
+const JWT_ACCESS_SECRET = 'synthetic-test-secret-0123456789abcdef';
 
 describe('env.validation → APP_DATABASE_URL', () => {
   it('requires APP_DATABASE_URL when NODE_ENV is not test', () => {
@@ -26,6 +27,7 @@ describe('env.validation → APP_DATABASE_URL', () => {
       DATABASE_URL,
       NODE_ENV: 'development',
       APP_DATABASE_URL,
+      JWT_ACCESS_SECRET,
     });
     expect(config.APP_DATABASE_URL).toBe(APP_DATABASE_URL);
   });
@@ -38,5 +40,29 @@ describe('env.validation → APP_DATABASE_URL', () => {
         APP_DATABASE_URL: 'mysql://user:pw@localhost:3306/hares',
       }),
     ).toThrow(/APP_DATABASE_URL/);
+  });
+});
+
+describe('env.validation → JWT_ACCESS_SECRET', () => {
+  it('requires JWT_ACCESS_SECRET when NODE_ENV is not test', () => {
+    expect(() =>
+      validateEnv({ DATABASE_URL, APP_DATABASE_URL, NODE_ENV: 'development' }),
+    ).toThrow(/JWT_ACCESS_SECRET/);
+  });
+
+  it('rejects a secret shorter than 32 characters', () => {
+    expect(() =>
+      validateEnv({
+        DATABASE_URL,
+        APP_DATABASE_URL,
+        NODE_ENV: 'development',
+        JWT_ACCESS_SECRET: 'too-short',
+      }),
+    ).toThrow(/JWT_ACCESS_SECRET/);
+  });
+
+  it('allows a missing secret only when NODE_ENV is test', () => {
+    const config = validateEnv({ DATABASE_URL, NODE_ENV: 'test' });
+    expect(config.JWT_ACCESS_SECRET).toBeUndefined();
   });
 });

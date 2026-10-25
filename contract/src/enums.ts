@@ -87,3 +87,13 @@ export const CATEGORY_CODES = [
 
 export const CategoryCodeSchema = z.enum(CATEGORY_CODES);
 export type CategoryCode = z.infer<typeof CategoryCodeSchema>;
+
+// ---------- Web account enums ----------
+
+export const USER_STATUSES = ['PENDING', 'ACTIVE', 'REJECTED', 'DEACTIVATED'] as const;
+export const UserStatusSchema = z.enum(USER_STATUSES);
+export type UserStatus = z.infer<typeof UserStatusSchema>;
+
+export const ROLES = ['SYSTEM_ADMIN', 'DEPARTMENT_ADMIN', 'USER'] as const;
+export const RoleSchema = z.enum(ROLES);
+export type Role = z.infer<typeof RoleSchema>;

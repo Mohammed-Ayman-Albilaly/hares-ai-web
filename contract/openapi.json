@@ -7,10 +7,14 @@
   },
   "servers": [
     {
-      "url": "http://localhost:3000"
+      "url": "http://localhost:3000/api"
     }
   ],
   "tags": [
+    {
+      "name": "auth",
+      "description": "Web registration, login, refresh and logout."
+    },
     {
       "name": "extension",
       "description": "Extension authentication and log ingestion."
@@ -26,6 +30,11 @@
   ],
   "components": {
     "securitySchemes": {
+      "refreshCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "hares_rt"
+      },
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
@@ -834,6 +843,379 @@
         },
         "required": [
           "log_id"
+        ]
+      },
+      "UserStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "ACTIVE",
+          "REJECTED",
+          "DEACTIVATED"
+        ]
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "SYSTEM_ADMIN",
+          "DEPARTMENT_ADMIN",
+          "USER"
+        ]
+      },
+      "WebAuthErrorCode": {
+        "type": "string",
+        "enum": [
+          "EMAIL_TAKEN",
+          "INVALID_CREDENTIALS",
+          "ACCOUNT_PENDING",
+          "ACCOUNT_REJECTED",
+          "ACCOUNT_INACTIVE",
+          "INVALID_TOKEN",
+          "TOKEN_EXPIRED",
+          "TOKEN_REVOKED",
+          "REFRESH_REUSED",
+          "ORIGIN_NOT_ALLOWED"
+        ]
+      },
+      "UserPublic": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "REJECTED",
+              "DEACTIVATED"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SYSTEM_ADMIN",
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          },
+          "department_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "email",
+          "status",
+          "role",
+          "department_id"
+        ]
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "full_name",
+          "email",
+          "password"
+        ],
+        "additionalProperties": false
+      },
+      "RegisterResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "additionalProperties": false
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expires_in": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "full_name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING",
+                  "ACTIVE",
+                  "REJECTED",
+                  "DEACTIVATED"
+                ]
+              },
+              "role": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "SYSTEM_ADMIN",
+                  "DEPARTMENT_ADMIN",
+                  "USER"
+                ]
+              },
+              "department_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "id",
+              "full_name",
+              "email",
+              "status",
+              "role",
+              "department_id"
+            ]
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "user"
+        ]
+      },
+      "TokenPair": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expires_in": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in"
+        ]
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "RefreshResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "minLength": 1
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "expires_in": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "full_name": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "PENDING",
+                  "ACTIVE",
+                  "REJECTED",
+                  "DEACTIVATED"
+                ]
+              },
+              "role": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "SYSTEM_ADMIN",
+                  "DEPARTMENT_ADMIN",
+                  "USER"
+                ]
+              },
+              "department_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "uuid"
+              }
+            },
+            "required": [
+              "id",
+              "full_name",
+              "email",
+              "status",
+              "role",
+              "department_id"
+            ]
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "user"
+        ]
+      },
+      "LogoutRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "MeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "REJECTED",
+              "DEACTIVATED"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SYSTEM_ADMIN",
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          },
+          "department_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "email",
+          "status",
+          "role",
+          "department_id"
         ]
       }
     },
@@ -2015,6 +2397,953 @@
                   "status": 401,
                   "code": "INVALID_TOKEN",
                   "message": "Missing or invalid access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "summary": "Self-register a web account (status PENDING)",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "full_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "email": {
+                    "type": "string",
+                    "maxLength": 254,
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 8
+                  }
+                },
+                "required": [
+                  "full_name",
+                  "email",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created in PENDING status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing fields or password policy not met.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Missing fields or password policy not met.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request Origin is not allowed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "ORIGIN_NOT_ALLOWED",
+                  "message": "Request Origin is not allowed.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The email is already registered.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "EMAIL_TAKEN",
+                  "message": "The email is already registered.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Web login; sets the HTTP-only refresh cookie",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated. Set-Cookie carries the refresh token (HttpOnly, SameSite=Strict).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "token_type": {
+                      "type": "string",
+                      "enum": [
+                        "Bearer"
+                      ]
+                    },
+                    "expires_in": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "full_name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "PENDING",
+                            "ACTIVE",
+                            "REJECTED",
+                            "DEACTIVATED"
+                          ]
+                        },
+                        "role": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "SYSTEM_ADMIN",
+                            "DEPARTMENT_ADMIN",
+                            "USER"
+                          ]
+                        },
+                        "department_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "full_name",
+                        "email",
+                        "status",
+                        "role",
+                        "department_id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "access_token",
+                    "token_type",
+                    "expires_in",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Email or password missing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Email or password missing.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "INVALID_CREDENTIALS (wrong email or password), or after a correct password ACCOUNT_PENDING, ACCOUNT_REJECTED or ACCOUNT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_CREDENTIALS",
+                  "message": "INVALID_CREDENTIALS (wrong email or password), or after a correct password ACCOUNT_PENDING, ACCOUNT_REJECTED or ACCOUNT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request Origin is not allowed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "ORIGIN_NOT_ALLOWED",
+                  "message": "Request Origin is not allowed.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "summary": "Rotate the web refresh cookie and issue a new access token",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "refreshCookie": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rotated; Set-Cookie carries the new refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "access_token": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "token_type": {
+                      "type": "string",
+                      "enum": [
+                        "Bearer"
+                      ]
+                    },
+                    "expires_in": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "full_name": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "PENDING",
+                            "ACTIVE",
+                            "REJECTED",
+                            "DEACTIVATED"
+                          ]
+                        },
+                        "role": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "enum": [
+                            "SYSTEM_ADMIN",
+                            "DEPARTMENT_ADMIN",
+                            "USER"
+                          ]
+                        },
+                        "department_id": {
+                          "type": [
+                            "string",
+                            "null"
+                          ],
+                          "format": "uuid"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "full_name",
+                        "email",
+                        "status",
+                        "role",
+                        "department_id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "access_token",
+                    "token_type",
+                    "expires_in",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "INVALID_TOKEN (missing, unknown or expired cookie), TOKEN_REVOKED (family revoked) or REFRESH_REUSED (replay detected).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "INVALID_TOKEN (missing, unknown or expired cookie), TOKEN_REVOKED (family revoked) or REFRESH_REUSED (replay detected).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request Origin is not allowed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "ORIGIN_NOT_ALLOWED",
+                  "message": "Request Origin is not allowed.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Revoke the refresh family and clear the cookie",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "refreshCookie": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "No Content; the cookie is cleared even if it was already invalid."
+          },
+          "403": {
+            "description": "Request Origin is not allowed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "ORIGIN_NOT_ALLOWED",
+                  "message": "Request Origin is not allowed.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Current account",
+        "tags": [
+          "auth"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The authenticated account.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "INVALID_TOKEN, TOKEN_EXPIRED (call /auth/refresh), TOKEN_REVOKED or ACCOUNT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "INVALID_TOKEN, TOKEN_EXPIRED (call /auth/refresh), TOKEN_REVOKED or ACCOUNT_INACTIVE.",
                   "path": "",
                   "timestamp": "2026-01-01T00:00:00Z",
                   "request_id": "00000000-0000-0000-0000-000000000000"

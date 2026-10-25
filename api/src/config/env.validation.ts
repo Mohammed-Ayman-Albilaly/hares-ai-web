@@ -16,6 +16,11 @@ import { z } from 'zod';
  *    runtime Prisma client connects with it.
  *  - `PORT` defaults to 3000.
  *  - `CORS_ORIGIN` is a comma-separated allowlist of origins.
+ *  - `JWT_ACCESS_SECRET` signs the access JWTs (HS256). It is mandatory
+ *    (except under `test`, where the auth module uses a random per-process
+ *    secret) and must be at least 32 characters.
+ *  - `COOKIE_SECURE` (true/false) overrides the refresh cookie's Secure flag;
+ *    by default it is Secure only in production.
  *
  * The bootstrap admin values (`INITIAL_ADMIN_*`) are used only by the seed
  * script, which reads them from `process.env` directly, so they are not part
@@ -43,6 +48,14 @@ export const envSchema = z
       )
       .optional(),
     CORS_ORIGIN: z.string().min(1).default('http://localhost:1420'),
+    COOKIE_SECURE: z
+      .enum(['true', 'false'])
+      .transform((v) => v === 'true')
+      .optional(),
+    JWT_ACCESS_SECRET: z
+      .string()
+      .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters')
+      .optional(),
   })
   .superRefine((val, ctx) => {
     if (val.NODE_ENV !== 'test' && !val.APP_DATABASE_URL) {
@@ -50,6 +63,13 @@ export const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['APP_DATABASE_URL'],
         message: 'APP_DATABASE_URL is required when NODE_ENV is not test',
+      });
+    }
+    if (val.NODE_ENV !== 'test' && !val.JWT_ACCESS_SECRET) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['JWT_ACCESS_SECRET'],
+        message: 'JWT_ACCESS_SECRET is required when NODE_ENV is not test',
       });
     }
   });

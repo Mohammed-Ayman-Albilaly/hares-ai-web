@@ -18,12 +18,15 @@ export const ZOD_SCHEMA_METADATA = 'hares:zod-schema';
  * value, satisfying the "never echo the value / code-only details" rule.
  */
 export function formatZodError(error: {
-  issues: { path: (string | number)[]; message: string }[];
+  issues: { path: (string | number)[]; message: string; code?: string }[];
 }): Record<string, string[]> {
   const details: Record<string, string[]> = {};
   for (const issue of error.issues) {
     const key = issue.path.join('.') || '_';
-    (details[key] ??= []).push(issue.message);
+    // Zod's default unknown-key message lists the received key names; replace
+    // it with a fixed key so no request content is reflected back.
+    const message = issue.code === 'unrecognized_keys' ? 'request.unknown_field' : issue.message;
+    (details[key] ??= []).push(message);
   }
   return details;
 }

@@ -14,9 +14,11 @@ import {
   PlatformSchema,
   PolicyActionSchema,
   RiskLevelSchema,
+  RoleSchema,
   RuleKindSchema,
   SchemaVersionSchema,
   UserDecisionSchema,
+  UserStatusSchema,
 } from './enums';
 import { ApiErrorEnvelopeSchema, ErrorEnvelopeSchema } from './error';
 import {
@@ -28,6 +30,20 @@ import {
 } from './auth';
 import { ErrorCodeSchema, ExtensionErrorEnvelopeSchema } from './errors';
 import { HealthResponseSchema } from './health';
+import {
+  LoginRequestSchema,
+  LoginResponseSchema,
+  LogoutRequestSchema,
+  MeResponseSchema,
+  REFRESH_COOKIE_NAME,
+  RefreshRequestSchema,
+  RefreshResponseSchema,
+  RegisterRequestSchema,
+  RegisterResponseSchema,
+  TokenPairSchema,
+  UserPublicSchema,
+  WebAuthErrorCodeSchema,
+} from './web-auth';
 import { CorrelationIdSchema, RequestContextSchema } from './request-context';
 import { LogEventSchema, LogIngestionResponseSchema } from './ingestion';
 import {
@@ -69,6 +85,24 @@ registry.register('PolicyBundleVersion', PolicyBundleVersionSchema);
 registry.register('PolicyBundleResponse', PolicyBundleResponseSchema);
 registry.register('LogEvent', LogEventSchema);
 registry.register('LogIngestionResponse', LogIngestionResponseSchema);
+registry.register('UserStatus', UserStatusSchema);
+registry.register('Role', RoleSchema);
+registry.register('WebAuthErrorCode', WebAuthErrorCodeSchema);
+registry.register('UserPublic', UserPublicSchema);
+registry.register('RegisterRequest', RegisterRequestSchema);
+registry.register('RegisterResponse', RegisterResponseSchema);
+registry.register('LoginRequest', LoginRequestSchema);
+registry.register('LoginResponse', LoginResponseSchema);
+registry.register('TokenPair', TokenPairSchema);
+registry.register('RefreshRequest', RefreshRequestSchema);
+registry.register('RefreshResponse', RefreshResponseSchema);
+registry.register('LogoutRequest', LogoutRequestSchema);
+registry.register('MeResponse', MeResponseSchema);
+registry.registerComponent('securitySchemes', 'refreshCookie', {
+  type: 'apiKey',
+  in: 'cookie',
+  name: REFRESH_COOKIE_NAME,
+});
 registry.registerComponent('securitySchemes', 'bearerAuth', {
   type: 'http',
   scheme: 'bearer',
@@ -84,6 +118,26 @@ function errorResponse(status: number, description: string, code: string): Respo
     content: {
       'application/json': {
         schema: ExtensionErrorEnvelopeSchema,
+        example: {
+          status,
+          code,
+          message: description,
+          path: '',
+          timestamp: '2026-01-01T00:00:00Z',
+          request_id: '00000000-0000-0000-0000-000000000000',
+        },
+      },
+    },
+  };
+}
+
+/** Error response carrying the generic envelope (web endpoints use a broader code set). */
+function webError(status: number, description: string, code: string): ResponseConfig {
+  return {
+    description,
+    content: {
+      'application/json': {
+        schema: ErrorEnvelopeSchema,
         example: {
           status,
           code,
@@ -219,6 +273,90 @@ registry.registerPath({
   },
 });
 
+// ---------- Web auth (B4a) ----------
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/register',
+  summary: 'Self-register a web account (status PENDING)',
+  tags: ['auth'],
+  request: { body: jsonBody(RegisterRequestSchema) },
+  responses: {
+    201: { description: 'Account created in PENDING status.', ...jsonBody(RegisterResponseSchema) },
+    400: webError(400, 'Missing fields or password policy not met.', 'VALIDATION_ERROR'),
+    403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+    409: webError(409, 'The email is already registered.', 'EMAIL_TAKEN'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/login',
+  summary: 'Web login; sets the HTTP-only refresh cookie',
+  tags: ['auth'],
+  request: { body: jsonBody(LoginRequestSchema) },
+  responses: {
+    200: {
+      description: 'Authenticated. Set-Cookie carries the refresh token (HttpOnly, SameSite=Strict).',
+      ...jsonBody(LoginResponseSchema),
+    },
+    400: webError(400, 'Email or password missing.', 'VALIDATION_ERROR'),
+    401: webError(
+      401,
+      'INVALID_CREDENTIALS (wrong email or password), or after a correct password ACCOUNT_PENDING, ACCOUNT_REJECTED or ACCOUNT_INACTIVE.',
+      'INVALID_CREDENTIALS',
+    ),
+    403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/refresh',
+  summary: 'Rotate the web refresh cookie and issue a new access token',
+  tags: ['auth'],
+  security: [{ refreshCookie: [] }],
+  request: { body: jsonBody(RefreshRequestSchema) },
+  responses: {
+    200: { description: 'Rotated; Set-Cookie carries the new refresh token.', ...jsonBody(RefreshResponseSchema) },
+    401: webError(
+      401,
+      'INVALID_TOKEN (missing, unknown or expired cookie), TOKEN_REVOKED (family revoked) or REFRESH_REUSED (replay detected).',
+      'INVALID_TOKEN',
+    ),
+    403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/logout',
+  summary: 'Revoke the refresh family and clear the cookie',
+  tags: ['auth'],
+  security: [{ refreshCookie: [] }],
+  request: { body: jsonBody(LogoutRequestSchema) },
+  responses: {
+    204: { description: 'No Content; the cookie is cleared even if it was already invalid.' },
+    403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/auth/me',
+  summary: 'Current account',
+  tags: ['auth'],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: { description: 'The authenticated account.', ...jsonBody(MeResponseSchema) },
+    401: webError(
+      401,
+      'INVALID_TOKEN, TOKEN_EXPIRED (call /auth/refresh), TOKEN_REVOKED or ACCOUNT_INACTIVE.',
+      'INVALID_TOKEN',
+    ),
+  },
+});
+
 /** Build the OpenAPI 3.1 document from the registered components and paths. */
 export function buildOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
@@ -229,8 +367,9 @@ export function buildOpenApiDocument() {
       version: '1.0.0',
       description: 'API contract for the Hares AI Web extension and web application (batch B1).',
     },
-    servers: [{ url: 'http://localhost:3000' }],
+    servers: [{ url: 'http://localhost:3000/api' }],
     tags: [
+      { name: 'auth', description: 'Web registration, login, refresh and logout.' },
       { name: 'extension', description: 'Extension authentication and log ingestion.' },
       { name: 'policy', description: 'Policy bundle delivery to the extension.' },
       { name: 'health', description: 'API liveness/readiness probe.' },

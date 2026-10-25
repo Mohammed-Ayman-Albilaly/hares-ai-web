@@ -6,7 +6,7 @@ One unchecked line per batch. Tick a line when the `verify` command passes.
 - [x] **B2a** — Prisma schema + init migration — `pnpm --filter api prisma migrate dev --name init`
 - [x] **B2b** — Raw SQL migrations + seed + DB tests + roles — `pnpm --filter api prisma migrate dev && pnpm --filter api prisma db seed && pnpm --filter api test`
 - [x] **B3** — API core (CommonModule) — `pnpm --filter api test && curl -s localhost:3000/api/health`
-- [ ] **B4a** — Web auth (register, login, logout, refresh) — `pnpm --filter api test`
+- [x] **B4a** — Web auth (register, login, logout, refresh) — `pnpm --filter api test`
 - [ ] **B4b** — Extension auth + rotation/reuse detection — `pnpm --filter api test`
 - [ ] **B4c** — Forgot/reset password + login throttling (+ MailerService) — `pnpm --filter api test`
 - [ ] **B4d** — Audit recording (write-only) — `pnpm --filter api test`

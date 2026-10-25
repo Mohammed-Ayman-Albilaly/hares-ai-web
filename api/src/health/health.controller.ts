@@ -8,6 +8,7 @@ import {
 import { HealthResponseSchema, type HealthResponse } from '@hares/contract';
 import { PrismaService } from '../prisma/prisma.service';
 import { getRequestContext } from '../common/request-context';
+import { Public } from '../common/decorators/auth.decorators';
 
 const SERVICE_NAME = 'hares-api';
 const SERVICE_VERSION = process.env.npm_package_version ?? '0.0.0';
@@ -22,6 +23,7 @@ const SERVICE_VERSION = process.env.npm_package_version ?? '0.0.0';
  * PrismaService is injected with `@Inject()` because the dev runtime (tsx /
  * esbuild) does not emit `design:paramtypes`, so type-based DI is unavailable.
  */
+@Public()
 @Controller('health')
 export class HealthController {
   private readonly logger = new Logger('Health');
