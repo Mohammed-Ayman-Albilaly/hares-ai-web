@@ -55,7 +55,7 @@ describe.skipIf(!dbEnabled)('extension auth (B4b)', () => {
 
   afterAll(async () => {
     await t?.close();
-    await fx?.cleanup();
+    await fx?.cleanup(undefined, t?.ip);
   });
 
   it('logs in and returns an access token (<= 1h) and a refresh token in the body', async () => {
@@ -72,6 +72,7 @@ describe.skipIf(!dbEnabled)('extension auth (B4b)', () => {
     expect(wrong.body.code).toBe('INVALID_CREDENTIALS');
     expect(ExtensionErrorEnvelopeSchema.safeParse(wrong.body).success).toBe(true);
 
+    fx.emails.push(fx.email('ext-nobody'));
     const unknown = await extLogin(fx.email('ext-nobody'));
     expect(unknown.status).toBe(401);
     expect(unknown.body.code).toBe('INVALID_CREDENTIALS');

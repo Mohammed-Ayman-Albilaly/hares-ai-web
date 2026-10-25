@@ -25,6 +25,12 @@ export function configureApp(app: NestExpressApplication): { port: number } {
 
   app.setGlobalPrefix('api');
 
+  // Behind the reverse proxy, req.ip must be the client address (login throttle).
+  const trustProxy = config.get<string>('TRUST_PROXY');
+  if (trustProxy) {
+    app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
+  }
+
   const correlation = app.get(CorrelationMiddleware);
   app.use(correlation.use.bind(correlation));
 

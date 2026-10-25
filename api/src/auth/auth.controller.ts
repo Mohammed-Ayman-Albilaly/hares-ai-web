@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import {
   LoginRequestSchema,
@@ -30,6 +31,8 @@ import { AllowedOriginGuard } from '../common/guards/allowed-origin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AuthService } from './auth.service';
 import { clearRefreshCookie, readRefreshCookie, setRefreshCookie } from './refresh-cookie';
+import { clientIp } from './client-ip';
+import { RATE_LIMITS } from './throttle';
 
 /**
  * Web session endpoints (`/api/auth/*`). The extension has its own routes.
@@ -50,6 +53,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: RATE_LIMITS.register })
   @Post('register')
   @HttpCode(201)
   async register(
@@ -60,13 +64,15 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: RATE_LIMITS.login })
   @Post('login')
   @HttpCode(200)
   async login(
     @Body(new ZodValidationPipe(LoginRequestSchema)) body: LoginRequest,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<LoginResponse> {
-    const session = await this.auth.login(body, 'web');
+    const session = await this.auth.login(body, 'web', clientIp(req));
     setRefreshCookie(res, session.refreshToken, this.secureCookie);
     return session.body;
   }

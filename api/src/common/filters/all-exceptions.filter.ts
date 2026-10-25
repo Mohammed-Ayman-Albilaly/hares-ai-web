@@ -166,6 +166,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       request_id: requestId,
     };
 
+    const retryAfter = (exception as { retryAfterSeconds?: unknown })?.retryAfterSeconds;
+    if (status === HttpStatus.TOO_MANY_REQUESTS && typeof retryAfter === 'number') {
+      response.setHeader('Retry-After', String(retryAfter));
+    }
+
     response.status(status).json(envelope);
   }
 }

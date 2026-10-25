@@ -1,15 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import 'dotenv/config';
-import * as http from 'node:http';
 import { randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
 import { Pool } from 'pg';
 import { SignJWT } from 'jose';
-import { Test } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { LoginResponseSchema, REFRESH_COOKIE_NAME, UserPublicSchema } from '@hares/contract';
-import { AppModule } from '../app.module';
-import { configureApp } from '../app.setup';
+import { bootTestApp, clearThrottle, type HttpResult, type TestApp } from '../test/http-test-app';
 import { RefreshTokenService } from './refresh-token.service';
 import { TokenService } from './token.service';
 
@@ -34,50 +31,17 @@ const SALT = randomUUID().slice(0, 8);
 const PASSWORD = 'Synthetic#Pass1';
 const email = (tag: string) => `auth-${tag}-${SALT}@synthetic.test`;
 
-interface Res {
-  status: number;
-  body: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-  cookies: string[];
-}
+type Res = HttpResult;
 
 describe.skipIf(!enabled)('web auth (B4a)', () => {
+  let t: TestApp;
   let app: NestExpressApplication;
   let owner: Pool;
-  let port: number;
   const departmentId = randomUUID();
   const activeId = randomUUID();
 
-  function call(method: string, path: string, opts: { body?: unknown; headers?: Record<string, string> } = {}): Promise<Res> {
-    const payload = opts.body === undefined ? undefined : JSON.stringify(opts.body);
-    return new Promise((resolve, reject) => {
-      const req = http.request(
-        {
-          host: '127.0.0.1',
-          port,
-          path,
-          method,
-          headers: {
-            ...(payload ? { 'content-type': 'application/json' } : {}),
-            ...opts.headers,
-          },
-        },
-        (res) => {
-          let data = '';
-          res.on('data', (c) => (data += c));
-          res.on('end', () =>
-            resolve({
-              status: res.statusCode ?? 0,
-              body: data ? JSON.parse(data) : undefined,
-              cookies: res.headers['set-cookie'] ?? [],
-            }),
-          );
-        },
-      );
-      req.on('error', reject);
-      if (payload) req.write(payload);
-      req.end();
-    });
-  }
+  const call = (method: string, path: string, opts: { body?: unknown; headers?: Record<string, string> } = {}) =>
+    t.call(method, path, opts);
 
   /** Extract the refresh token value from Set-Cookie headers. */
   function refreshCookie(res: Res): string | undefined {
@@ -97,17 +61,14 @@ describe.skipIf(!enabled)('web auth (B4a)', () => {
       [activeId, email('active'), hash, departmentId],
     );
 
-    const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false, logger: false });
-    configureApp(app);
-    await app.init();
-    await app.listen(0);
-    port = (app.getHttpServer().address() as { port: number }).port;
+    t = await bootTestApp();
+    app = t.app;
   }, 60_000);
 
   afterAll(async () => {
-    await app?.close();
+    await t?.close();
     if (owner) {
+      await clearThrottle(owner, [email('active'), email('pending'), email('nobody')], t.ip);
       const users = `SELECT id FROM "User" WHERE email LIKE $1`;
       await owner.query(`DELETE FROM "RefreshToken" WHERE user_id IN (${users})`, [`%-${SALT}@synthetic.test`]);
       await owner.query(`DELETE FROM "User" WHERE email LIKE $1`, [`%-${SALT}@synthetic.test`]);

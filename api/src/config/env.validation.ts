@@ -19,6 +19,15 @@ import { z } from 'zod';
  *  - `JWT_ACCESS_SECRET` signs the access JWTs (HS256). It is mandatory
  *    (except under `test`, where the auth module uses a random per-process
  *    secret) and must be at least 32 characters.
+ *  - SMTP (`SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`,
+ *    `MAIL_FROM`) sends the reset email; it defaults to Mailpit on
+ *    localhost:1025 and `SMTP_HOST` is required in production.
+ *  - `WEB_BASE_URL` is the public web origin used in emailed links.
+ *  - `TRUST_PROXY` is passed to Express `trust proxy` so `req.ip` is the real
+ *    client address behind the reverse proxy (decision 27), e.g. `1`.
+ *  - `RATE_LIMITS` (on/off) toggles the per-endpoint request windows; they are
+ *    off by default under `test` only. The progressive login throttle is
+ *    always on.
  *  - `COOKIE_SECURE` (true/false) overrides the refresh cookie's Secure flag;
  *    by default it is Secure only in production.
  *
@@ -48,6 +57,26 @@ export const envSchema = z
       )
       .optional(),
     CORS_ORIGIN: z.string().min(1).default('http://localhost:1420'),
+    SMTP_HOST: z.string().min(1).optional(),
+    SMTP_PORT: z.coerce.number().int().positive().default(1025),
+    SMTP_SECURE: z
+      .enum(['true', 'false'])
+      .transform((v) => v === 'true')
+      .optional(),
+    SMTP_USER: z.string().min(1).optional(),
+    SMTP_PASS: z.string().optional(),
+    MAIL_FROM: z.string().min(3).default('Hares AI <no-reply@hares.local>'),
+    WEB_BASE_URL: z.string().url().default('http://localhost:1420'),
+    // A hop count, or a comma list of IPs / CIDRs / loopback|linklocal|uniquelocal.
+    // "true" (trust everyone) is refused: any client could then fake its IP.
+    TRUST_PROXY: z
+      .string()
+      .regex(
+        /^(\d+|((loopback|linklocal|uniquelocal|[0-9a-fA-F.:]+(\/\d{1,3})?)(\s*,\s*(loopback|linklocal|uniquelocal|[0-9a-fA-F.:]+(\/\d{1,3})?))*))$/,
+        'TRUST_PROXY must be a hop count or a list of proxy addresses',
+      )
+      .optional(),
+    RATE_LIMITS: z.enum(['on', 'off']).optional(),
     COOKIE_SECURE: z
       .enum(['true', 'false'])
       .transform((v) => v === 'true')
@@ -63,6 +92,27 @@ export const envSchema = z
         code: z.ZodIssueCode.custom,
         path: ['APP_DATABASE_URL'],
         message: 'APP_DATABASE_URL is required when NODE_ENV is not test',
+      });
+    }
+    if (val.NODE_ENV === 'production' && !val.TRUST_PROXY) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['TRUST_PROXY'],
+        message: 'TRUST_PROXY is required in production (the API runs behind the reverse proxy)',
+      });
+    }
+    if (val.NODE_ENV === 'production' && !val.WEB_BASE_URL.startsWith('https://')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['WEB_BASE_URL'],
+        message: 'WEB_BASE_URL must use https in production',
+      });
+    }
+    if (val.NODE_ENV === 'production' && !val.SMTP_HOST) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['SMTP_HOST'],
+        message: 'SMTP_HOST is required in production',
       });
     }
     if (val.NODE_ENV !== 'test' && !val.JWT_ACCESS_SECRET) {

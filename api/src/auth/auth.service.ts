@@ -3,8 +3,9 @@ import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import type { LoginRequest, LoginResponse, RegisterRequest, UserPublic } from '@hares/contract';
 import { PrismaService } from '../prisma/prisma.service';
 import { USER_PUBLIC_SELECT, toUserPublic } from '../users/user-public';
-import { authMessage, unauthorized } from './auth-errors';
+import { RateLimitedException, authMessage, unauthorized } from './auth-errors';
 import type { ClientKind } from './auth.constants';
+import { LoginFailureStore } from './login-failure-store';
 import { PasswordService } from './password.service';
 import { RefreshTokenService } from './refresh-token.service';
 import { TokenService } from './token.service';
@@ -38,6 +39,7 @@ export class AuthService {
     @Inject(PasswordService) private readonly passwords: PasswordService,
     @Inject(TokenService) private readonly tokens: TokenService,
     @Inject(RefreshTokenService) private readonly refreshTokens: RefreshTokenService,
+    @Inject(LoginFailureStore) private readonly failures: LoginFailureStore,
   ) {}
 
   /** WEB-FR-001/002: create a PENDING account with no role and no department. */
@@ -67,13 +69,26 @@ export class AuthService {
   /**
    * WEB-FR-003/004/005. A wrong email and a wrong password give the same answer.
    * The account status is only revealed after the password is proven correct.
+   * Progressive throttle (WEB-NFR-020): every attempt is reserved before the
+   * password check (also for unknown emails); a success clears the account.
    */
-  async login(input: Pick<LoginRequest, 'email' | 'password'>, client: ClientKind): Promise<SessionResult> {
+  async login(
+    input: Pick<LoginRequest, 'email' | 'password'>,
+    client: ClientKind,
+    ip: string,
+  ): Promise<SessionResult> {
+    // The attempt is counted up front (atomically), so parallel guesses cannot
+    // all pass before a failure is recorded; a correct password refunds it.
+    const keys = this.failures.keys(input.email, ip, client);
+    const wait = await this.failures.reserve(keys);
+    if (wait > 0) throw new RateLimitedException(wait);
+
     const user = await this.findForLogin(input.email);
     const valid = await this.passwords.verify(input.password, user?.passwordHash ?? null);
     if (!user || !valid) {
       throw unauthorized('INVALID_CREDENTIALS');
     }
+    await this.failures.succeeded(keys);
     if (user.status !== 'ACTIVE') {
       throw unauthorized(LOGIN_DENIED[client][user.status]);
     }
@@ -107,6 +122,13 @@ export class AuthService {
     });
     if (!user) throw unauthorized('INVALID_TOKEN');
     return toUserPublic(user);
+  }
+
+  /** Issue a fresh session (used after a password change on the current device). */
+  async newSession(userId: string, client: ClientKind): Promise<SessionResult> {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { tokenVersion: true } });
+    const refreshToken = await this.refreshTokens.issue(userId, user.tokenVersion, client);
+    return { body: await this.buildBody(userId, user.tokenVersion, client), refreshToken };
   }
 
   private async buildBody(userId: string, tokenVersion: number, client: ClientKind): Promise<LoginResponse> {

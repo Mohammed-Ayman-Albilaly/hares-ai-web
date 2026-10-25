@@ -1,4 +1,4 @@
-import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, HttpException, HttpStatus, UnauthorizedException } from '@nestjs/common';
 import type { ErrorCode, WebAuthErrorCode } from '@hares/contract';
 
 /** Codes used by the web auth routes plus the extension-only ones. */
@@ -27,6 +27,19 @@ export function unauthorized(code: AuthErrorCode): UnauthorizedException {
 
 export function forbidden(code: AuthErrorCode): ForbiddenException {
   return new ForbiddenException({ code, message: MESSAGES[code] });
+}
+
+/**
+ * 429 from the progressive login throttle. The global filter copies
+ * `retryAfterSeconds` into the Retry-After header.
+ */
+export class RateLimitedException extends HttpException {
+  constructor(readonly retryAfterSeconds: number) {
+    super(
+      { code: 'RATE_LIMITED', message: 'Too many attempts. Try again later.' },
+      HttpStatus.TOO_MANY_REQUESTS,
+    );
+  }
 }
 
 export function authMessage(code: AuthErrorCode): string {

@@ -32,6 +32,14 @@ import {
 import { ErrorCodeSchema, ExtensionErrorEnvelopeSchema } from './errors';
 import { HealthResponseSchema } from './health';
 import {
+  ChangePasswordRequestSchema,
+  ForgotPasswordRequestSchema,
+  ForgotPasswordResponseSchema,
+  PasswordErrorCodeSchema,
+  ResetPasswordRequestSchema,
+  ThrottleConfigSchema,
+} from './password';
+import {
   LoginRequestSchema,
   LoginResponseSchema,
   LogoutRequestSchema,
@@ -100,6 +108,12 @@ registry.register('RefreshRequest', RefreshRequestSchema);
 registry.register('RefreshResponse', RefreshResponseSchema);
 registry.register('LogoutRequest', LogoutRequestSchema);
 registry.register('MeResponse', MeResponseSchema);
+registry.register('ForgotPasswordRequest', ForgotPasswordRequestSchema);
+registry.register('ForgotPasswordResponse', ForgotPasswordResponseSchema);
+registry.register('ResetPasswordRequest', ResetPasswordRequestSchema);
+registry.register('ChangePasswordRequest', ChangePasswordRequestSchema);
+registry.register('ThrottleConfig', ThrottleConfigSchema);
+registry.register('PasswordErrorCode', PasswordErrorCodeSchema);
 registry.registerComponent('securitySchemes', 'refreshCookie', {
   type: 'apiKey',
   in: 'cookie',
@@ -201,6 +215,7 @@ registry.registerPath({
       'INVALID_CREDENTIALS (wrong email or password), or after a correct password ACCOUNT_NO_ACCESS (PENDING/REJECTED) or ACCOUNT_INACTIVE (DEACTIVATED).',
       'INVALID_CREDENTIALS',
     ),
+    429: errorResponse(429, 'Login throttled (progressive delay); see the Retry-After header.', 'RATE_LIMITED'),
   },
 });
 
@@ -297,6 +312,7 @@ registry.registerPath({
     400: webError(400, 'Missing fields or password policy not met.', 'VALIDATION_ERROR'),
     403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
     409: webError(409, 'The email is already registered.', 'EMAIL_TAKEN'),
+    429: webError(429, 'Too many requests; see the Retry-After header.', 'RATE_LIMITED'),
   },
 });
 
@@ -318,6 +334,7 @@ registry.registerPath({
       'INVALID_CREDENTIALS',
     ),
     403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+    429: webError(429, 'Login throttled (progressive delay); see the Retry-After header.', 'RATE_LIMITED'),
   },
 });
 
@@ -365,6 +382,58 @@ registry.registerPath({
       'INVALID_TOKEN, TOKEN_EXPIRED (call /auth/refresh), TOKEN_REVOKED or ACCOUNT_INACTIVE.',
       'INVALID_TOKEN',
     ),
+  },
+});
+
+// ---------- Password recovery and change (B4c) ----------
+
+const rateLimited = webError(429, 'Too many requests; see the Retry-After header.', 'RATE_LIMITED');
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/forgot-password',
+  summary: 'Request a password-reset email',
+  description: 'Always 202, whether or not the email is registered (decision 29). Only ACTIVE accounts get an email.',
+  tags: ['auth'],
+  request: { body: jsonBody(ForgotPasswordRequestSchema) },
+  responses: {
+    202: { description: 'Accepted.', ...jsonBody(ForgotPasswordResponseSchema) },
+    400: webError(400, 'Missing or invalid email.', 'VALIDATION_ERROR'),
+    403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+    429: rateLimited,
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/reset-password',
+  summary: 'Set a new password with a single-use reset token',
+  tags: ['auth'],
+  request: { body: jsonBody(ResetPasswordRequestSchema) },
+  responses: {
+    204: { description: 'Password changed; every existing session is revoked.' },
+    400: webError(400, 'RESET_TOKEN_INVALID (unknown, used or expired) or VALIDATION_ERROR (password policy).', 'RESET_TOKEN_INVALID'),
+    403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+    429: rateLimited,
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/auth/change-password',
+  summary: 'Change the current password',
+  tags: ['auth'],
+  security: [{ bearerAuth: [] }],
+  request: { body: jsonBody(ChangePasswordRequestSchema) },
+  responses: {
+    200: {
+      description: 'Changed. All other sessions are revoked; a new session (body + refresh cookie) is issued.',
+      ...jsonBody(LoginResponseSchema),
+    },
+    400: webError(400, 'INVALID_CURRENT_PASSWORD or VALIDATION_ERROR (password policy).', 'INVALID_CURRENT_PASSWORD'),
+    401: webError(401, 'Missing, expired or revoked access token.', 'INVALID_TOKEN'),
+    403: webError(403, 'Request Origin is not allowed.', 'ORIGIN_NOT_ALLOWED'),
+    429: webError(429, 'Too many wrong current passwords (progressive delay) or request window; see Retry-After.', 'RATE_LIMITED'),
   },
 });
 

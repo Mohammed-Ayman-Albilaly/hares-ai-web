@@ -8,6 +8,7 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Type } from '@nestjs/common';
 import { AppModule } from '../app.module';
 import { configureApp } from '../app.setup';
+import { throttleKeys } from '../auth/login-failure-store';
 
 // ---------------------------------------------------------------------------
 // Shared helpers for HTTP integration suites. The app connects as hares_app
@@ -30,6 +31,8 @@ export interface HttpResult {
 
 export interface TestApp {
   app: NestExpressApplication;
+  /** Synthetic client address sent as X-Forwarded-For (isolates throttle counters per suite). */
+  ip: string;
   call(
     method: string,
     path: string,
@@ -44,6 +47,8 @@ export async function bootTestApp(
 ): Promise<TestApp> {
   let builder = Test.createTestingModule({ imports: [AppModule], controllers: opts.controllers ?? [] });
   if (opts.override) builder = opts.override(builder);
+  // TRUST_PROXY=loopback (vitest.config.ts) makes Express honour this address.
+  const ip = `10.${rand255()}.${rand255()}.${rand255()}`;
   const moduleRef = await builder.compile();
   const app = moduleRef.createNestApplication<NestExpressApplication>({ bodyParser: false, logger: false });
   configureApp(app);
@@ -62,6 +67,7 @@ export async function bootTestApp(
           method,
           headers: {
             ...(payload ? { 'content-type': 'application/json' } : {}),
+            'x-forwarded-for': ip,
             ...(o.bearer ? { authorization: `Bearer ${o.bearer}` } : {}),
             ...o.headers,
           },
@@ -93,7 +99,21 @@ export async function bootTestApp(
     });
   };
 
-  return { app, call, close: () => app.close() };
+  return { app, ip, call, close: () => app.close() };
+}
+
+function rand255(): number {
+  return Math.floor(Math.random() * 254) + 1;
+}
+
+/** Delete the throttle counters a suite created (its emails and its IP, both clients). */
+export async function clearThrottle(owner: Pool, emails: string[], ip: string): Promise<void> {
+  const keys = new Set<string>();
+  for (const client of ['web', 'extension'] as const) {
+    for (const e of emails) keys.add(throttleKeys(e, ip, client).account);
+    keys.add(throttleKeys('', ip, client).source);
+  }
+  await owner.query('DELETE FROM "LoginAttempt" WHERE key = ANY($1::text[])', [[...keys]]);
 }
 
 /**
@@ -104,6 +124,7 @@ export class Fixtures {
   readonly salt = randomUUID().slice(0, 8);
   readonly owner = new Pool({ connectionString: ownerUrl });
   private readonly departments: string[] = [];
+  readonly emails: string[] = [];
   private hash?: Promise<string>;
 
   email(tag: string): string {
@@ -132,6 +153,7 @@ export class Fixtures {
   ): Promise<{ id: string; email: string }> {
     const id = randomUUID();
     const email = this.email(tag);
+    this.emails.push(email);
     const status = opts.status ?? 'ACTIVE';
     const role = opts.role === undefined ? (status === 'ACTIVE' || status === 'DEACTIVATED' ? 'USER' : null) : opts.role;
     const departmentId = opts.departmentId === undefined ? null : opts.departmentId;
@@ -145,7 +167,11 @@ export class Fixtures {
   }
 
   /** Remove every row created for this run (children first). */
-  async cleanup(extra: (owner: Pool, salt: string) => Promise<void> = async () => {}): Promise<void> {
+  async cleanup(
+    extra: (owner: Pool, salt: string) => Promise<void> = async () => {},
+    ip?: string,
+  ): Promise<void> {
+    if (ip) await clearThrottle(this.owner, this.emails, ip);
     const like = `%-${this.salt}@synthetic.test`;
     const users = `SELECT id FROM "User" WHERE email LIKE $1`;
     await extra(this.owner, this.salt);

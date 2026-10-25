@@ -1,4 +1,6 @@
-import { Body, Controller, HttpCode, Inject, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Inject, Post, Req } from '@nestjs/common';
+import type { Request } from 'express';
+import { Throttle } from '@nestjs/throttler';
 import {
   ExtensionLoginRequestSchema,
   ExtensionLogoutRequestSchema,
@@ -12,6 +14,8 @@ import { Public } from '../../common/decorators/auth.decorators';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { unauthorized } from '../auth-errors';
 import { AuthService, type SessionResult } from '../auth.service';
+import { clientIp } from '../client-ip';
+import { RATE_LIMITS } from '../throttle';
 
 /**
  * Extension token lifecycle (`/api/extension/*`, ARCHITECTURE §7(b)).
@@ -27,12 +31,14 @@ export class ExtensionAuthController {
   constructor(@Inject(AuthService) private readonly auth: AuthService) {}
 
   @Public()
+  @Throttle({ default: RATE_LIMITS.login })
   @Post('login')
   @HttpCode(200)
   async login(
     @Body(new ZodValidationPipe(ExtensionLoginRequestSchema)) body: ExtensionLoginRequest,
+    @Req() req: Request,
   ): Promise<ExtensionAuthResponse> {
-    return toExtensionResponse(await this.auth.login(body, 'extension'));
+    return toExtensionResponse(await this.auth.login(body, 'extension', clientIp(req)));
   }
 
   @Public()

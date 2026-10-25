@@ -19,6 +19,8 @@ async function bootstrap(): Promise<void> {
   });
 
   const { port } = configureApp(app);
+  // Run shutdown hooks on SIGTERM/SIGINT (e.g. finish in-flight reset emails).
+  app.enableShutdownHooks();
 
   await app.listen(port);
   // eslint-disable-next-line no-console
