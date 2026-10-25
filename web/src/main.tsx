@@ -1,10 +1,14 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { App } from './App';
+import './i18n';
 import './index.css';
-import { SpikePage } from './spike/SpikePage';
+import { initTheme } from './lib/theme';
+
+initTheme();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <SpikePage />
+    <App />
   </StrictMode>,
 );
