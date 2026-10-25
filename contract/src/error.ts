@@ -28,3 +28,12 @@ export const ApiErrorEnvelopeSchema = z.object({
 });
 
 export type ApiErrorEnvelope = z.infer<typeof ApiErrorEnvelopeSchema>;
+
+/**
+ * Canonical name for the shared error envelope (batch B3).
+ *
+ * `ApiErrorEnvelopeSchema` is the defining schema; `ErrorEnvelope` is the
+ * shorter name used by the web endpoints and the /health probes.
+ */
+export const ErrorEnvelopeSchema = ApiErrorEnvelopeSchema;
+export type ErrorEnvelope = ApiErrorEnvelope;

@@ -33,3 +33,27 @@ describe('openapi document', () => {
     expect(document.paths?.['/logs']?.post?.security).toEqual([{ bearerAuth: [] }]);
   });
 });
+
+describe('B3 core schemas and /health probe', () => {
+  const document = buildOpenApiDocument();
+
+  it('exposes the /health endpoint', () => {
+    expect(document.paths?.['/health']?.get).toBeDefined();
+  });
+
+  it('documents the /health responses', () => {
+    const health = document.paths?.['/health']?.get;
+    expect(health?.responses?.['200']).toBeDefined();
+    expect(health?.responses?.['503']).toBeDefined();
+  });
+
+  it('emits the health response schema as a reusable component', () => {
+    expect(document.components?.schemas?.['HealthResponse']).toBeDefined();
+  });
+
+  it('emits the request-context and error-envelope schemas', () => {
+    expect(document.components?.schemas?.['ErrorEnvelope']).toBeDefined();
+    expect(document.components?.schemas?.['CorrelationId']).toBeDefined();
+    expect(document.components?.schemas?.['RequestContext']).toBeDefined();
+  });
+});

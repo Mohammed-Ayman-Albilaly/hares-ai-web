@@ -18,7 +18,7 @@ import {
   SchemaVersionSchema,
   UserDecisionSchema,
 } from './enums';
-import { ApiErrorEnvelopeSchema } from './error';
+import { ApiErrorEnvelopeSchema, ErrorEnvelopeSchema } from './error';
 import {
   ExtensionLoginRequestSchema,
   ExtensionLoginResponseSchema,
@@ -27,6 +27,8 @@ import {
   ExtensionRefreshResponseSchema,
 } from './auth';
 import { ErrorCodeSchema, ExtensionErrorEnvelopeSchema } from './errors';
+import { HealthResponseSchema } from './health';
+import { CorrelationIdSchema, RequestContextSchema } from './request-context';
 import { LogEventSchema, LogIngestionResponseSchema } from './ingestion';
 import {
   PolicyBundleResponseSchema,
@@ -50,6 +52,10 @@ registry.register('SchemaVersion', SchemaVersionSchema);
 registry.register('UserDecision', UserDecisionSchema);
 registry.register('ErrorCode', ErrorCodeSchema);
 registry.register('ApiErrorEnvelope', ApiErrorEnvelopeSchema);
+registry.register('ErrorEnvelope', ErrorEnvelopeSchema);
+registry.register('HealthResponse', HealthResponseSchema);
+registry.register('CorrelationId', CorrelationIdSchema);
+registry.register('RequestContext', RequestContextSchema);
 registry.register('ExtensionErrorEnvelope', ExtensionErrorEnvelopeSchema);
 registry.register('ExtensionLoginRequest', ExtensionLoginRequestSchema);
 registry.register('ExtensionLoginResponse', ExtensionLoginResponseSchema);
@@ -69,7 +75,6 @@ registry.registerComponent('securitySchemes', 'bearerAuth', {
   bearerFormat: 'JWT',
 });
 
-// ---------- Paths ----------
 // ---------- Helpers ----------
 
 /** Standard JSON error response body carrying the extension error envelope. */
@@ -101,6 +106,25 @@ function jsonBody(schema: z.ZodTypeAny) {
 }
 
 // ---------- Paths ----------
+
+registry.registerPath({
+  method: 'get',
+  path: '/health',
+  summary: 'API liveness/readiness probe',
+  tags: ['health'],
+  responses: {
+    200: {
+      description: 'API is healthy and serving requests.',
+      ...jsonBody(HealthResponseSchema),
+    },
+    503: {
+      description: 'API is not ready (e.g. the database is unreachable).',
+      content: {
+        'application/json': { schema: ErrorEnvelopeSchema },
+      },
+    },
+  },
+});
 
 registry.registerPath({
   method: 'post',
@@ -209,6 +233,7 @@ export function buildOpenApiDocument() {
     tags: [
       { name: 'extension', description: 'Extension authentication and log ingestion.' },
       { name: 'policy', description: 'Policy bundle delivery to the extension.' },
+      { name: 'health', description: 'API liveness/readiness probe.' },
     ],
   });
 }

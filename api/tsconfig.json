@@ -3,6 +3,9 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
+    "noEmit": false,
+    "declaration": true,
+    "sourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },

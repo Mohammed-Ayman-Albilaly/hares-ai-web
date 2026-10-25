@@ -18,6 +18,10 @@
     {
       "name": "policy",
       "description": "Policy bundle delivery to the extension."
+    },
+    {
+      "name": "health",
+      "description": "API liveness/readiness probe."
     }
   ],
   "components": {
@@ -184,6 +188,106 @@
           "message",
           "path",
           "timestamp",
+          "request_id"
+        ]
+      },
+      "ErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "path": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "code",
+          "message",
+          "path",
+          "timestamp",
+          "request_id"
+        ]
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok"
+            ]
+          },
+          "service": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "uptime": {
+            "type": "number",
+            "minimum": 0
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "request_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Per-request correlation id (from x-request-id or a generated UUID)."
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "version",
+          "uptime",
+          "timestamp",
+          "request_id"
+        ]
+      },
+      "CorrelationId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "description": "Per-request correlation id (from x-request-id or a generated UUID)."
+      },
+      "RequestContext": {
+        "type": "object",
+        "properties": {
+          "request_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128,
+            "description": "Per-request correlation id (from x-request-id or a generated UUID)."
+          }
+        },
+        "required": [
           "request_id"
         ]
       },
@@ -736,6 +840,110 @@
     "parameters": {}
   },
   "paths": {
+    "/health": {
+      "get": {
+        "summary": "API liveness/readiness probe",
+        "tags": [
+          "health"
+        ],
+        "responses": {
+          "200": {
+            "description": "API is healthy and serving requests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "ok"
+                      ]
+                    },
+                    "service": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 128,
+                      "description": "Per-request correlation id (from x-request-id or a generated UUID)."
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "service",
+                    "version",
+                    "uptime",
+                    "timestamp",
+                    "request_id"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "API is not ready (e.g. the database is unreachable).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/extension/login": {
       "post": {
         "summary": "Extension login",

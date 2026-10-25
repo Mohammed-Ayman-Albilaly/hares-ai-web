@@ -12,9 +12,11 @@
   },
   "files": [
     "src",
+    "dist",
     "openapi.json"
   ],
   "scripts": {
+    "build": "tsc",
     "generate:openapi": "tsx src/generate-openapi.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
