@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { I } from '@/components/ui/icons';
 import { Modal } from '@/components/ui/Modal';
+import { invalidateAdmin } from '@/features/common/invalidate';
 import { api } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 
@@ -20,7 +21,7 @@ export function DeactivateButton({ user }: { user: AdminUserResponse }) {
     mutationFn: () => api.post<AdminUserResponse>(`/admin/users/${user.id}/deactivate`),
     onSuccess: () => {
       setOpen(false);
-      void qc.invalidateQueries({ queryKey: ['users'] });
+      void invalidateAdmin(qc);
     },
   });
 

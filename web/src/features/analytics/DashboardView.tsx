@@ -1,3 +1,4 @@
+import type { DashboardSummaryResponse } from '@hares/contract';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { I } from '@/components/ui/icons';
@@ -14,7 +15,7 @@ interface Props {
   base: string;
   extra?: Record<string, string>;
   /** Shown after the charts (recent activity, breakdown tables…). */
-  children?: ReactNode | ((days: number) => ReactNode);
+  children?: ReactNode | ((days: number, summary: DashboardSummaryResponse | undefined) => ReactNode);
   /** Text when the range has no events at all. */
   emptyTitle: string;
   emptyBody: string;
@@ -112,7 +113,7 @@ export function DashboardView({ base, extra, children, emptyTitle, emptyBody }: 
           </>
         )}
       </DataState>
-      {typeof children === 'function' ? children(days) : children}
+      {typeof children === 'function' ? children(days, s) : children}
     </div>
   );
 }

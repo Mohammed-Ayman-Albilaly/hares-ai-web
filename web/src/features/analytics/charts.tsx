@@ -1,4 +1,4 @@
-import type { CategoryCode, Platform, TimeseriesPoint } from '@hares/contract';
+import type { CategoryCode, DepartmentBreakdown, Platform, TimeseriesPoint } from '@hares/contract';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/components/charts/direction';
@@ -251,6 +251,55 @@ export function CategoryBars({ categories }: { categories: { category_code: Cate
       items={categories.map((x) => ({ name: t(`category.${x.category_code}`), count: x.count }))}
       firstColumn={t('dash.category')}
       color={c.medium}
+    />
+  );
+}
+
+/** Risk levels per department as stacked horizontal bars (organisation dashboard, WEB-FR-029). */
+export function DepartmentRisk({ departments }: { departments: DepartmentBreakdown[] }) {
+  const { t } = useTranslation();
+  const dir = useDir();
+  const c = useChartColors();
+  const named = departments.map((d) => ({ ...d, label: d.department_name ?? t('dash.noDepartment') }));
+  // The first department on top (ECharts draws the first category at the bottom).
+  const shown = [...named].reverse();
+  const levels = [
+    { key: 'high', name: t('risk.HIGH'), color: c.high },
+    { key: 'medium', name: t('risk.MEDIUM'), color: c.medium },
+    { key: 'low', name: t('risk.LOW'), color: c.low },
+    { key: 'none', name: t('risk.NONE'), color: c.none },
+  ] as const;
+  const option = {
+    grid: { top: 8, right: 24, bottom: 48, left: 24, containLabel: true },
+    tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+    legend: { bottom: 0, data: levels.map((l) => l.name), textStyle: { color: c.ink3 } },
+    xAxis: { type: 'value', minInterval: 1, axisLabel: { color: c.ink3 }, splitLine: { lineStyle: { color: c.line } } },
+    yAxis: { type: 'category', data: shown.map((d) => d.label), axisLabel: { color: c.ink3, width: 150, overflow: 'truncate' }, axisLine: { lineStyle: { color: c.line } } },
+    series: levels.map((l) => ({
+      name: l.name,
+      type: 'bar',
+      stack: 'risk',
+      barMaxWidth: 22,
+      itemStyle: { color: l.color },
+      data: shown.map((d) => d[l.key]),
+    })),
+  };
+  return (
+    <ChartCard
+      title={t('dash.byDepartment')}
+      sub={t('dash.byDepartmentSub')}
+      chart={<EChart option={option} direction={dir} label={t('dash.byDepartment')} height={Math.max(200, named.length * 38 + 80)} />}
+      columns={[
+        { header: t('logs.department') },
+        { header: t('dash.totalEvents'), numeric: true },
+        { header: t('risk.HIGH'), numeric: true },
+        { header: t('risk.MEDIUM'), numeric: true },
+        { header: t('risk.LOW'), numeric: true },
+        { header: t('risk.NONE'), numeric: true },
+        { header: t('dash.blocked'), numeric: true },
+        { header: t('dash.warned'), numeric: true },
+      ]}
+      rows={named.map((d) => [d.label, d.total, d.high, d.medium, d.low, d.none, d.blocked, d.warned])}
     />
   );
 }

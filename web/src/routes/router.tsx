@@ -6,7 +6,12 @@ import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
-import { HomePlaceholder } from '@/pages/HomePlaceholder';
+import { AdminAuditPage } from '@/pages/admin/AdminAuditPage';
+import { AdminDepartmentsPage } from '@/pages/admin/AdminDepartmentsPage';
+import { AdminDashboardPage, AdminLogsPage } from '@/pages/admin/AdminOverviewPages';
+import { AdminPolicyPage } from '@/pages/admin/AdminPolicyPage';
+import { AdminRulesPage } from '@/pages/admin/AdminRulesPage';
+import { AdminPendingPage, AdminUsersPage } from '@/pages/admin/AdminUsersPages';
 import { ActivityPage } from '@/pages/activity/ActivityPage';
 import { BlockedPage } from '@/pages/blocked/BlockedPage';
 import { UserDashboardPage } from '@/pages/dashboard/UserDashboardPage';
@@ -72,7 +77,16 @@ export const routes: RouteObject[] = [
           },
           {
             element: <RequireRole roles={['SYSTEM_ADMIN']} />,
-            children: [{ path: '/admin/dashboard', element: <HomePlaceholder titleKey="nav.adminDashboard" /> }],
+            children: [
+              { path: '/admin/dashboard', element: <AdminDashboardPage /> },
+              { path: '/admin/logs', element: <AdminLogsPage /> },
+              { path: '/admin/pending', element: <AdminPendingPage /> },
+              { path: '/admin/users', element: <AdminUsersPage /> },
+              { path: '/admin/departments', element: <AdminDepartmentsPage /> },
+              { path: '/admin/policy', element: <AdminPolicyPage /> },
+              { path: '/admin/rules', element: <AdminRulesPage /> },
+              { path: '/admin/audit', element: <AdminAuditPage /> },
+            ],
           },
         ],
       },

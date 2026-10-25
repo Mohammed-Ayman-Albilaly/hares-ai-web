@@ -52,6 +52,9 @@ export function DepartmentLogsPage() {
                 {u.full_name}
               </option>
             ))}
+            {users.data && users.data.total > users.data.items.length && (
+              <option disabled>{t('logs.firstUsersOnly', { count: users.data.items.length })}</option>
+            )}
           </SelectField>
         }
         emptyTitle={t('logs.deptEmptyTitle')}
