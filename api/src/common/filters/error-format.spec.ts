@@ -72,7 +72,7 @@ describe('AllExceptionsFilter → error envelope', () => {
   it('maps a generic HttpException to a fixed code and message per status (no third-party message)', () => {
     const body = capturedJson(new BadRequestException('Bad input'));
     expect(body.status).toBe(400);
-    expect(body.code).toBe('BAD_REQUEST');
+    expect(body.code).toBe('VALIDATION_ERROR');
     expect(body.message).toBe('Bad request');
     // The third-party message is not forwarded.
     expect(JSON.stringify(body)).not.toContain('Bad input');
@@ -132,7 +132,7 @@ describe('AllExceptionsFilter → error envelope', () => {
     });
     const body = capturedJson(parseError, '/api/data');
     expect(body.status).toBe(400);
-    expect(body.code).toBe('BAD_REQUEST');
+    expect(body.code).toBe('VALIDATION_ERROR');
     expect(body.message).toBe('Bad request');
     expect(JSON.stringify(body)).not.toContain('Unexpected token');
     expect(JSON.stringify(body)).not.toContain('SENSITIVE_PROMPT_VALUE');

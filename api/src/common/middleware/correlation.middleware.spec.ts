@@ -137,7 +137,7 @@ describe('correlation + body parsing', () => {
       message: string;
       request_id: string;
     };
-    expect(envelope.code).toBe('BAD_REQUEST');
+    expect(envelope.code).toBe('VALIDATION_ERROR');
     expect(envelope.message).toBe('Bad request');
     expect(envelope.request_id).toMatch(UUID_RE);
     expect(res.headers['x-request-id']).toBe(envelope.request_id);

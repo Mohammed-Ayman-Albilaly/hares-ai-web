@@ -14,7 +14,7 @@ import { ApiErrorEnvelopeSchema } from './error';
 
 export const ERROR_CODES = [
   // ---- 400 ----
-  'VALIDATION_ERROR', // missing/invalid fields (login, refresh)
+  'VALIDATION_ERROR', // missing/invalid fields, or a malformed JSON body
   'UNKNOWN_FIELD', // ingestion payload field not in the allowlist (WEB-FR-046)
   'INVALID_ENUM', // enum value not valid for the current schema_version (WEB-FR-049, WEB-NFR-021)
   'UNSUPPORTED_SCHEMA_VERSION', // schema_version not supported
@@ -31,6 +31,9 @@ export const ERROR_CODES = [
   'USER_NOT_ACTIVE', // ingestion: user not ACTIVE
   'DEPARTMENT_INACTIVE', // ingestion: department deactivated (WEB-FR-056)
   'FORBIDDEN', // generic authorization denial for the extension scope
+  // ---- 404 / 409 ----
+  'NOT_FOUND', // unknown route or resource
+  'CONFLICT', // generic conflict
   // ---- 413 / 429 ----
   'PAYLOAD_TOO_LARGE', // ingestion payload exceeds the size cap
   'RATE_LIMITED', // per-user/per-source rate limit or login throttling (WEB-NFR-020)

@@ -15,10 +15,14 @@ export interface SessionResult {
   refreshToken: string;
 }
 
+/**
+ * Login denial code per status. The web shows a status-specific message
+ * (WEB-FR-005); the extension contract groups PENDING and REJECTED as
+ * ACCOUNT_NO_ACCESS (contract/src/errors.ts).
+ */
 const LOGIN_DENIED = {
-  PENDING: 'ACCOUNT_PENDING',
-  REJECTED: 'ACCOUNT_REJECTED',
-  DEACTIVATED: 'ACCOUNT_INACTIVE',
+  web: { PENDING: 'ACCOUNT_PENDING', REJECTED: 'ACCOUNT_REJECTED', DEACTIVATED: 'ACCOUNT_INACTIVE' },
+  extension: { PENDING: 'ACCOUNT_NO_ACCESS', REJECTED: 'ACCOUNT_NO_ACCESS', DEACTIVATED: 'ACCOUNT_INACTIVE' },
 } as const;
 
 /** True for a PostgreSQL unique violation, however the driver adapter wraps it. */
@@ -64,14 +68,14 @@ export class AuthService {
    * WEB-FR-003/004/005. A wrong email and a wrong password give the same answer.
    * The account status is only revealed after the password is proven correct.
    */
-  async login(input: LoginRequest, client: ClientKind): Promise<SessionResult> {
+  async login(input: Pick<LoginRequest, 'email' | 'password'>, client: ClientKind): Promise<SessionResult> {
     const user = await this.findForLogin(input.email);
     const valid = await this.passwords.verify(input.password, user?.passwordHash ?? null);
     if (!user || !valid) {
       throw unauthorized('INVALID_CREDENTIALS');
     }
     if (user.status !== 'ACTIVE') {
-      throw unauthorized(LOGIN_DENIED[user.status]);
+      throw unauthorized(LOGIN_DENIED[client][user.status]);
     }
     const refreshToken = await this.refreshTokens.issue(user.id, user.tokenVersion, client);
     return { body: await this.buildBody(user.id, user.tokenVersion, client), refreshToken };
@@ -88,9 +92,12 @@ export class AuthService {
     };
   }
 
-  /** WEB-FR-006: revoke the whole family. Unknown or missing tokens are a no-op. */
-  async logout(raw: string | undefined, client: ClientKind): Promise<void> {
-    if (raw) await this.refreshTokens.revokeByToken(raw, client);
+  /**
+   * WEB-FR-006 / WEB-FR-071: revoke the whole family. Returns false when the
+   * token is missing, unknown or already revoked (the web treats that as a no-op).
+   */
+  async logout(raw: string | undefined, client: ClientKind): Promise<boolean> {
+    return raw ? this.refreshTokens.revokeByToken(raw, client) : false;
   }
 
   async me(userId: string): Promise<UserPublic> {

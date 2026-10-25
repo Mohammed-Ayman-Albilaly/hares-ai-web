@@ -11,10 +11,14 @@ import { getRequestContext } from '../request-context';
 
 const INTERNAL_MESSAGE = 'An unexpected error occurred.';
 
-/** Machine-readable code for exceptions that carry no `code` of their own. */
+/**
+ * Machine-readable code for exceptions that carry no `code` of their own.
+ * The values are members of the contract's ERROR_CODES, so the extension can
+ * parse every error (e.g. a malformed JSON body is VALIDATION_ERROR).
+ */
 const STATUS_CODE_MAP: Record<number, string> = {
-  [HttpStatus.BAD_REQUEST]: 'BAD_REQUEST',
-  [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED',
+  [HttpStatus.BAD_REQUEST]: 'VALIDATION_ERROR',
+  [HttpStatus.UNAUTHORIZED]: 'INVALID_TOKEN',
   [HttpStatus.FORBIDDEN]: 'FORBIDDEN',
   [HttpStatus.NOT_FOUND]: 'NOT_FOUND',
   [HttpStatus.CONFLICT]: 'CONFLICT',

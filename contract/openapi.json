@@ -153,6 +153,8 @@
           "USER_NOT_ACTIVE",
           "DEPARTMENT_INACTIVE",
           "FORBIDDEN",
+          "NOT_FOUND",
+          "CONFLICT",
           "PAYLOAD_TOO_LARGE",
           "RATE_LIMITED",
           "INTERNAL_ERROR",
@@ -324,6 +326,8 @@
               "USER_NOT_ACTIVE",
               "DEPARTMENT_INACTIVE",
               "FORBIDDEN",
+              "NOT_FOUND",
+              "CONFLICT",
               "PAYLOAD_TOO_LARGE",
               "RATE_LIMITED",
               "INTERNAL_ERROR",
@@ -843,6 +847,13 @@
         },
         "required": [
           "log_id"
+        ]
+      },
+      "ClientType": {
+        "type": "string",
+        "enum": [
+          "WEB",
+          "EXTENSION"
         ]
       },
       "UserStatus": {
@@ -1413,6 +1424,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",
@@ -1463,7 +1476,7 @@
             }
           },
           "401": {
-            "description": "Wrong credentials or account not active.",
+            "description": "INVALID_CREDENTIALS (wrong email or password), or after a correct password ACCOUNT_NO_ACCESS (PENDING/REJECTED) or ACCOUNT_INACTIVE (DEACTIVATED).",
             "content": {
               "application/json": {
                 "schema": {
@@ -1490,6 +1503,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",
@@ -1531,7 +1546,7 @@
                 "example": {
                   "status": 401,
                   "code": "INVALID_CREDENTIALS",
-                  "message": "Wrong credentials or account not active.",
+                  "message": "INVALID_CREDENTIALS (wrong email or password), or after a correct password ACCOUNT_NO_ACCESS (PENDING/REJECTED) or ACCOUNT_INACTIVE (DEACTIVATED).",
                   "path": "",
                   "timestamp": "2026-01-01T00:00:00Z",
                   "request_id": "00000000-0000-0000-0000-000000000000"
@@ -1624,6 +1639,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",
@@ -1674,7 +1691,7 @@
             }
           },
           "401": {
-            "description": "Refresh token expired, revoked or replayed.",
+            "description": "INVALID_TOKEN (unknown, expired or web token), TOKEN_REVOKED (family revoked, user not active or token_version changed) or REFRESH_REUSED (replay detected; whole family revoked).",
             "content": {
               "application/json": {
                 "schema": {
@@ -1701,6 +1718,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",
@@ -1742,7 +1761,7 @@
                 "example": {
                   "status": 401,
                   "code": "REFRESH_REUSED",
-                  "message": "Refresh token expired, revoked or replayed.",
+                  "message": "INVALID_TOKEN (unknown, expired or web token), TOKEN_REVOKED (family revoked, user not active or token_version changed) or REFRESH_REUSED (replay detected; whole family revoked).",
                   "path": "",
                   "timestamp": "2026-01-01T00:00:00Z",
                   "request_id": "00000000-0000-0000-0000-000000000000"
@@ -1781,6 +1800,85 @@
           "204": {
             "description": "No Content; the refresh token family has been revoked."
           },
+          "400": {
+            "description": "Missing or invalid refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "VALIDATION_ERROR",
+                        "UNKNOWN_FIELD",
+                        "INVALID_ENUM",
+                        "UNSUPPORTED_SCHEMA_VERSION",
+                        "EVENT_TIME_OUT_OF_RANGE",
+                        "INVALID_CREDENTIALS",
+                        "ACCOUNT_INACTIVE",
+                        "ACCOUNT_NO_ACCESS",
+                        "INVALID_TOKEN",
+                        "TOKEN_EXPIRED",
+                        "TOKEN_REVOKED",
+                        "REFRESH_REUSED",
+                        "USER_NOT_ACTIVE",
+                        "DEPARTMENT_INACTIVE",
+                        "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
+                        "PAYLOAD_TOO_LARGE",
+                        "RATE_LIMITED",
+                        "INTERNAL_ERROR",
+                        "SERVICE_UNAVAILABLE"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Missing or invalid refresh token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
           "401": {
             "description": "Invalid or already-revoked refresh token.",
             "content": {
@@ -1809,6 +1907,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",
@@ -2058,6 +2158,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",
@@ -2135,6 +2237,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",
@@ -2355,6 +2459,8 @@
                         "USER_NOT_ACTIVE",
                         "DEPARTMENT_INACTIVE",
                         "FORBIDDEN",
+                        "NOT_FOUND",
+                        "CONFLICT",
                         "PAYLOAD_TOO_LARGE",
                         "RATE_LIMITED",
                         "INTERNAL_ERROR",

@@ -97,3 +97,8 @@ export type UserStatus = z.infer<typeof UserStatusSchema>;
 export const ROLES = ['SYSTEM_ADMIN', 'DEPARTMENT_ADMIN', 'USER'] as const;
 export const RoleSchema = z.enum(ROLES);
 export type Role = z.infer<typeof RoleSchema>;
+
+/** Which client a refresh-token family and access token belong to (B4b). */
+export const CLIENT_TYPES = ['WEB', 'EXTENSION'] as const;
+export const ClientTypeSchema = z.enum(CLIENT_TYPES);
+export type ClientType = z.infer<typeof ClientTypeSchema>;

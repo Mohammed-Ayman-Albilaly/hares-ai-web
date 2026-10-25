@@ -10,6 +10,7 @@ extendZodWithOpenApi(z);
 import {
   CategoryCodeSchema,
   ClassificationSourceSchema,
+  ClientTypeSchema,
   LogActionSchema,
   PlatformSchema,
   PolicyActionSchema,
@@ -85,6 +86,7 @@ registry.register('PolicyBundleVersion', PolicyBundleVersionSchema);
 registry.register('PolicyBundleResponse', PolicyBundleResponseSchema);
 registry.register('LogEvent', LogEventSchema);
 registry.register('LogIngestionResponse', LogIngestionResponseSchema);
+registry.register('ClientType', ClientTypeSchema);
 registry.register('UserStatus', UserStatusSchema);
 registry.register('Role', RoleSchema);
 registry.register('WebAuthErrorCode', WebAuthErrorCodeSchema);
@@ -194,7 +196,11 @@ registry.registerPath({
       ...jsonBody(ExtensionLoginResponseSchema),
     },
     400: errorResponse(400, 'Missing or invalid email/password.', 'VALIDATION_ERROR'),
-    401: errorResponse(401, 'Wrong credentials or account not active.', 'INVALID_CREDENTIALS'),
+    401: errorResponse(
+      401,
+      'INVALID_CREDENTIALS (wrong email or password), or after a correct password ACCOUNT_NO_ACCESS (PENDING/REJECTED) or ACCOUNT_INACTIVE (DEACTIVATED).',
+      'INVALID_CREDENTIALS',
+    ),
   },
 });
 
@@ -212,7 +218,11 @@ registry.registerPath({
       ...jsonBody(ExtensionRefreshResponseSchema),
     },
     400: errorResponse(400, 'Missing or invalid refresh token.', 'VALIDATION_ERROR'),
-    401: errorResponse(401, 'Refresh token expired, revoked or replayed.', 'REFRESH_REUSED'),
+    401: errorResponse(
+      401,
+      'INVALID_TOKEN (unknown, expired or web token), TOKEN_REVOKED (family revoked, user not active or token_version changed) or REFRESH_REUSED (replay detected; whole family revoked).',
+      'REFRESH_REUSED',
+    ),
   },
 });
 
@@ -228,6 +238,7 @@ registry.registerPath({
     204: {
       description: 'No Content; the refresh token family has been revoked.',
     },
+    400: errorResponse(400, 'Missing or invalid refresh token.', 'VALIDATION_ERROR'),
     401: errorResponse(401, 'Invalid or already-revoked refresh token.', 'INVALID_TOKEN'),
   },
 });
