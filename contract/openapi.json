@@ -12,6 +12,14 @@
   ],
   "tags": [
     {
+      "name": "users",
+      "description": "User lifecycle and profile."
+    },
+    {
+      "name": "departments",
+      "description": "Department management (System Admin)."
+    },
+    {
       "name": "auth",
       "description": "Web registration, login, refresh and logout."
     },
@@ -854,6 +862,518 @@
         "enum": [
           "WEB",
           "EXTENSION"
+        ]
+      },
+      "Capability": {
+        "type": "string",
+        "enum": [
+          "PROFILE_VIEW",
+          "OWN_DASHBOARD_VIEW",
+          "OWN_LOGS_VIEW",
+          "DEPT_DASHBOARD_VIEW",
+          "ORG_DASHBOARD_VIEW",
+          "LOGS_EXPORT",
+          "USERS_LIST",
+          "USERS_APPROVE",
+          "USERS_ASSIGN",
+          "USERS_DEACTIVATE",
+          "USERS_REACTIVATE",
+          "SYSTEM_ADMIN_GRANT",
+          "DEPARTMENTS_MANAGE",
+          "RULES_VIEW",
+          "RULES_MANAGE",
+          "POLICY_VIEW",
+          "POLICY_MANAGE",
+          "AUDIT_VIEW"
+        ]
+      },
+      "Grant": {
+        "type": "string",
+        "enum": [
+          "ALLOW",
+          "SCOPED",
+          "DENY"
+        ]
+      },
+      "DepartmentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "member_count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "active",
+          "member_count"
+        ]
+      },
+      "DepartmentListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "member_count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "active",
+                "member_count"
+              ]
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreateDepartmentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "RenameDepartmentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "DeactivateDepartmentRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "DepartmentErrorCode": {
+        "type": "string",
+        "enum": [
+          "DEPARTMENT_NAME_TAKEN",
+          "DEPARTMENT_NOT_FOUND",
+          "DEPARTMENT_INACTIVE"
+        ]
+      },
+      "AssignableRole": {
+        "type": "string",
+        "enum": [
+          "DEPARTMENT_ADMIN",
+          "USER"
+        ]
+      },
+      "AdminUserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "REJECTED",
+              "DEACTIVATED"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SYSTEM_ADMIN",
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          },
+          "department_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "department_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "registered_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "approved_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "email",
+          "status",
+          "role",
+          "department_id",
+          "department_name",
+          "registered_at",
+          "approved_at"
+        ]
+      },
+      "UserListQuery": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "REJECTED",
+              "DEACTIVATED"
+            ]
+          },
+          "department_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "SYSTEM_ADMIN",
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          },
+          "q": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100000,
+            "default": 1
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 25
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "full_name": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "PENDING",
+                    "ACTIVE",
+                    "REJECTED",
+                    "DEACTIVATED"
+                  ]
+                },
+                "role": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "SYSTEM_ADMIN",
+                    "DEPARTMENT_ADMIN",
+                    "USER"
+                  ]
+                },
+                "department_id": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uuid"
+                },
+                "department_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "registered_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "approved_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "full_name",
+                "email",
+                "status",
+                "role",
+                "department_id",
+                "department_name",
+                "registered_at",
+                "approved_at"
+              ]
+            }
+          },
+          "page": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "page_size": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "page_size",
+          "total"
+        ]
+      },
+      "ApproveUserRequest": {
+        "type": "object",
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          }
+        },
+        "required": [
+          "department_id",
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "RejectUserRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "UserStatusUpdateRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "ReactivateUserRequest": {
+        "type": "object",
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AssignRoleRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "additionalProperties": false
+      },
+      "ChangeDepartmentRequest": {
+        "type": "object",
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "department_id"
+        ],
+        "additionalProperties": false
+      },
+      "RevokeSystemAdminRequest": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          },
+          "department_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "role",
+          "department_id"
+        ],
+        "additionalProperties": false
+      },
+      "ProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "full_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "REJECTED",
+              "DEACTIVATED"
+            ]
+          },
+          "role": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "SYSTEM_ADMIN",
+              "DEPARTMENT_ADMIN",
+              "USER"
+            ]
+          },
+          "department": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "full_name",
+          "email",
+          "status",
+          "role",
+          "department"
+        ]
+      },
+      "UserErrorCode": {
+        "type": "string",
+        "enum": [
+          "USER_NOT_FOUND",
+          "INVALID_USER_STATE",
+          "CANNOT_MODIFY_SELF",
+          "FORBIDDEN"
         ]
       },
       "AuditAction": {
@@ -4533,6 +5053,5580 @@
                   "status": 429,
                   "code": "RATE_LIMITED",
                   "message": "Too many wrong current passwords (progressive delay) or request window; see Retry-After.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/departments": {
+      "get": {
+        "summary": "List departments with member counts",
+        "tags": [
+          "departments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All departments.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "member_count": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "active",
+                          "member_count"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The role of the caller may not use this endpoint (capability matrix).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "The role of the caller may not use this endpoint (capability matrix).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a department",
+        "tags": [
+          "departments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "member_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "active",
+                    "member_count"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid name.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The role of the caller may not use this endpoint (capability matrix).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "The role of the caller may not use this endpoint (capability matrix).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Another department has this name (case-insensitive).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "DEPARTMENT_NAME_TAKEN",
+                  "message": "Another department has this name (case-insensitive).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/departments/{id}": {
+      "patch": {
+        "summary": "Rename a department",
+        "tags": [
+          "departments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Renamed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "member_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "active",
+                    "member_count"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or name.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The role of the caller may not use this endpoint (capability matrix).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "The role of the caller may not use this endpoint (capability matrix).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown department.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "DEPARTMENT_NOT_FOUND",
+                  "message": "Unknown department.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Another department has this name.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "DEPARTMENT_NAME_TAKEN",
+                  "message": "Another department has this name.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/departments/{id}/deactivate": {
+      "post": {
+        "summary": "Deactivate a department (blocks log ingestion for its users)",
+        "tags": [
+          "departments"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Deactivated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "member_count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "active",
+                    "member_count"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The role of the caller may not use this endpoint (capability matrix).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "The role of the caller may not use this endpoint (capability matrix).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown department.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "DEPARTMENT_NOT_FOUND",
+                  "message": "Unknown department.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Already inactive.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "DEPARTMENT_INACTIVE",
+                  "message": "Already inactive.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "summary": "Own profile (name, email, department, role)",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department": {
+                      "type": [
+                        "object",
+                        "null"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users": {
+      "get": {
+        "summary": "List users (System Admin: all; Department Admin: own department), paginated",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ACTIVE",
+                "REJECTED",
+                "DEACTIVATED"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "department_id",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "SYSTEM_ADMIN",
+                "DEPARTMENT_ADMIN",
+                "USER"
+              ]
+            },
+            "required": false,
+            "name": "role",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            },
+            "required": false,
+            "name": "page_size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of users.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "full_name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "PENDING",
+                              "ACTIVE",
+                              "REJECTED",
+                              "DEACTIVATED"
+                            ]
+                          },
+                          "role": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "SYSTEM_ADMIN",
+                              "DEPARTMENT_ADMIN",
+                              "USER"
+                            ]
+                          },
+                          "department_id": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "department_name": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "registered_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "approved_at": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "full_name",
+                          "email",
+                          "status",
+                          "role",
+                          "department_id",
+                          "department_name",
+                          "registered_at",
+                          "approved_at"
+                        ]
+                      }
+                    },
+                    "page": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "page_size": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "page",
+                    "page_size",
+                    "total"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/pending": {
+      "get": {
+        "summary": "Pending approvals (System Admin only), oldest first",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            },
+            "required": false,
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 25
+            },
+            "required": false,
+            "name": "page_size",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of PENDING accounts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "full_name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "PENDING",
+                              "ACTIVE",
+                              "REJECTED",
+                              "DEACTIVATED"
+                            ]
+                          },
+                          "role": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "enum": [
+                              "SYSTEM_ADMIN",
+                              "DEPARTMENT_ADMIN",
+                              "USER"
+                            ]
+                          },
+                          "department_id": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "uuid"
+                          },
+                          "department_name": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "registered_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "approved_at": {
+                            "type": [
+                              "string",
+                              "null"
+                            ],
+                            "format": "date-time"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "full_name",
+                          "email",
+                          "status",
+                          "role",
+                          "department_id",
+                          "department_name",
+                          "registered_at",
+                          "approved_at"
+                        ]
+                      }
+                    },
+                    "page": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "page_size": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "page",
+                    "page_size",
+                    "total"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/approve": {
+      "post": {
+        "summary": "Approve a PENDING user with department and role (one UPDATE)",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "department_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "DEPARTMENT_ADMIN",
+                      "USER"
+                    ]
+                  }
+                },
+                "required": [
+                  "department_id",
+                  "role"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Now ACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/reject": {
+      "post": {
+        "summary": "Reject a PENDING user (terminal)",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Now REJECTED.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/reopen": {
+      "post": {
+        "summary": "Re-open a REJECTED user to PENDING",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Now PENDING.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/deactivate": {
+      "post": {
+        "summary": "Deactivate a user; revokes all their tokens at once",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Now DEACTIVATED.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/reactivate": {
+      "post": {
+        "summary": "Reactivate a DEACTIVATED user (System Admin)",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "department_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Now ACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/role": {
+      "patch": {
+        "summary": "Assign DEPARTMENT_ADMIN or USER",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "DEPARTMENT_ADMIN",
+                      "USER"
+                    ]
+                  }
+                },
+                "required": [
+                  "role"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/department": {
+      "patch": {
+        "summary": "Move a user to another ACTIVE department",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "department_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "department_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Department updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/grant-system-admin": {
+      "post": {
+        "summary": "Grant SYSTEM_ADMIN to an ACTIVE user",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Now SYSTEM_ADMIN (no department).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/users/{id}/revoke-system-admin": {
+      "post": {
+        "summary": "Revoke SYSTEM_ADMIN, choosing the new role and an ACTIVE department",
+        "tags": [
+          "users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "DEPARTMENT_ADMIN",
+                      "USER"
+                    ]
+                  },
+                  "department_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "role",
+                  "department_id"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "full_name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "PENDING",
+                        "ACTIVE",
+                        "REJECTED",
+                        "DEACTIVATED"
+                      ]
+                    },
+                    "role": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "enum": [
+                        "SYSTEM_ADMIN",
+                        "DEPARTMENT_ADMIN",
+                        "USER"
+                      ]
+                    },
+                    "department_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "department_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "registered_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "approved_at": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "full_name",
+                    "email",
+                    "status",
+                    "role",
+                    "department_id",
+                    "department_name",
+                    "registered_at",
+                    "approved_at"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid id or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Invalid id or body.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "USER_NOT_FOUND",
+                  "message": "USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 409,
+                  "code": "INVALID_USER_STATE",
+                  "message": "INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.",
                   "path": "",
                   "timestamp": "2026-01-01T00:00:00Z",
                   "request_id": "00000000-0000-0000-0000-000000000000"

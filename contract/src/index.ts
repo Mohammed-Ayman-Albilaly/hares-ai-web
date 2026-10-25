@@ -9,3 +9,6 @@ export * from './request-context';
 export * from './web-auth';
 export * from './password';
 export * from './audit';
+export * from './capabilities';
+export * from './departments';
+export * from './users';

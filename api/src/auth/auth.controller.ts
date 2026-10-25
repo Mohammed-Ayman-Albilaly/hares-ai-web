@@ -27,6 +27,7 @@ import {
 } from '@hares/contract';
 import type { AuthUser } from '../common/auth-user';
 import { CurrentUser, Public } from '../common/decorators/auth.decorators';
+import { RequireCapability } from '../common/decorators/roles.decorator';
 import { AllowedOriginGuard } from '../common/guards/allowed-origin.guard';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import { AuthService } from './auth.service';
@@ -109,6 +110,7 @@ export class AuthController {
     clearRefreshCookie(res, this.secureCookie);
   }
 
+  @RequireCapability('PROFILE_VIEW')
   @Get('me')
   me(@CurrentUser() user: AuthUser): Promise<MeResponse> {
     return this.auth.me(user.id);

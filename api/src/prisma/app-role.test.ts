@@ -188,8 +188,37 @@ describe.skipIf(!appUrl)('hares_app runtime role (APP_DATABASE_URL)', () => {
       await c.query('SET CONSTRAINTS ALL IMMEDIATE');
     });
   });
+
+  it('cannot read or change Prisma migration bookkeeping (_prisma_migrations)', async () => {
+    const sel = await violating(async (c) => {
+      await c.query(`select 1 from "_prisma_migrations" limit 1`);
+    });
+    expect(sel.code).toBe('42501');
+    const del = await violating(async (c) => {
+      await c.query(`delete from "_prisma_migrations"`);
+    });
+    expect(del.code).toBe('42501');
+  });
+
+  it('can only SELECT DataCategory (reference data written by the seed)', async () => {
+    await withTx(async (c) => {
+      const sel = await c.query(`select count(*)::int as n from "DataCategory"`);
+      expect(sel.rows[0].n).toBe(24);
+    });
+    for (const sql of [
+      `insert into "DataCategory" (category_code, name, default_risk_level) values ('X_TEST', 'x', 'LOW'::risk_level)`,
+      `update "DataCategory" set name = 'x' where category_code = 'CONTACT_INFO'`,
+      `delete from "DataCategory" where category_code = 'CONTACT_INFO'`,
+    ]) {
+      const e = await violating(async (c) => {
+        await c.query(sql);
+      });
+      expect(e.code).toBe('42501');
+    }
+  });
 });
 
 afterAll(async () => {
   if (pool) await pool.end();
+
 });

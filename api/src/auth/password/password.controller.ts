@@ -14,6 +14,7 @@ import {
 } from '@hares/contract';
 import type { AuthUser } from '../../common/auth-user';
 import { CurrentUser, Public } from '../../common/decorators/auth.decorators';
+import { RequireCapability } from '../../common/decorators/roles.decorator';
 import { AllowedOriginGuard } from '../../common/guards/allowed-origin.guard';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { AuthService } from '../auth.service';
@@ -58,6 +59,7 @@ export class PasswordController {
   }
 
   /** WEB-FR-058: every old session ends; this device gets a new one. */
+  @RequireCapability('PROFILE_VIEW')
   @Throttle({ default: RATE_LIMITS.changePassword })
   @Post('change-password')
   @HttpCode(200)

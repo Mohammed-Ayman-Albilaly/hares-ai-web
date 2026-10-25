@@ -48,3 +48,14 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"app_rol
 -- Tables that the owner/migration role creates later inherit the same grants,
 -- so a future migration adding a table keeps the app working.
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO :"app_role";
+
+-- Tighten the broad grants above (least privilege). Because the GRANT ... ON ALL
+-- TABLES line re-grants everything on every run, these REVOKEs live in the same
+-- file, after it:
+--   * Prisma's migration bookkeeping table is for the owner role only; the
+--     runtime role must never read or change it.
+--   * The 24 data categories are reference data written by the seed (owner
+--     role): the app may only read them.
+-- (Run ops/revoke-audit-privileges.sql after this file, as always.)
+REVOKE ALL ON TABLE "_prisma_migrations" FROM :"app_role";
+REVOKE INSERT, UPDATE, DELETE ON TABLE "DataCategory" FROM :"app_role";

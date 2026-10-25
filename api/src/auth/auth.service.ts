@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import type { LoginRequest, LoginResponse, RegisterRequest, UserPublic } from '@hares/contract';
+import { isUniqueViolation } from '../common/db-errors';
 import { PrismaService } from '../prisma/prisma.service';
 import { USER_PUBLIC_SELECT, toUserPublic } from '../users/user-public';
 import { RateLimitedException, authMessage, unauthorized } from './auth-errors';
@@ -25,12 +26,6 @@ const LOGIN_DENIED = {
   web: { PENDING: 'ACCOUNT_PENDING', REJECTED: 'ACCOUNT_REJECTED', DEACTIVATED: 'ACCOUNT_INACTIVE' },
   extension: { PENDING: 'ACCOUNT_NO_ACCESS', REJECTED: 'ACCOUNT_NO_ACCESS', DEACTIVATED: 'ACCOUNT_INACTIVE' },
 } as const;
-
-/** True for a PostgreSQL unique violation, however the driver adapter wraps it. */
-function isUniqueViolation(e: unknown): boolean {
-  const err = e as { code?: string; cause?: { code?: string; originalCode?: string } };
-  return err?.code === 'P2002' || err?.cause?.code === '23505' || err?.cause?.originalCode === '23505';
-}
 
 @Injectable()
 export class AuthService {

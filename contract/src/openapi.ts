@@ -31,7 +31,32 @@ import {
 } from './auth';
 import { ErrorCodeSchema, ExtensionErrorEnvelopeSchema } from './errors';
 import { AuditActionSchema, AuditTargetTypeSchema } from './audit';
+import { CapabilitySchema, GrantSchema } from './capabilities';
+import {
+  CreateDepartmentRequestSchema,
+  DeactivateDepartmentRequestSchema,
+  DepartmentErrorCodeSchema,
+  DepartmentListResponseSchema,
+  DepartmentResponseSchema,
+  RenameDepartmentRequestSchema,
+} from './departments';
 import { HealthResponseSchema } from './health';
+import {
+  AdminUserResponseSchema,
+  ApproveUserRequestSchema,
+  AssignRoleRequestSchema,
+  AssignableRoleSchema,
+  ChangeDepartmentRequestSchema,
+  PendingListQuerySchema,
+  ProfileResponseSchema,
+  ReactivateUserRequestSchema,
+  RejectUserRequestSchema,
+  RevokeSystemAdminRequestSchema,
+  UserErrorCodeSchema,
+  UserListQuerySchema,
+  UserListResponseSchema,
+  UserStatusUpdateRequestSchema,
+} from './users';
 import {
   ChangePasswordRequestSchema,
   ForgotPasswordRequestSchema,
@@ -96,6 +121,27 @@ registry.register('PolicyBundleResponse', PolicyBundleResponseSchema);
 registry.register('LogEvent', LogEventSchema);
 registry.register('LogIngestionResponse', LogIngestionResponseSchema);
 registry.register('ClientType', ClientTypeSchema);
+registry.register('Capability', CapabilitySchema);
+registry.register('Grant', GrantSchema);
+registry.register('DepartmentResponse', DepartmentResponseSchema);
+registry.register('DepartmentListResponse', DepartmentListResponseSchema);
+registry.register('CreateDepartmentRequest', CreateDepartmentRequestSchema);
+registry.register('RenameDepartmentRequest', RenameDepartmentRequestSchema);
+registry.register('DeactivateDepartmentRequest', DeactivateDepartmentRequestSchema);
+registry.register('DepartmentErrorCode', DepartmentErrorCodeSchema);
+registry.register('AssignableRole', AssignableRoleSchema);
+registry.register('AdminUserResponse', AdminUserResponseSchema);
+registry.register('UserListQuery', UserListQuerySchema);
+registry.register('UserListResponse', UserListResponseSchema);
+registry.register('ApproveUserRequest', ApproveUserRequestSchema);
+registry.register('RejectUserRequest', RejectUserRequestSchema);
+registry.register('UserStatusUpdateRequest', UserStatusUpdateRequestSchema);
+registry.register('ReactivateUserRequest', ReactivateUserRequestSchema);
+registry.register('AssignRoleRequest', AssignRoleRequestSchema);
+registry.register('ChangeDepartmentRequest', ChangeDepartmentRequestSchema);
+registry.register('RevokeSystemAdminRequest', RevokeSystemAdminRequestSchema);
+registry.register('ProfileResponse', ProfileResponseSchema);
+registry.register('UserErrorCode', UserErrorCodeSchema);
 registry.register('AuditAction', AuditActionSchema);
 registry.register('AuditTargetType', AuditTargetTypeSchema);
 registry.register('UserStatus', UserStatusSchema);
@@ -440,6 +486,216 @@ registry.registerPath({
   },
 });
 
+// ---------- Departments (B5a, System Admin only) ----------
+
+const forbiddenRole = webError(403, 'The role of the caller may not use this endpoint (capability matrix).', 'FORBIDDEN');
+const unauthenticated = webError(401, 'Missing, expired or revoked access token.', 'INVALID_TOKEN');
+const idParam = z.object({ id: z.string().uuid() });
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/departments',
+  summary: 'List departments with member counts',
+  tags: ['departments'],
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: { description: 'All departments.', ...jsonBody(DepartmentListResponseSchema) },
+    401: unauthenticated,
+    403: forbiddenRole,
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/departments',
+  summary: 'Create a department',
+  tags: ['departments'],
+  security: [{ bearerAuth: [] }],
+  request: { body: jsonBody(CreateDepartmentRequestSchema) },
+  responses: {
+    201: { description: 'Created.', ...jsonBody(DepartmentResponseSchema) },
+    400: webError(400, 'Invalid name.', 'VALIDATION_ERROR'),
+    401: unauthenticated,
+    403: forbiddenRole,
+    409: webError(409, 'Another department has this name (case-insensitive).', 'DEPARTMENT_NAME_TAKEN'),
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/admin/departments/{id}',
+  summary: 'Rename a department',
+  tags: ['departments'],
+  security: [{ bearerAuth: [] }],
+  request: { params: idParam, body: jsonBody(RenameDepartmentRequestSchema) },
+  responses: {
+    200: { description: 'Renamed.', ...jsonBody(DepartmentResponseSchema) },
+    400: webError(400, 'Invalid id or name.', 'VALIDATION_ERROR'),
+    401: unauthenticated,
+    403: forbiddenRole,
+    404: webError(404, 'Unknown department.', 'DEPARTMENT_NOT_FOUND'),
+    409: webError(409, 'Another department has this name.', 'DEPARTMENT_NAME_TAKEN'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/departments/{id}/deactivate',
+  summary: 'Deactivate a department (blocks log ingestion for its users)',
+  tags: ['departments'],
+  security: [{ bearerAuth: [] }],
+  request: { params: idParam, body: jsonBody(DeactivateDepartmentRequestSchema) },
+  responses: {
+    200: { description: 'Deactivated.', ...jsonBody(DepartmentResponseSchema) },
+    400: webError(400, 'Invalid id.', 'VALIDATION_ERROR'),
+    401: unauthenticated,
+    403: forbiddenRole,
+    404: webError(404, 'Unknown department.', 'DEPARTMENT_NOT_FOUND'),
+    409: webError(409, 'Already inactive.', 'DEPARTMENT_INACTIVE'),
+  },
+});
+
+// ---------- Users and profile (B5b) ----------
+
+const userId = z.object({ id: z.string().uuid() });
+const userErrors = {
+  400: webError(400, 'Invalid id or body.', 'VALIDATION_ERROR'),
+  401: unauthenticated,
+  403: webError(403, 'Role not allowed, target out of scope, or CANNOT_MODIFY_SELF.', 'FORBIDDEN'),
+  404: webError(404, 'USER_NOT_FOUND or DEPARTMENT_NOT_FOUND.', 'USER_NOT_FOUND'),
+  409: webError(409, 'INVALID_USER_STATE (action does not fit the current status/role) or DEPARTMENT_INACTIVE.', 'INVALID_USER_STATE'),
+};
+const adminOk = (description: string) => ({ description, ...jsonBody(AdminUserResponseSchema) });
+
+registry.registerPath({
+  method: 'get',
+  path: '/profile',
+  summary: 'Own profile (name, email, department, role)',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  responses: { 200: { description: 'The caller.', ...jsonBody(ProfileResponseSchema) }, 401: unauthenticated },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/users',
+  summary: 'List users (System Admin: all; Department Admin: own department), paginated',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { query: UserListQuerySchema },
+  responses: {
+    200: { description: 'A page of users.', ...jsonBody(UserListResponseSchema) },
+    400: userErrors[400],
+    401: unauthenticated,
+    403: userErrors[403],
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/users/pending',
+  summary: 'Pending approvals (System Admin only), oldest first',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { query: PendingListQuerySchema },
+  responses: {
+    200: { description: 'A page of PENDING accounts.', ...jsonBody(UserListResponseSchema) },
+    400: userErrors[400],
+    401: unauthenticated,
+    403: userErrors[403],
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/users/{id}/approve',
+  summary: 'Approve a PENDING user with department and role (one UPDATE)',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(ApproveUserRequestSchema) },
+  responses: { 200: adminOk('Now ACTIVE.'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/users/{id}/reject',
+  summary: 'Reject a PENDING user (terminal)',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(RejectUserRequestSchema) },
+  responses: { 200: adminOk('Now REJECTED.'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/users/{id}/reopen',
+  summary: 'Re-open a REJECTED user to PENDING',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(UserStatusUpdateRequestSchema) },
+  responses: { 200: adminOk('Now PENDING.'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/users/{id}/deactivate',
+  summary: 'Deactivate a user; revokes all their tokens at once',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(UserStatusUpdateRequestSchema) },
+  responses: { 200: adminOk('Now DEACTIVATED.'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/users/{id}/reactivate',
+  summary: 'Reactivate a DEACTIVATED user (System Admin)',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(ReactivateUserRequestSchema) },
+  responses: { 200: adminOk('Now ACTIVE.'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/admin/users/{id}/role',
+  summary: 'Assign DEPARTMENT_ADMIN or USER',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(AssignRoleRequestSchema) },
+  responses: { 200: adminOk('Role updated.'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/admin/users/{id}/department',
+  summary: 'Move a user to another ACTIVE department',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(ChangeDepartmentRequestSchema) },
+  responses: { 200: adminOk('Department updated.'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/users/{id}/grant-system-admin',
+  summary: 'Grant SYSTEM_ADMIN to an ACTIVE user',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(UserStatusUpdateRequestSchema) },
+  responses: { 200: adminOk('Now SYSTEM_ADMIN (no department).'), ...userErrors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/users/{id}/revoke-system-admin',
+  summary: 'Revoke SYSTEM_ADMIN, choosing the new role and an ACTIVE department',
+  tags: ['users'],
+  security: [{ bearerAuth: [] }],
+  request: { params: userId, body: jsonBody(RevokeSystemAdminRequestSchema) },
+  responses: { 200: adminOk('Role revoked.'), ...userErrors },
+});
+
 /** Build the OpenAPI 3.1 document from the registered components and paths. */
 export function buildOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
@@ -452,6 +708,8 @@ export function buildOpenApiDocument() {
     },
     servers: [{ url: 'http://localhost:3000/api' }],
     tags: [
+      { name: 'users', description: 'User lifecycle and profile.' },
+      { name: 'departments', description: 'Department management (System Admin).' },
       { name: 'auth', description: 'Web registration, login, refresh and logout.' },
       { name: 'extension', description: 'Extension authentication and log ingestion.' },
       { name: 'policy', description: 'Policy bundle delivery to the extension.' },

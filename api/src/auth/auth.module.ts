@@ -6,6 +6,7 @@ import { MailerModule } from '../mail/mailer.module';
 import { AllowedOriginGuard } from '../common/guards/allowed-origin.guard';
 import { ExtensionGuard } from '../common/guards/extension.guard';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { ExtensionAuthController } from './extension/extension-auth.controller';
@@ -48,6 +49,8 @@ import { TokenService } from './token.service';
     AllowedOriginGuard,
     ExtensionGuard,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    // Runs after JwtAuthGuard: it needs the loaded user to check the capability matrix.
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
   exports: [AuthService, PasswordService, TokenService, RefreshTokenService],
 })

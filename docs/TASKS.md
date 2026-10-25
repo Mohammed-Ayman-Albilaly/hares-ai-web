@@ -10,8 +10,8 @@ One unchecked line per batch. Tick a line when the `verify` command passes.
 - [x] **B4b** — Extension auth + rotation/reuse detection — `pnpm --filter api test`
 - [x] **B4c** — Forgot/reset password + login throttling (+ MailerService) — `pnpm --filter api test`
 - [x] **B4d** — Audit recording (write-only) — `pnpm --filter api test`
-- [ ] **B5a** — RBAC (guards + matrix) + DepartmentsModule — `pnpm --filter api test`
-- [ ] **B5b** — UsersModule lifecycle — `pnpm --filter api test`
+- [x] **B5a** — RBAC (guards + matrix) + DepartmentsModule — `pnpm --filter api test`
+- [x] **B5b** — UsersModule lifecycle — `pnpm --filter api test`
 - [ ] **B6** — PolicyModule — `pnpm --filter api test`
 - [ ] **B7a** — Ingestion (with counter increments) — `pnpm --filter api test`
 - [ ] **B7b** — Log review, filters, CSV export — `pnpm --filter api test`

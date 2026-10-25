@@ -26,6 +26,7 @@
     "jose": "^6.2.13",
     "nodemailer": "^10.2.1",
     "pg": "^8.23.1",
+    "redos-detector": "^6.1.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "zod": "^3.25.76"
