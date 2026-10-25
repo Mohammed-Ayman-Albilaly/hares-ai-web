@@ -81,6 +81,10 @@ jobs:
       - name: Test
         run: pnpm -r --if-present test
 
+      # Starts the real API process and walks the main product flow over HTTP.
+      - name: End-to-end (real server process)
+        run: pnpm --filter api e2e
+
       - name: Verify generated OpenAPI contract is committed
         run: |
           pnpm --filter contract generate:openapi

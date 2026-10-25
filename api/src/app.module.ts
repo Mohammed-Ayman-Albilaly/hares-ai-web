@@ -6,6 +6,11 @@ import { CommonModule } from './common/common.module';
 import { DepartmentsModule } from './departments/departments.module';
 import { validateEnv } from './config/env.validation';
 import { HealthModule } from './health/health.module';
+import { IngestionModule } from './ingestion/ingestion.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { JobsModule } from './jobs/jobs.module';
+import { LogsModule } from './logs/logs.module';
+import { PolicyModule } from './policy/policy.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 
@@ -23,6 +28,11 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     DepartmentsModule,
     UsersModule,
+    PolicyModule,
+    IngestionModule,
+    LogsModule,
+    AnalyticsModule,
+    JobsModule,
   ],
 })
 export class AppModule {}

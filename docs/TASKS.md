@@ -12,10 +12,10 @@ One unchecked line per batch. Tick a line when the `verify` command passes.
 - [x] **B4d** — Audit recording (write-only) — `pnpm --filter api test`
 - [x] **B5a** — RBAC (guards + matrix) + DepartmentsModule — `pnpm --filter api test`
 - [x] **B5b** — UsersModule lifecycle — `pnpm --filter api test`
-- [ ] **B6** — PolicyModule — `pnpm --filter api test`
-- [ ] **B7a** — Ingestion (with counter increments) — `pnpm --filter api test`
-- [ ] **B7b** — Log review, filters, CSV export — `pnpm --filter api test`
-- [ ] **B8** — Analytics endpoints + reconcile + retention purge + audit query — `pnpm --filter api test && pnpm --filter api e2e`
+- [x] **B6** — PolicyModule — `pnpm --filter api test`
+- [x] **B7a** — Ingestion (with counter increments) — `pnpm --filter api test`
+- [x] **B7b** — Log review, filters, CSV export — `pnpm --filter api test`
+- [x] **B8** — Analytics endpoints + reconcile + retention purge + audit query — `pnpm --filter api test && pnpm --filter api e2e`
 - [ ] **B9** — Spike: ECharts RTL/Arabic + component-library decision — manual: render Arabic/RTL charts and record the decision in `docs/SPIKE.md`
 - [ ] **B10** — Web shell + auth flows — `pnpm --filter web dev` (manual) + `pnpm --filter web test`
 - [ ] **B11** — Dev synthetic data seed — `pnpm --filter api seed:dev`

@@ -19,6 +19,10 @@ import {
  * `token_version` or any auth material. The request carries no body — version
  * negotiation is via the `If-None-Match` header against `ETag = hash(version, departmentId)`.
  * `version` is a single global incremental counter per organization (WEB-FR-041).
+ *
+ * PATTERN rules are validated under the flag `i` (PATTERN_FLAGS in ./policy-admin): the
+ * extension MUST compile `definition` with `new RegExp(definition, 'i')`. KEYWORD
+ * definitions are one word or phrase per line; TOPIC definitions are free text.
  */
 
 /**

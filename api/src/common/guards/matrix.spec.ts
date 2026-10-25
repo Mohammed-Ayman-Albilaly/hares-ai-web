@@ -79,7 +79,7 @@ describe.skipIf(!dbEnabled)('RBAC matrix over every guarded route', () => {
     expect(open.map((r) => `${r.method} ${r.rawPath}`)).toEqual([]);
   });
 
-  it('answers 403 for every DENY cell and never 403 for an allowed one', async () => {
+  it('answers 403 for every DENY cell; ALLOW cells are never 403', async () => {
     const checked: string[] = [];
     for (const route of routes.filter((r) => r.capability && r.client === 'web')) {
       for (const role of ROLES) {
@@ -88,8 +88,12 @@ describe.skipIf(!dbEnabled)('RBAC matrix over every guarded route', () => {
         if (grantFor(route.capability!, role) === 'DENY') {
           expect(res.status, label).toBe(403);
           expect(res.body.code, label).toBe('FORBIDDEN');
-        } else {
+        } else if (grantFor(route.capability!, role) === 'ALLOW') {
           expect(res.status, label).not.toBe(403);
+        } else {
+          // SCOPED: the guard lets the role in; the service may still refuse an
+          // out-of-scope target (403 from the service, never a 401/500).
+          expect([401, 500], label).not.toContain(res.status);
         }
         checked.push(label);
       }

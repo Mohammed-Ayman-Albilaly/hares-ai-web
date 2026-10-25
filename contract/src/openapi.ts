@@ -40,7 +40,41 @@ import {
   DepartmentResponseSchema,
   RenameDepartmentRequestSchema,
 } from './departments';
+import {
+  AnalyticsQuerySchema,
+  AuditEntryResponseSchema,
+  AuditQueryResponseSchema,
+  AuditQuerySchema,
+  DashboardScopeSchema,
+  DashboardSummaryResponseSchema,
+  DashboardTimeseriesResponseSchema,
+  DepartmentBreakdownSchema,
+  TimeseriesPointSchema,
+} from './analytics';
 import { HealthResponseSchema } from './health';
+import {
+  CsvExportResponseSchema,
+  LogDetailSchema,
+  LogErrorCodeSchema,
+  LogExportQuerySchema,
+  LogListItemSchema,
+  LogListResponseSchema,
+  LogQuerySchema,
+  OwnLogQuerySchema,
+} from './logs';
+import {
+  BundleETagSchema,
+  CategoryPolicyEntrySchema,
+  CustomRuleListResponseSchema,
+  CustomRuleRequestSchema,
+  CustomRuleResponseSchema,
+  DepartmentPolicyResponseSchema,
+  OrgPolicyResponseSchema,
+  PolicyCategoryActionRequestSchema,
+  PolicyErrorCodeSchema,
+  PolicySourceSchema,
+  RuleScopeSchema,
+} from './policy-admin';
 import {
   AdminUserResponseSchema,
   ApproveUserRequestSchema,
@@ -130,6 +164,34 @@ registry.register('RenameDepartmentRequest', RenameDepartmentRequestSchema);
 registry.register('DeactivateDepartmentRequest', DeactivateDepartmentRequestSchema);
 registry.register('DepartmentErrorCode', DepartmentErrorCodeSchema);
 registry.register('AssignableRole', AssignableRoleSchema);
+registry.register('DashboardScope', DashboardScopeSchema);
+registry.register('AnalyticsQuery', AnalyticsQuerySchema);
+registry.register('DepartmentBreakdown', DepartmentBreakdownSchema);
+registry.register('TimeseriesPoint', TimeseriesPointSchema);
+registry.register('DashboardSummaryResponse', DashboardSummaryResponseSchema);
+registry.register('DashboardTimeseriesResponse', DashboardTimeseriesResponseSchema);
+registry.register('AuditQuery', AuditQuerySchema);
+registry.register('AuditEntryResponse', AuditEntryResponseSchema);
+registry.register('AuditQueryResponse', AuditQueryResponseSchema);
+registry.register('LogListItem', LogListItemSchema);
+registry.register('LogListResponse', LogListResponseSchema);
+registry.register('LogDetail', LogDetailSchema);
+registry.register('LogQuery', LogQuerySchema);
+registry.register('OwnLogQuery', OwnLogQuerySchema);
+registry.register('LogExportQuery', LogExportQuerySchema);
+registry.register('CsvExportResponse', CsvExportResponseSchema);
+registry.register('LogErrorCode', LogErrorCodeSchema);
+registry.register('RuleScope', RuleScopeSchema);
+registry.register('PolicySource', PolicySourceSchema);
+registry.register('CategoryPolicyEntry', CategoryPolicyEntrySchema);
+registry.register('OrgPolicyResponse', OrgPolicyResponseSchema);
+registry.register('DepartmentPolicyResponse', DepartmentPolicyResponseSchema);
+registry.register('PolicyCategoryActionRequest', PolicyCategoryActionRequestSchema);
+registry.register('CustomRuleRequest', CustomRuleRequestSchema);
+registry.register('CustomRuleResponse', CustomRuleResponseSchema);
+registry.register('CustomRuleListResponse', CustomRuleListResponseSchema);
+registry.register('BundleETag', BundleETagSchema);
+registry.register('PolicyErrorCode', PolicyErrorCodeSchema);
 registry.register('AdminUserResponse', AdminUserResponseSchema);
 registry.register('UserListQuery', UserListQuerySchema);
 registry.register('UserListResponse', UserListResponseSchema);
@@ -325,8 +387,15 @@ registry.registerPath({
       description: 'Event accepted and stored.',
       ...jsonBody(LogIngestionResponseSchema),
     },
-    400: errorResponse(400, 'Event failed the strict allowlist or enum checks.', 'VALIDATION_ERROR'),
-    401: errorResponse(401, 'Missing or invalid access token.', 'INVALID_TOKEN'),
+    400: errorResponse(
+      400,
+      'UNKNOWN_FIELD (a field outside the allowlist; the answer lists the accepted fields), INVALID_ENUM (accepted values listed), UNSUPPORTED_SCHEMA_VERSION, EVENT_TIME_OUT_OF_RANGE (more than 5 minutes in the future or older than 90 days) or VALIDATION_ERROR. Nothing the client sent is echoed.',
+      'UNKNOWN_FIELD',
+    ),
+    401: errorResponse(401, 'INVALID_TOKEN, TOKEN_EXPIRED, TOKEN_REVOKED or ACCOUNT_INACTIVE; a web token is refused here.', 'INVALID_TOKEN'),
+    403: errorResponse(403, 'DEPARTMENT_INACTIVE: ingestion is blocked for a deactivated department.', 'DEPARTMENT_INACTIVE'),
+    413: errorResponse(413, 'The event is larger than 8 KB.', 'PAYLOAD_TOO_LARGE'),
+    429: errorResponse(429, 'More than 120 events per minute for this user; see Retry-After.', 'RATE_LIMITED'),
   },
 });
 
@@ -336,13 +405,16 @@ registry.registerPath({
   summary: 'Fetch the resolved policy bundle',
   tags: ['policy'],
   security: [{ bearerAuth: [] }],
+  request: { headers: z.object({ 'If-None-Match': z.string().optional() }) },
   responses: {
     200: {
       description: 'Current policy bundle with ETag (Cache-Control: private).',
+      headers: z.object({ ETag: z.string(), 'Cache-Control': z.string() }),
       ...jsonBody(PolicyBundleResponseSchema),
     },
     304: {
       description: 'Not Modified — version unchanged since the If-None-Match ETag.',
+      headers: z.object({ ETag: z.string(), 'Cache-Control': z.string() }),
     },
     401: errorResponse(401, 'Missing or invalid access token.', 'INVALID_TOKEN'),
   },
@@ -696,6 +768,222 @@ registry.registerPath({
   responses: { 200: adminOk('Role revoked.'), ...userErrors },
 });
 
+// ---------- Policy and custom rules (B6) ----------
+
+const categoryParam = z.object({ category: CategoryCodeSchema });
+const deptCategoryParams = z.object({ id: z.string().uuid(), category: CategoryCodeSchema });
+const policyErrors = {
+  401: unauthenticated,
+  403: forbiddenRole,
+  404: webError(404, 'DEPARTMENT_NOT_FOUND or RULE_NOT_FOUND.', 'DEPARTMENT_NOT_FOUND'),
+};
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/policy/org',
+  summary: 'Organisation policy: one effective entry per category, with its source',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  responses: { 200: { description: 'Org policy and version.', ...jsonBody(OrgPolicyResponseSchema) }, 401: unauthenticated, 403: forbiddenRole },
+});
+
+registry.registerPath({
+  method: 'put',
+  path: '/admin/policy/org/{category}',
+  summary: 'Set the organisation action and enabled flag for a category (System Admin)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  request: { params: categoryParam, body: jsonBody(PolicyCategoryActionRequestSchema) },
+  responses: {
+    200: { description: 'Updated; a changed value bumps the bundle version.', ...jsonBody(OrgPolicyResponseSchema) },
+    400: webError(400, 'Invalid category or body.', 'VALIDATION_ERROR'),
+    401: unauthenticated,
+    403: forbiddenRole,
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/policy/departments/{id}',
+  summary: 'Effective policy of a department (Department Admin: own department only)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.string().uuid() }) },
+  responses: { 200: { description: 'Effective policy.', ...jsonBody(DepartmentPolicyResponseSchema) }, ...policyErrors },
+});
+
+registry.registerPath({
+  method: 'put',
+  path: '/admin/policy/departments/{id}/{category}',
+  summary: 'Set a department override for a category (System Admin)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  request: { params: deptCategoryParams, body: jsonBody(PolicyCategoryActionRequestSchema) },
+  responses: {
+    200: { description: 'Updated.', ...jsonBody(DepartmentPolicyResponseSchema) },
+    400: webError(400, 'Invalid id, category or body.', 'VALIDATION_ERROR'),
+    ...policyErrors,
+  },
+});
+
+registry.registerPath({
+  method: 'delete',
+  path: '/admin/policy/departments/{id}/{category}',
+  summary: 'Remove a department override (back to the organisation value)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  request: { params: deptCategoryParams },
+  responses: { 200: { description: 'Updated.', ...jsonBody(DepartmentPolicyResponseSchema) }, ...policyErrors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/rules',
+  summary: 'Custom rules (System Admin: all; Department Admin: those applying to their department)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  responses: { 200: { description: 'Rules and version.', ...jsonBody(CustomRuleListResponseSchema) }, 401: unauthenticated, 403: forbiddenRole },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/rules',
+  summary: 'Create a custom rule (rule and department links in one transaction)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  request: { body: jsonBody(CustomRuleRequestSchema) },
+  responses: {
+    201: { description: 'Created.', ...jsonBody(CustomRuleResponseSchema) },
+    400: webError(400, 'Invalid rule; an unsafe PATTERN gives details.definition = rule.pattern_* .', 'VALIDATION_ERROR'),
+    401: unauthenticated,
+    403: forbiddenRole,
+    404: webError(404, 'A listed department does not exist.', 'DEPARTMENT_NOT_FOUND'),
+  },
+});
+
+registry.registerPath({
+  method: 'put',
+  path: '/admin/rules/{id}',
+  summary: 'Edit a custom rule, including enabled (full replace)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.string().uuid() }), body: jsonBody(CustomRuleRequestSchema) },
+  responses: {
+    200: { description: 'Updated; an unchanged rule does not bump the version.', ...jsonBody(CustomRuleResponseSchema) },
+    400: webError(400, 'Invalid id or rule.', 'VALIDATION_ERROR'),
+    ...policyErrors,
+  },
+});
+
+// ---------- Log review and export (B7b) ----------
+
+const logErrors = {
+  400: webError(400, 'Unknown parameter, bad enum, reversed date range, page_size over 100, or INVALID_CURSOR.', 'VALIDATION_ERROR'),
+  401: unauthenticated,
+  403: forbiddenRole,
+};
+
+registry.registerPath({
+  method: 'get',
+  path: '/logs/mine',
+  summary: 'Own activity log (any signed-in role); action=BLOCKED gives "Blocked Messages"',
+  tags: ['logs'],
+  security: [{ bearerAuth: [] }],
+  request: { query: OwnLogQuerySchema },
+  responses: { 200: { description: 'A page, newest first.', ...jsonBody(LogListResponseSchema) }, ...logErrors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/logs',
+  summary: 'Activity logs (System Admin: organisation; Department Admin: own department), keyset-paginated',
+  tags: ['logs'],
+  security: [{ bearerAuth: [] }],
+  request: { query: LogQuerySchema },
+  responses: { 200: { description: 'A page, newest first.', ...jsonBody(LogListResponseSchema) }, ...logErrors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/logs/export',
+  summary: 'CSV export of the filtered logs (administrators only), streamed in chunks, at most 100000 rows',
+  tags: ['logs'],
+  security: [{ bearerAuth: [] }],
+  request: { query: LogExportQuerySchema },
+  responses: {
+    200: {
+      description:
+        'UTF-8 CSV with a byte order mark; columns: log_id, event_time, user_name, user_email, department, platform, risk_level, action, user_decision, categories, classification_source, rule_id. Cells starting with = + - @ tab or CR are prefixed with a quote.',
+      headers: z.object({ 'Content-Disposition': z.string() }),
+      content: { 'text/csv': { schema: z.string() } },
+    },
+    ...logErrors,
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/logs/{log_id}',
+  summary: 'One log (same scope as the list; outside the scope it is 404)',
+  tags: ['logs'],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ log_id: z.string().uuid() }) },
+  responses: {
+    200: { description: 'The log.', ...jsonBody(LogDetailSchema) },
+    ...logErrors,
+    404: webError(404, 'LOG_NOT_FOUND (also for a log outside the caller scope).', 'LOG_NOT_FOUND'),
+  },
+});
+
+// ---------- Dashboards and audit trail (B8) ----------
+
+const dashboardErrors = {
+  400: webError(400, 'Bad day, reversed or over-long range (max 366 days), unknown parameter, or department_id missing for a System Admin on the department dashboard.', 'VALIDATION_ERROR'),
+  401: unauthenticated,
+  403: forbiddenRole,
+  404: webError(404, 'Unknown department.', 'DEPARTMENT_NOT_FOUND'),
+};
+const dashboards: Array<[string, string, string]> = [
+  ['mine', 'OWN: the caller own events (live log rows, last 90 days), any role', 'OWN_DASHBOARD_VIEW'],
+  ['department', 'DEPARTMENT: counters of one department (Department Admin: own; System Admin: ?department_id=)', 'DEPT_DASHBOARD_VIEW'],
+  ['org', 'ORG: counters of the whole organisation with the per-department breakdown (System Admin)', 'ORG_DASHBOARD_VIEW'],
+];
+for (const [name, description] of dashboards) {
+  registry.registerPath({
+    method: 'get',
+    path: `/dashboard/${name}/summary`,
+    summary: `Dashboard summary - ${description}`,
+    tags: ['dashboard'],
+    security: [{ bearerAuth: [] }],
+    request: { query: AnalyticsQuerySchema },
+    responses: { 200: { description: 'Totals, platforms, top categories.', ...jsonBody(DashboardSummaryResponseSchema) }, ...dashboardErrors },
+  });
+  registry.registerPath({
+    method: 'get',
+    path: `/dashboard/${name}/timeseries`,
+    summary: `Dashboard risk trend - ${description}`,
+    tags: ['dashboard'],
+    security: [{ bearerAuth: [] }],
+    request: { query: AnalyticsQuerySchema },
+    responses: { 200: { description: 'One zero-filled point per UTC day.', ...jsonBody(DashboardTimeseriesResponseSchema) }, ...dashboardErrors },
+  });
+}
+
+registry.registerPath({
+  method: 'get',
+  path: '/admin/audit',
+  summary: 'Admin audit trail (System Admin only, read-only), newest first, keyset-paginated',
+  tags: ['audit'],
+  security: [{ bearerAuth: [] }],
+  request: { query: AuditQuerySchema },
+  responses: {
+    200: { description: 'A page of audit entries.', ...jsonBody(AuditQueryResponseSchema) },
+    400: webError(400, 'Unknown parameter, bad enum, reversed range, page_size over 100, or INVALID_CURSOR.', 'VALIDATION_ERROR'),
+    401: unauthenticated,
+    403: forbiddenRole,
+  },
+});
+
 /** Build the OpenAPI 3.1 document from the registered components and paths. */
 export function buildOpenApiDocument() {
   const generator = new OpenApiGeneratorV31(registry.definitions);
@@ -708,6 +996,10 @@ export function buildOpenApiDocument() {
     },
     servers: [{ url: 'http://localhost:3000/api' }],
     tags: [
+      { name: 'dashboard', description: 'Role-scoped dashboard aggregates.' },
+      { name: 'audit', description: 'Admin audit trail (read-only).' },
+      { name: 'logs', description: 'Activity log review and CSV export.' },
+      { name: 'policy', description: 'Policy, custom rules and the bundle.' },
       { name: 'users', description: 'User lifecycle and profile.' },
       { name: 'departments', description: 'Department management (System Admin).' },
       { name: 'auth', description: 'Web registration, login, refresh and logout.' },

@@ -28,6 +28,8 @@ import { z } from 'zod';
  *  - `RATE_LIMITS` (on/off) toggles the per-endpoint request windows; they are
  *    off by default under `test` only. The progressive login throttle is
  *    always on.
+ *  - `JOBS` (on/off) toggles the scheduled reconcile and purge jobs; they are
+ *    off by default under `test` only.
  *  - `COOKIE_SECURE` (true/false) overrides the refresh cookie's Secure flag;
  *    by default it is Secure only in production.
  *
@@ -77,6 +79,7 @@ export const envSchema = z
       )
       .optional(),
     RATE_LIMITS: z.enum(['on', 'off']).optional(),
+    JOBS: z.enum(['on', 'off']).optional(),
     COOKIE_SECURE: z
       .enum(['true', 'false'])
       .transform((v) => v === 'true')

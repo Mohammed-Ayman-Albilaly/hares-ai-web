@@ -171,6 +171,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       response.setHeader('Retry-After', String(retryAfter));
     }
 
+    // A streamed response may already be on the wire: nothing more can be written.
+    if (response.headersSent) {
+      response.destroy();
+      return;
+    }
     response.status(status).json(envelope);
   }
 }

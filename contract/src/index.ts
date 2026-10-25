@@ -12,3 +12,6 @@ export * from './audit';
 export * from './capabilities';
 export * from './departments';
 export * from './users';
+export * from './policy-admin';
+export * from './logs';
+export * from './analytics';

@@ -58,3 +58,27 @@ export const LogIngestionResponseSchema = z.object({
   log_id: z.string().uuid(),
 });
 export type LogIngestionResponse = z.infer<typeof LogIngestionResponseSchema>;
+
+// ---------- B7a: ingestion rules shared with the API ----------
+
+/** `schema_version` values the server accepts today (WEB-NFR-021). A new enum value needs a new version. */
+export const SUPPORTED_SCHEMA_VERSIONS = [1] as const;
+
+/** The allowlisted event fields, listed back to the extension when it sends an unknown one. */
+export const LOG_EVENT_FIELDS = Object.keys(LogEventSchema.shape) as ReadonlyArray<keyof typeof LogEventSchema.shape>;
+
+/** Largest accepted `POST /logs` body, in bytes (an event is a few hundred). */
+export const INGESTION_MAX_BODY_BYTES = 8 * 1024;
+
+/** Events accepted per user per minute (in-memory window; single API instance, decision 27). */
+export const INGESTION_RATE_LIMIT_PER_MINUTE = 120;
+
+/** Max age and max future skew of `event_time` (WEB-FR-072, decision 33). */
+export const EVENT_TIME_MAX_AGE_DAYS = 90;
+export const EVENT_TIME_MAX_FUTURE_SKEW_MINUTES = 5;
+
+/** Contract names used by the batch plan. */
+export const IngestLogRequestSchema = LogEventSchema;
+export type IngestLogRequest = LogEvent;
+export const IngestLogResponseSchema = LogIngestionResponseSchema;
+export type IngestLogResponse = LogIngestionResponse;
