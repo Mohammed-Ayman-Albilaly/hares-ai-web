@@ -69,6 +69,8 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      # Creates the cluster-wide hares_app role and checks the deployment scripts run
+      # cleanly. The test suites themselves use a throwaway database (global-setup.ts).
       - name: Prepare database (migrate, app role, audit revoke, seed)
         run: |
           pnpm --filter api exec prisma migrate deploy

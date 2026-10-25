@@ -22,7 +22,7 @@ import { TokenService } from './token.service';
 
 const ownerUrl = process.env.DATABASE_URL;
 const appUrl = process.env.APP_DATABASE_URL;
-const enabled = Boolean(ownerUrl && appUrl);
+const enabled = Boolean(ownerUrl && appUrl && process.env.HARES_TEST_DB?.startsWith('hares_test_'));
 if (!enabled) {
   console.warn('[auth] DATABASE_URL / APP_DATABASE_URL not set — skipping the web auth suite.');
 }

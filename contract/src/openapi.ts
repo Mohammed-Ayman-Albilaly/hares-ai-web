@@ -30,6 +30,7 @@ import {
   ExtensionRefreshResponseSchema,
 } from './auth';
 import { ErrorCodeSchema, ExtensionErrorEnvelopeSchema } from './errors';
+import { AuditActionSchema, AuditTargetTypeSchema } from './audit';
 import { HealthResponseSchema } from './health';
 import {
   ChangePasswordRequestSchema,
@@ -95,6 +96,8 @@ registry.register('PolicyBundleResponse', PolicyBundleResponseSchema);
 registry.register('LogEvent', LogEventSchema);
 registry.register('LogIngestionResponse', LogIngestionResponseSchema);
 registry.register('ClientType', ClientTypeSchema);
+registry.register('AuditAction', AuditActionSchema);
+registry.register('AuditTargetType', AuditTargetTypeSchema);
 registry.register('UserStatus', UserStatusSchema);
 registry.register('Role', RoleSchema);
 registry.register('WebAuthErrorCode', WebAuthErrorCodeSchema);

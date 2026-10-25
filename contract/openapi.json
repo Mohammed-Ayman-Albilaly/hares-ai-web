@@ -856,6 +856,34 @@
           "EXTENSION"
         ]
       },
+      "AuditAction": {
+        "type": "string",
+        "enum": [
+          "USER_APPROVED",
+          "USER_REJECTED",
+          "USER_REOPENED",
+          "USER_DEACTIVATED",
+          "USER_REACTIVATED",
+          "USER_ROLE_CHANGED",
+          "USER_DEPARTMENT_CHANGED",
+          "SYSTEM_ADMIN_GRANTED",
+          "SYSTEM_ADMIN_REVOKED",
+          "DEPARTMENT_CREATED",
+          "DEPARTMENT_RENAMED",
+          "DEPARTMENT_DEACTIVATED",
+          "POLICY_CHANGED",
+          "RULE_CHANGED"
+        ]
+      },
+      "AuditTargetType": {
+        "type": "string",
+        "enum": [
+          "USER",
+          "DEPARTMENT",
+          "CUSTOM_RULE",
+          "POLICY"
+        ]
+      },
       "UserStatus": {
         "type": "string",
         "enum": [

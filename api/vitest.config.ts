@@ -11,6 +11,8 @@ export default defineConfig({
   test: {
     include: ['src/**/*.{test,spec}.ts'],
     environment: 'node',
+    // Each run creates and drops its own database (src/test/global-setup.ts).
+    globalSetup: ['src/test/global-setup.ts'],
     // Integration suites do several bcrypt-12 hashes per test (about 250 ms each).
     testTimeout: 30_000,
     // Integration suites send a synthetic X-Forwarded-For per suite, so each

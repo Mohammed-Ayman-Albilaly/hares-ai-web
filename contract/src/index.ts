@@ -8,3 +8,4 @@ export * from './health';
 export * from './request-context';
 export * from './web-auth';
 export * from './password';
+export * from './audit';

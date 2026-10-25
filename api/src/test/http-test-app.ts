@@ -17,7 +17,18 @@ import { throttleKeys } from '../auth/login-failure-store';
 // ---------------------------------------------------------------------------
 
 export const ownerUrl = process.env.DATABASE_URL;
-export const dbEnabled = Boolean(process.env.DATABASE_URL && process.env.APP_DATABASE_URL);
+/** True only inside the per-run test database created by global-setup.ts. */
+export const dbEnabled = Boolean(
+  process.env.DATABASE_URL && process.env.APP_DATABASE_URL && process.env.HARES_TEST_DB?.startsWith('hares_test_'),
+);
+
+/** Refuse to write fixtures anywhere but a throwaway hares_test_* database. */
+function assertTestDatabase(): void {
+  const db = ownerUrl ? decodeURIComponent(new URL(ownerUrl).pathname.slice(1)) : '';
+  if (!db.startsWith('hares_test_')) {
+    throw new Error(`Refusing to run DB fixtures against "${db}": not a hares_test_* database.`);
+  }
+}
 
 export const TEST_PASSWORD = 'Synthetic#Pass1';
 
@@ -45,6 +56,7 @@ export interface TestApp {
 export async function bootTestApp(
   opts: { controllers?: Type[]; override?: (b: TestingModuleBuilder) => TestingModuleBuilder } = {},
 ): Promise<TestApp> {
+  assertTestDatabase();
   let builder = Test.createTestingModule({ imports: [AppModule], controllers: opts.controllers ?? [] });
   if (opts.override) builder = opts.override(builder);
   // TRUST_PROXY=loopback (vitest.config.ts) makes Express honour this address.
@@ -122,7 +134,12 @@ export async function clearThrottle(owner: Pool, emails: string[], ip: string): 
  */
 export class Fixtures {
   readonly salt = randomUUID().slice(0, 8);
-  readonly owner = new Pool({ connectionString: ownerUrl });
+  readonly owner: Pool;
+
+  constructor() {
+    assertTestDatabase();
+    this.owner = new Pool({ connectionString: ownerUrl });
+  }
   private readonly departments: string[] = [];
   readonly emails: string[] = [];
   private hash?: Promise<string>;
