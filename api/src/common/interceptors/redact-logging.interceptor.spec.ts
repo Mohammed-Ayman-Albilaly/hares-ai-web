@@ -7,9 +7,9 @@ import {
   afterEach,
   type MockInstance,
 } from 'vitest';
-import { Logger } from '@nestjs/common';
+import { Logger, NotFoundException } from '@nestjs/common';
 import type { CallHandler, ExecutionContext } from '@nestjs/common';
-import { lastValueFrom, of } from 'rxjs';
+import { lastValueFrom, of, throwError } from 'rxjs';
 import type { Request, Response } from 'express';
 import { RedactLoggingInterceptor } from './redact-logging.interceptor';
 import { runWithRequestContext } from '../request-context';
@@ -96,5 +96,27 @@ describe('RedactLoggingInterceptor', () => {
   it('falls back to "unknown" request id when no context is present', async () => {
     const line = await runLog({ url: '/api/health', method: 'GET' }, null);
     expect(line).toContain('unknown');
+  });
+
+  it('logs status and duration on the error path (failed request), never the body', async () => {
+    const ctx = makeContext({ url: '/api/missing', method: 'GET' });
+    const next = {
+      handle: () => throwError(() => new NotFoundException()),
+    } as CallHandler;
+    const interceptor = new RedactLoggingInterceptor();
+
+    await expect(
+      runWithRequestContext('req-err', () =>
+        lastValueFrom(interceptor.intercept(ctx, next) as never),
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    const line = logSpy.mock.calls.map((c) => c[0]).join('\n');
+    expect(line).toContain('req-err');
+    expect(line).toContain('GET');
+    expect(line).toContain('/api/missing');
+    expect(line).toContain('404');
+    expect(line).toMatch(/\d+ms/);
+    expect(line).not.toContain('SENSITIVE_BODY');
   });
 });

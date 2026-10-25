@@ -1,4 +1,5 @@
 import {
+  Inject,
   Injectable,
   OnModuleDestroy,
   OnModuleInit,
@@ -12,7 +13,7 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  constructor(config: ConfigService) {
+  constructor(@Inject(ConfigService) config: ConfigService) {
     super({
       adapter: new PrismaPg({
         // The runtime client connects as the `hares_app` application role.

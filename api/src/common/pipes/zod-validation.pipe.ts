@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Optional,
   type ArgumentMetadata,
   type PipeTransform,
 } from '@nestjs/common';
@@ -38,7 +39,7 @@ export function formatZodError(error: {
  */
 @Injectable()
 export class ZodValidationPipe implements PipeTransform {
-  constructor(private readonly schema?: ZodType) {}
+  constructor(@Optional() private readonly schema?: ZodType) {}
 
   transform(value: unknown, metadata: ArgumentMetadata): unknown {
     const schema =
