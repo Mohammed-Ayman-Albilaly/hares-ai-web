@@ -3,12 +3,14 @@ import {
   ANALYTICS_DEFAULT_RANGE_DAYS,
   ANALYTICS_MAX_RANGE_DAYS,
   OWN_DASHBOARD_MAX_DAYS,
+  TOP_RISKY_USERS_LIMIT,
   type AnalyticsQuery,
   type DashboardScope,
   type DashboardSummaryResponse,
   type DashboardTimeseriesResponse,
   type DepartmentBreakdown,
   type TimeseriesPoint,
+  type TopRiskyUsersResponse,
 } from '@hares/contract';
 import type { AuthUser } from '../common/auth-user';
 import { ValidationException } from '../common/validation-exception';
@@ -68,6 +70,39 @@ export class AnalyticsService {
 
   async timeseriesDepartment(actor: AuthUser, q: AnalyticsQuery): Promise<DashboardTimeseriesResponse> {
     return this.timeseries(await this.departmentSource(actor, q), this.range(q));
+  }
+
+  /** Users of the department with the most HIGH events (live rows; at most 90 days). */
+  async topUsersDepartment(actor: AuthUser, q: AnalyticsQuery): Promise<TopRiskyUsersResponse> {
+    const src = await this.departmentSource(actor, q);
+    const r = this.range(q, OWN_DASHBOARD_MAX_DAYS);
+    const rows = await this.prisma.$queryRaw<Record<string, unknown>[]>(Prisma.sql`
+      SELECT l.user_id, u.full_name,
+             count(*)::bigint AS total,
+             count(*) FILTER (WHERE l.risk_level = 'HIGH')::bigint AS high,
+             count(*) FILTER (WHERE l.action = 'BLOCKED')::bigint AS blocked,
+             count(*) FILTER (WHERE l.action = 'WARNED')::bigint AS warned
+        FROM "ActivityLog" l JOIN "User" u ON u.id = l.user_id
+       WHERE l.department_id = ${src.departmentId}::uuid
+         AND l.event_time >= (${r.from}::date)::timestamp AT TIME ZONE 'UTC'
+         AND l.event_time < ((${r.to}::date) + 1)::timestamp AT TIME ZONE 'UTC'
+       GROUP BY l.user_id, u.full_name
+      HAVING count(*) FILTER (WHERE l.risk_level = 'HIGH') > 0
+       ORDER BY high DESC, blocked DESC, total DESC, l.user_id
+       LIMIT ${TOP_RISKY_USERS_LIMIT}`);
+    return {
+      scope: 'DEPARTMENT',
+      from: r.from,
+      to: r.to,
+      users: rows.map((x) => ({
+        user_id: String(x.user_id),
+        user_name: String(x.full_name),
+        total: n(x.total),
+        high: n(x.high),
+        blocked: n(x.blocked),
+        warned: n(x.warned),
+      })),
+    };
   }
 
   summaryOrg(q: AnalyticsQuery): Promise<DashboardSummaryResponse> {

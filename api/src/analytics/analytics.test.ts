@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
-import { DashboardSummaryResponseSchema, DashboardTimeseriesResponseSchema } from '@hares/contract';
+import { DashboardSummaryResponseSchema, DashboardTimeseriesResponseSchema, TopRiskyUsersResponseSchema } from '@hares/contract';
 import { TokenService } from '../auth/token.service';
 import { Fixtures, bootTestApp, dbEnabled, type TestApp } from '../test/http-test-app';
 
@@ -148,6 +148,46 @@ describe.skipIf(!dbEnabled)('dashboards (B8)', () => {
     expect(busy).toHaveLength(1);
     expect(busy[0]).toMatchObject({ total: 6, high: 2, medium: 2, low: 1, none: 1, blocked: 2, warned: 2 });
     expect(res.body.points[0].total).toBe(0);
+  });
+
+  it('top risky users: own department only, users with HIGH events first, nobody without one', async () => {
+    const res = await get('/api/dashboard/department/top-users', tok.daA);
+    expect(res.status).toBe(200);
+    expect(TopRiskyUsersResponseSchema.safeParse(res.body).success).toBe(true);
+    // a1 has 2 HIGH events (3 in all); a2 has none, and department B's user never appears.
+    expect(res.body.users).toHaveLength(1);
+    expect(res.body.users[0]).toMatchObject({ user_name: 'Synthetic d-a1', total: 3, high: 2, blocked: 2, warned: 1 });
+    expect(Object.keys(res.body.users[0]).sort()).toEqual(['blocked', 'high', 'total', 'user_id', 'user_name', 'warned']);
+  });
+
+  it('top risky users: ordered by HIGH events, then blocked, then total; the range is clamped to 90 days', async () => {
+    const deptC = await fx.department('Dash C');
+    const mk = async (tag: string) => {
+      const u = await fx.user(tag, { role: 'USER', departmentId: deptC });
+      return t.app.get(TokenService).signAccess({ sub: u.id, tv: 0 }, 'extension');
+    };
+    const [c1, c2, c3] = [await mk('d-c1'), await mk('d-c2'), await mk('d-c3')];
+    await send(c1, { risk_level: 'HIGH', action: 'BLOCKED' });
+    await send(c2, { risk_level: 'HIGH', action: 'BLOCKED' });
+    await send(c2, { risk_level: 'HIGH', action: 'WARNED' });
+    await send(c3, { risk_level: 'HIGH', action: 'BLOCKED' });
+    await send(c3, { risk_level: 'HIGH', action: 'BLOCKED' });
+    await send(c3, { risk_level: 'NONE', action: 'ALLOWED', categories: [] });
+    const res = await get(`/api/dashboard/department/top-users?department_id=${deptC}&from=2020-01-01`, tok.saWeb);
+    expect(res.status).toBe(200);
+    // c3: 2 HIGH, 2 blocked; c2: 2 HIGH, 1 blocked; c1: 1 HIGH.
+    expect(res.body.users.map((u: { user_name: string }) => u.user_name)).toEqual(['Synthetic d-c3', 'Synthetic d-c2', 'Synthetic d-c1']);
+    expect(res.body.users[0]).toMatchObject({ high: 2, blocked: 2, total: 3 });
+    const days = (Date.parse(res.body.to) - Date.parse(res.body.from)) / 86_400_000;
+    expect(days).toBe(89);
+  });
+
+  it('top risky users: a user is refused, a System Admin must name the department', async () => {
+    expect((await get('/api/dashboard/department/top-users', tok.userA)).status).toBe(403);
+    expect((await get('/api/dashboard/department/top-users', tok.saWeb)).status).toBe(400);
+    const res = await get(`/api/dashboard/department/top-users?department_id=${deptB}`, tok.saWeb);
+    expect(res.status).toBe(200);
+    expect(res.body.users.map((u: { user_name: string }) => u.user_name)).toEqual(['Synthetic d-b1']);
   });
 
   it('the personal dashboard is clamped to the last 90 days; a range entirely before that is refused', async () => {

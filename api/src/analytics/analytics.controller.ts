@@ -4,6 +4,7 @@ import {
   type AnalyticsQuery,
   type DashboardSummaryResponse,
   type DashboardTimeseriesResponse,
+  type TopRiskyUsersResponse,
 } from '@hares/contract';
 import type { AuthUser } from '../common/auth-user';
 import { CurrentUser } from '../common/decorators/auth.decorators';
@@ -44,6 +45,12 @@ export class AnalyticsController {
   @Get('department/timeseries')
   departmentTimeseries(@CurrentUser() actor: AuthUser, @Query(queryPipe) q: AnalyticsQuery): Promise<DashboardTimeseriesResponse> {
     return this.analytics.timeseriesDepartment(actor, q);
+  }
+
+  @RequireCapability('DEPT_DASHBOARD_VIEW')
+  @Get('department/top-users')
+  departmentTopUsers(@CurrentUser() actor: AuthUser, @Query(queryPipe) q: AnalyticsQuery): Promise<TopRiskyUsersResponse> {
+    return this.analytics.topUsersDepartment(actor, q);
   }
 
   @RequireCapability('ORG_DASHBOARD_VIEW')

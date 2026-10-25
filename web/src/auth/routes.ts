@@ -35,7 +35,8 @@ export interface NavItem {
  * the same rules; hiding an item is only a convenience (WEB-NFR-003).
  */
 export const NAV: readonly NavItem[] = [
-  { to: '/dashboard', label: 'dashboard', icon: 'Dashboard', roles: ['USER', 'DEPARTMENT_ADMIN'], group: 'personal' },
+  { to: '/dashboard', label: 'dashboard', icon: 'Dashboard', roles: ['USER'], group: 'personal' },
+  { to: '/dashboard', label: 'deptDashboard', icon: 'Dashboard', roles: ['DEPARTMENT_ADMIN'], group: 'department' },
   { to: '/activity', label: 'activity', icon: 'Activity', roles: ['USER'], group: 'personal' },
   { to: '/blocked', label: 'blocked', icon: 'Block', roles: ['USER'], group: 'personal' },
   { to: '/profile', label: 'profile', icon: 'User', roles: ['USER', 'DEPARTMENT_ADMIN', 'SYSTEM_ADMIN'], group: 'account' },

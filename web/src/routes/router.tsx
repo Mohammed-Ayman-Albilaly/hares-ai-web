@@ -10,6 +10,14 @@ import { HomePlaceholder } from '@/pages/HomePlaceholder';
 import { ActivityPage } from '@/pages/activity/ActivityPage';
 import { BlockedPage } from '@/pages/blocked/BlockedPage';
 import { UserDashboardPage } from '@/pages/dashboard/UserDashboardPage';
+import {
+  DepartmentDashboardPage,
+  DepartmentLogsPage,
+  DepartmentPolicyPage,
+  DepartmentRulesPage,
+  DepartmentUsersPage,
+} from '@/pages/department/DepartmentPages';
+import { useAuth } from '@/auth/AuthProvider';
 import { NotFoundPage } from '@/pages/errors/NotFoundPage';
 import { GuestOnly, RequireAuth, RequireRole } from './guards';
 
@@ -18,6 +26,12 @@ import { GuestOnly, RequireAuth, RequireRole } from './guards';
  * authenticated shell. Role screens are added by batches B12 to B14 under the
  * guards below; the API enforces the same rules independently.
  */
+/** `/dashboard` is the personal dashboard for a user and the department dashboard for a Department Admin. */
+function DashboardRoute() {
+  const auth = useAuth();
+  return auth.user?.role === 'DEPARTMENT_ADMIN' ? <DepartmentDashboardPage /> : <UserDashboardPage />;
+}
+
 export const routes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
   {
@@ -38,7 +52,16 @@ export const routes: RouteObject[] = [
           { path: '/profile', element: <ProfilePage /> },
           {
             element: <RequireRole roles={['USER', 'DEPARTMENT_ADMIN']} />,
-            children: [{ path: '/dashboard', element: <UserDashboardPage /> }],
+            children: [{ path: '/dashboard', element: <DashboardRoute /> }],
+          },
+          {
+            element: <RequireRole roles={['DEPARTMENT_ADMIN']} />,
+            children: [
+              { path: '/department/logs', element: <DepartmentLogsPage /> },
+              { path: '/department/users', element: <DepartmentUsersPage /> },
+              { path: '/department/policy', element: <DepartmentPolicyPage /> },
+              { path: '/department/rules', element: <DepartmentRulesPage /> },
+            ],
           },
           {
             element: <RequireRole roles={['USER']} />,

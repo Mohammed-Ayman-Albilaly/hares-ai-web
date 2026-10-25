@@ -84,7 +84,7 @@ async function toError(res: Response): Promise<ApiError> {
  * request is repeated; if that fails the user is signed out. Errors always become
  * an ApiError with the envelope's code, so screens map codes to messages.
  */
-export async function request<T>(method: string, path: string, o: RequestOptions = {}): Promise<T> {
+async function execute(method: string, path: string, o: RequestOptions): Promise<Response> {
   const useAuth = o.auth !== false && hooks !== null;
   let res = await send(method, path, o, useAuth ? hooks!.getToken() : null);
 
@@ -105,8 +105,20 @@ export async function request<T>(method: string, path: string, o: RequestOptions
   }
 
   if (!res.ok) throw await toError(res);
+  return res;
+}
+
+export async function request<T>(method: string, path: string, o: RequestOptions = {}): Promise<T> {
+  const res = await execute(method, path, o);
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
+}
+
+/** An authenticated file download (CSV export): the bytes and the server's file name. */
+export async function download(path: string, o: RequestOptions = {}): Promise<{ blob: Blob; filename: string }> {
+  const res = await execute('GET', path, { ...o, headers: { Accept: '*/*', ...o.headers } });
+  const m = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') ?? '');
+  return { blob: await res.blob(), filename: m?.[1] ?? 'export.csv' };
 }
 
 export const api = {
@@ -115,4 +127,5 @@ export const api = {
   put: <T>(path: string, body: unknown, o?: RequestOptions) => request<T>('PUT', path, { ...o, body }),
   patch: <T>(path: string, body: unknown, o?: RequestOptions) => request<T>('PATCH', path, { ...o, body }),
   delete: <T>(path: string, o?: RequestOptions) => request<T>('DELETE', path, o),
+  download,
 };

@@ -50,6 +50,7 @@ import {
   DashboardTimeseriesResponseSchema,
   DepartmentBreakdownSchema,
   TimeseriesPointSchema,
+  TopRiskyUsersResponseSchema,
 } from './analytics';
 import { HealthResponseSchema } from './health';
 import {
@@ -170,6 +171,7 @@ registry.register('DepartmentBreakdown', DepartmentBreakdownSchema);
 registry.register('TimeseriesPoint', TimeseriesPointSchema);
 registry.register('DashboardSummaryResponse', DashboardSummaryResponseSchema);
 registry.register('DashboardTimeseriesResponse', DashboardTimeseriesResponseSchema);
+registry.register('TopRiskyUsersResponse', TopRiskyUsersResponseSchema);
 registry.register('AuditQuery', AuditQuerySchema);
 registry.register('AuditEntryResponse', AuditEntryResponseSchema);
 registry.register('AuditQueryResponse', AuditQueryResponseSchema);
@@ -968,6 +970,16 @@ for (const [name, description] of dashboards) {
     responses: { 200: { description: 'One zero-filled point per UTC day.', ...jsonBody(DashboardTimeseriesResponseSchema) }, ...dashboardErrors },
   });
 }
+
+registry.registerPath({
+  method: 'get',
+  path: '/dashboard/department/top-users',
+  summary: 'Top risky users of a department by HIGH-risk events (Department Admin: own department; System Admin: ?department_id=). Live rows, last 90 days at most.',
+  tags: ['dashboard'],
+  security: [{ bearerAuth: [] }],
+  request: { query: AnalyticsQuerySchema },
+  responses: { 200: { description: 'Up to 5 users, metadata only.', ...jsonBody(TopRiskyUsersResponseSchema) }, ...dashboardErrors },
+});
 
 registry.registerPath({
   method: 'get',

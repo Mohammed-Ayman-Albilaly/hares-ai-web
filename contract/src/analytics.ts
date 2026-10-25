@@ -126,6 +126,33 @@ export const DashboardTimeseriesResponseSchema = z.object({
 });
 export type DashboardTimeseriesResponse = z.infer<typeof DashboardTimeseriesResponseSchema>;
 
+/** How many users the "top risky users" list returns. */
+export const TOP_RISKY_USERS_LIMIT = 5;
+
+export const RiskyUserSchema = z.object({
+  user_id: z.string().uuid(),
+  user_name: z.string(),
+  total: z.number().int().nonnegative(),
+  high: z.number().int().nonnegative(),
+  blocked: z.number().int().nonnegative(),
+  warned: z.number().int().nonnegative(),
+});
+export type RiskyUser = z.infer<typeof RiskyUserSchema>;
+
+/**
+ * GET /dashboard/department/top-users: the department's users with the most
+ * HIGH-risk events (ties: more blocked, then more events). Counts come from the
+ * live log rows, so the range is clamped to the last 90 days like the personal
+ * dashboard (the counters carry no user identity, decision 25). Metadata only.
+ */
+export const TopRiskyUsersResponseSchema = z.object({
+  scope: z.literal('DEPARTMENT'),
+  from: isoDay,
+  to: isoDay,
+  users: z.array(RiskyUserSchema).max(TOP_RISKY_USERS_LIMIT),
+});
+export type TopRiskyUsersResponse = z.infer<typeof TopRiskyUsersResponseSchema>;
+
 // ---------- audit trail ----------
 
 export const AUDIT_PAGE_MAX_SIZE = 100;

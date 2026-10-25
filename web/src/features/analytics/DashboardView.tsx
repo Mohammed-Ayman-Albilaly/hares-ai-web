@@ -14,7 +14,7 @@ interface Props {
   base: string;
   extra?: Record<string, string>;
   /** Shown after the charts (recent activity, breakdown tables…). */
-  children?: ReactNode;
+  children?: ReactNode | ((days: number) => ReactNode);
   /** Text when the range has no events at all. */
   emptyTitle: string;
   emptyBody: string;
@@ -112,7 +112,7 @@ export function DashboardView({ base, extra, children, emptyTitle, emptyBody }: 
           </>
         )}
       </DataState>
-      {children}
+      {typeof children === 'function' ? children(days) : children}
     </div>
   );
 }

@@ -1032,12 +1032,10 @@
         "type": "object",
         "properties": {
           "from": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "to": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "department_id": {
             "type": "string",
@@ -1107,8 +1105,7 @@
         "type": "object",
         "properties": {
           "day": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "total": {
             "type": "integer",
@@ -1162,12 +1159,10 @@
             ]
           },
           "from": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "to": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "total_users": {
             "type": "integer",
@@ -1379,12 +1374,10 @@
             ]
           },
           "from": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "to": {
-            "type": "string",
-            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            "type": "string"
           },
           "points": {
             "type": "array",
@@ -1392,8 +1385,7 @@
               "type": "object",
               "properties": {
                 "day": {
-                  "type": "string",
-                  "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  "type": "string"
                 },
                 "total": {
                   "type": "integer",
@@ -1442,6 +1434,69 @@
           "from",
           "to",
           "points"
+        ]
+      },
+      "TopRiskyUsersResponse": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "DEPARTMENT"
+            ]
+          },
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "user_name": {
+                  "type": "string"
+                },
+                "total": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "high": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "blocked": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "warned": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "user_id",
+                "user_name",
+                "total",
+                "high",
+                "blocked",
+                "warned"
+              ]
+            },
+            "maxItems": 5
+          }
+        },
+        "required": [
+          "scope",
+          "from",
+          "to",
+          "users"
         ]
       },
       "AuditQuery": {
@@ -17226,8 +17281,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "from",
@@ -17235,8 +17289,7 @@
           },
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "to",
@@ -17269,12 +17322,10 @@
                       ]
                     },
                     "from": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "to": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "total_users": {
                       "type": "integer",
@@ -17718,8 +17769,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "from",
@@ -17727,8 +17777,7 @@
           },
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "to",
@@ -17761,12 +17810,10 @@
                       ]
                     },
                     "from": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "to": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "points": {
                       "type": "array",
@@ -17774,8 +17821,7 @@
                         "type": "object",
                         "properties": {
                           "day": {
-                            "type": "string",
-                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            "type": "string"
                           },
                           "total": {
                             "type": "integer",
@@ -18070,8 +18116,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "from",
@@ -18079,8 +18124,7 @@
           },
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "to",
@@ -18113,12 +18157,10 @@
                       ]
                     },
                     "from": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "to": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "total_users": {
                       "type": "integer",
@@ -18562,8 +18604,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "from",
@@ -18571,8 +18612,7 @@
           },
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "to",
@@ -18605,12 +18645,10 @@
                       ]
                     },
                     "from": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "to": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "points": {
                       "type": "array",
@@ -18618,8 +18656,7 @@
                         "type": "object",
                         "properties": {
                           "day": {
-                            "type": "string",
-                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            "type": "string"
                           },
                           "total": {
                             "type": "integer",
@@ -18914,8 +18951,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "from",
@@ -18923,8 +18959,7 @@
           },
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "to",
@@ -18957,12 +18992,10 @@
                       ]
                     },
                     "from": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "to": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "total_users": {
                       "type": "integer",
@@ -19406,8 +19439,7 @@
         "parameters": [
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "from",
@@ -19415,8 +19447,7 @@
           },
           {
             "schema": {
-              "type": "string",
-              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              "type": "string"
             },
             "required": false,
             "name": "to",
@@ -19449,12 +19480,10 @@
                       ]
                     },
                     "from": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "to": {
-                      "type": "string",
-                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                      "type": "string"
                     },
                     "points": {
                       "type": "array",
@@ -19462,8 +19491,7 @@
                         "type": "object",
                         "properties": {
                           "day": {
-                            "type": "string",
-                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                            "type": "string"
                           },
                           "total": {
                             "type": "integer",
@@ -19512,6 +19540,342 @@
                     "from",
                     "to",
                     "points"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad day, reversed or over-long range (max 366 days), unknown parameter, or department_id missing for a System Admin on the department dashboard.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Bad day, reversed or over-long range (max 366 days), unknown parameter, or department_id missing for a System Admin on the department dashboard.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The role of the caller may not use this endpoint (capability matrix).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "The role of the caller may not use this endpoint (capability matrix).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Unknown department.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "DEPARTMENT_NOT_FOUND",
+                  "message": "Unknown department.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dashboard/department/top-users": {
+      "get": {
+        "summary": "Top risky users of a department by HIGH-risk events (Department Admin: own department; System Admin: ?department_id=). Live rows, last 90 days at most.",
+        "tags": [
+          "dashboard"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": false,
+            "name": "department_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Up to 5 users, metadata only.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "scope": {
+                      "type": "string",
+                      "enum": [
+                        "DEPARTMENT"
+                      ]
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "users": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "user_id": {
+                            "type": "string",
+                            "format": "uuid"
+                          },
+                          "user_name": {
+                            "type": "string"
+                          },
+                          "total": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "high": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "blocked": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "warned": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "user_id",
+                          "user_name",
+                          "total",
+                          "high",
+                          "blocked",
+                          "warned"
+                        ]
+                      },
+                      "maxItems": 5
+                    }
+                  },
+                  "required": [
+                    "scope",
+                    "from",
+                    "to",
+                    "users"
                   ]
                 }
               }

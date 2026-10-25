@@ -205,7 +205,13 @@ export class PolicyService {
     // A Department Admin sees only their own department among a rule's departments.
     const items = rows.map((r) => {
       const res = toRuleResponse(r);
-      return isDeptAdmin ? { ...res, department_ids: res.department_ids.filter((d) => d === actor.departmentId) } : res;
+      if (!isDeptAdmin) return res;
+      // Read-only view: only their own department, and a TOPIC description (decision 30) is not sent at all.
+      return {
+        ...res,
+        definition: res.kind === 'TOPIC' ? '' : res.definition,
+        department_ids: res.department_ids.filter((d) => d === actor.departmentId),
+      };
     });
     return { version, items };
   }

@@ -240,6 +240,24 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     expect(missing.body.code).toBe('RULE_NOT_FOUND');
   });
 
+  it('a Department Admin never receives the text of a TOPIC rule (confidential description), a System Admin does', async () => {
+    const topic = await t.call('POST', '/api/admin/rules', {
+      bearer: saToken,
+      body: rule({ name: `Topic ${fx.salt}`, kind: 'TOPIC', definition: 'confidential acquisition plans', scope: 'DEPARTMENTS', department_ids: [deptA] }),
+    });
+    const pattern = await t.call('POST', '/api/admin/rules', {
+      bearer: saToken,
+      body: rule({ name: `Pat ${fx.salt}`, kind: 'PATTERN', definition: 'EMP-[0-9]{6}', scope: 'DEPARTMENTS', department_ids: [deptA] }),
+    });
+    const asDa = (await t.call('GET', '/api/admin/rules', { bearer: daToken })).body.items;
+    expect(asDa.find((r: { id: string }) => r.id === topic.body.id).definition).toBe('');
+    expect(asDa.find((r: { id: string }) => r.id === pattern.body.id).definition).toBe('EMP-[0-9]{6}');
+    const asSa = (await t.call('GET', '/api/admin/rules', { bearer: saToken })).body.items;
+    expect(asSa.find((r: { id: string }) => r.id === topic.body.id).definition).toBe('confidential acquisition plans');
+    // and nowhere else in the answer
+    expect(JSON.stringify(asDa)).not.toContain('confidential acquisition plans');
+  });
+
   it('Department Admin lists only the rules that apply to their department and cannot write', async () => {
     const mine = await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `Mine ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptA] }) });
     const theirs = await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `Theirs ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptB] }) });
