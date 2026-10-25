@@ -280,7 +280,10 @@ describe.skipIf(!dbEnabled)('users lifecycle (B5b)', () => {
     const b = await fx.user('u-race-b', { role: 'SYSTEM_ADMIN' });
     const [ta, tb] = [await sign(a.id), await sign(b.id)];
     const results = await Promise.all([post(`${b.id}/deactivate`, ta), post(`${a.id}/deactivate`, tb)]);
-    expect(results.map((r) => r.status).sort()).toEqual([200, 403]);
+    // The loser is refused either by the guard (401: already deactivated) or inside the lock (403), depending on timing.
+    const statuses = results.map((r) => r.status).sort();
+    expect(statuses[0]).toBe(200);
+    expect([401, 403]).toContain(statuses[1]);
     const active = (
       await fx.owner.query(`SELECT count(*)::int AS n FROM "User" WHERE id = ANY($1::uuid[]) AND status = 'ACTIVE'`, [[a.id, b.id]])
     ).rows[0].n;

@@ -18,7 +18,7 @@ One unchecked line per batch. Tick a line when the `verify` command passes.
 - [x] **B8** — Analytics endpoints + reconcile + retention purge + audit query — `pnpm --filter api test && pnpm --filter api e2e`
 - [x] **B9** — Spike: ECharts RTL/Arabic + component-library decision — manual: render Arabic/RTL charts and record the decision in `docs/SPIKE.md`
 - [x] **B10** — Web shell + auth flows — `pnpm --filter web dev` (manual) + `pnpm --filter web test`
-- [ ] **B11** — Dev synthetic data seed — `pnpm --filter api seed:dev`
+- [x] **B11** — Dev synthetic data seed — `pnpm --filter api seed:dev`
 - [ ] **B12** — USER screens (`/dashboard`, `/activity`, `/blocked`) — `pnpm --filter web dev` (manual) + `pnpm --filter web test`
 - [ ] **B13** — Department Admin screens — `pnpm --filter web dev` (manual dept-admin check)
 - [ ] **B14** — System Admin screens + audit page — `pnpm --filter web e2e`

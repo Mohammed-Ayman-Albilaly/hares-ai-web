@@ -6,6 +6,7 @@
   "scripts": {
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
+    "seed:dev": "tsx prisma/seed-dev.ts",
     "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
