@@ -102,8 +102,7 @@ export function Avatar({ name, size = 28 }: { name: string; size?: number }) {
     .slice(0, 2)
     .join('');
   return (
-    <div className="avatar" aria-hidden="true" style={{ width: size, height: size, fontSize: size * 0.4 }}>
-      {initials}
-    </div>
+    // The initials are drawn by CSS from data-initials: decoration, not page text.
+    <div className="avatar" aria-hidden="true" data-initials={initials} style={{ width: size, height: size, fontSize: size * 0.4 }} />
   );
 }

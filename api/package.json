@@ -9,7 +9,7 @@
     "seed:dev": "tsx prisma/seed-dev.ts",
     "start": "tsx src/main.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc",
+    "build": "node scripts/bundle.mjs",
     "test": "vitest run",
     "e2e": "vitest run --config vitest.e2e.config.ts"
   },
@@ -40,6 +40,7 @@
     "@types/node": "^22.10.0",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.11.0",
+    "esbuild": "^0.28.2",
     "prisma": "^7.10.1",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",

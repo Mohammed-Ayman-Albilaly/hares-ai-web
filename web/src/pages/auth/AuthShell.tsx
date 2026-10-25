@@ -19,7 +19,7 @@ export function AuthShell({ title, children, width = 420, icon }: { title: strin
         {t('app.skipToContent')}
       </a>
       <header className="flex items-center justify-between gap-3 px-4 py-5 sm:px-8">
-        <Link to="/" className="no-underline" aria-label={t('app.name')}>
+        <Link to="/" className="no-underline">
           <Wordmark />
         </Link>
         <div className="flex items-center gap-2">
@@ -38,7 +38,7 @@ export function AuthShell({ title, children, width = 420, icon }: { title: strin
           {children}
         </div>
       </main>
-      <footer className="pb-7 text-center text-xs text-ink-4">© 2026 {t('app.name')} AI</footer>
+      <footer className="pb-7 text-center text-xs text-ink-4">© {new Date().getFullYear()} {t('app.name')}. {t('landing.footer')}</footer>
     </div>
   );
 }

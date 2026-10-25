@@ -1,5 +1,6 @@
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useDir } from '@/i18n/useLang';
 import { I } from './icons';
 
 interface Props extends InputHTMLAttributes<HTMLInputElement> {
@@ -24,6 +25,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
   const inputId = id ?? auto;
   const describedBy = [error ? `${inputId}-err` : null, hint ? `${inputId}-hint` : null].filter(Boolean).join(' ') || undefined;
   const { t } = useTranslation();
+  const rtl = useDir() === 'rtl';
   const [shown, setShown] = useState(false);
   const isPassword = type === 'password';
 
@@ -42,8 +44,12 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
           aria-describedby={describedBy}
           // Email and similar values are always typed left to right, even in Arabic pages.
           dir={type === 'email' || type === 'password' ? 'ltr' : undefined}
-          // The input is forced left to right, so the reveal button sits on its PHYSICAL right.
-          style={isPassword ? { paddingRight: 42 } : undefined}
+          // The value is left to right but lines up with its (right-aligned, in Arabic) label; the reveal button
+          // sits at the end of the line of the page's direction.
+          style={{
+            ...(type === 'email' || type === 'password' ? { textAlign: rtl ? 'right' : 'left' } : {}),
+            ...(isPassword ? (rtl ? { paddingLeft: 42 } : { paddingRight: 42 }) : {}),
+          }}
           {...rest}
         />
         {isPassword && (
@@ -52,7 +58,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
             onClick={() => setShown((s) => !s)}
             aria-label={shown ? t('auth.hidePassword') : t('auth.showPassword')}
             aria-pressed={shown}
-            className="absolute right-1.5 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md border-0 bg-transparent text-ink-4 hover:text-ink"
+            className={`absolute ${rtl ? 'left-1.5' : 'right-1.5'} top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md border-0 bg-transparent text-ink-4 hover:text-ink`}
           >
             {shown ? <I.EyeOff size={16} /> : <I.Eye size={16} />}
           </button>

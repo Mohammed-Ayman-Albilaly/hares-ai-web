@@ -22,4 +22,4 @@ One unchecked line per batch. Tick a line when the `verify` command passes.
 - [x] **B12** — USER screens (`/dashboard`, `/activity`, `/blocked`) — `pnpm --filter web dev` (manual) + `pnpm --filter web test`
 - [x] **B13** — Department Admin screens — `pnpm --filter web dev` (manual dept-admin check)
 - [x] **B14** — System Admin screens + audit page — `pnpm --filter web e2e`
-- [ ] **B15** — E2E + hardening + production containerization — `pnpm -w e2e && docker compose -f docker-compose.prod.yml build && up`
+- [x] **B15** — E2E + hardening + production containerization — `pnpm -w e2e && docker compose -f docker-compose.prod.yml build && up`

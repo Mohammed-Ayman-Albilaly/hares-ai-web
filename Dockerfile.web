@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+#
+# Hares AI web app: the built SPA behind nginx, which also proxies /api to the
+# API container so the browser sees ONE origin (the refresh cookie is SameSite
+# and the Origin check relies on it, decision 27). Build context: repository root.
+#
+# TLS is terminated in front of this container (load balancer or ingress): the
+# refresh cookie is Secure in production and the API refuses a non-https WEB_BASE_URL.
+
+ARG NODE_VERSION=22
+
+FROM node:${NODE_VERSION}-alpine AS build
+RUN corepack enable
+WORKDIR /repo
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY api/package.json api/
+COPY contract/package.json contract/
+COPY web/package.json web/
+# Same install step as Dockerfile.api, so a build of both reuses it from the cache.
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+COPY contract contract
+COPY api api
+COPY web web
+RUN pnpm --filter web build
+
+FROM nginxinc/nginx-unprivileged:1.27-alpine AS web
+COPY ops/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /repo/web/dist /usr/share/nginx/html
+EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=5s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:8080/healthz >/dev/null || exit 1

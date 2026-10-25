@@ -85,7 +85,39 @@ jobs:
       - name: End-to-end (real server process)
         run: pnpm --filter api e2e
 
+      # Real browser against the real API and the built web app, on a throwaway database:
+      # sign-in, role matrix, ingestion, CSV, Arabic/RTL and the axe accessibility audit.
+      - name: Install the test browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Browser end-to-end and accessibility audit
+        timeout-minutes: 20
+        run: pnpm e2e
+
+      - name: Keep the browser test report when it fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
       - name: Verify generated OpenAPI contract is committed
         run: |
           pnpm --filter contract generate:openapi
           git diff --exit-code -- contract/openapi.json
+
+  # The production images build and the compose file is valid (nothing else in CI looks at them).
+  containers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose file is valid
+        run: |
+          cp .env.prod.example .env.prod
+          docker compose -f docker-compose.prod.yml --env-file .env.prod config --quiet
+      - name: Build the images
+        run: docker compose -f docker-compose.prod.yml --env-file .env.prod build

@@ -17,11 +17,12 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
       type="button"
       className={`btn btn-ghost btn-sm ${className}`}
       onClick={() => setLang(next)}
-      aria-label={t('app.language')}
       title={t('app.language')}
     >
       <I.Globe size={14} />
       <span lang={next}>{t('app.switchTo')}</span>
+      {/* The name starts with the visible text (WCAG 2.5.3) and adds what the button is for. */}
+      <span className="sr-only">: {t('app.language')}</span>
     </button>
   );
 }

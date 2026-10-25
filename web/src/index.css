@@ -32,24 +32,27 @@
   --surface-2: #fbfbfc;
   --surface-3: #f2f3f6;
   --line: #e6e8ec;
-  --line-strong: #d5d9e0;
+  --line-strong: #d5d9e0; /* dividers only */
+  --control-line: #7d879b; /* borders of inputs, selects, secondary buttons: 3.3:1 or more on every surface */
+  --danger-ink: #ffffff;
+  --danger-hover: #991b1b;
   --ink: #0e1320;
   --ink-2: #2a3242;
   --ink-3: #5b6478;
-  --ink-4: #7b8498; /* darkened from the prototype (#8a93a6) for 4.5:1 text contrast */
+  --ink-4: #5f6b7e; /* 4.8:1 or more on every light surface (prototype had #8a93a6) */
 
-  --accent: #0891b2;
-  --accent-2: #0e7490;
+  --accent: #0e7490; /* white text on it is 5.4:1 (the prototype's #0891b2 was 3.7:1) */
+  --accent-2: #155e75;
   --accent-soft: #e2f4f8;
   --accent-ink: #ffffff;
 
-  --risk-high: #dc2626;
+  --risk-high: #b91c1c;
   --risk-high-soft: #fee9e9;
   --risk-med: #b45309; /* darkened from #d97706 for text contrast on the soft fill */
   --risk-med-soft: #fef2dc;
   --risk-low: #2563eb;
   --risk-low-soft: #eff4ff;
-  --risk-none: #15803d;
+  --risk-none: #166534;
   --risk-none-soft: #e6f5eb;
 
   --row-py: 14px;
@@ -86,11 +89,15 @@
   --surface-3: #1a2440;
   --line: #21304f;
   --line-strong: #2e3f65;
+  --control-line: #7183ab;
+  --danger-ink: #2a0a0a;
+  --danger-hover: #fca5a5;
   --ink: #f2f4f8;
   --ink-2: #d6dbe5;
   --ink-3: #95a0b6;
   --ink-4: #8591a9;
   --accent: #22b3d1;
+  --accent-ink: #06222b;
   --accent-2: #5cc8de;
   --accent-soft: rgb(8 145 178 / 0.18);
   --risk-high: #f87171;
@@ -304,7 +311,7 @@
   .control {
     width: 100%;
     background: var(--surface);
-    border: 1px solid var(--line-strong);
+    border: 1px solid var(--control-line);
     border-radius: var(--radius-sm);
     padding: 11px 13px;
     font-size: 14px;
@@ -317,7 +324,9 @@
   .field select:focus,
   .field textarea:focus,
   .control:focus {
-    outline: none;
+    /* A real focus ring (3 px), not just a colour change of the border (WCAG 2.4.7, 2.4.13). */
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px var(--accent-soft);
   }
@@ -376,7 +385,7 @@
   .btn-secondary {
     background: var(--surface);
     color: var(--ink);
-    border-color: var(--line-strong);
+    border-color: var(--control-line);
   }
   .btn-secondary:hover:not(:disabled) {
     background: var(--surface-2);
@@ -392,10 +401,10 @@
   }
   .btn-danger {
     background: var(--risk-high);
-    color: #fff;
+    color: var(--danger-ink);
   }
   .btn-danger:hover:not(:disabled) {
-    background: #b91c1c;
+    background: var(--danger-hover);
   }
   .btn-sm {
     padding: 6px 12px;
@@ -408,6 +417,10 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
+  }
+  .overflow-x-auto,
+  .overflow-auto {
+    position: relative; /* clips absolutely positioned descendants (sr-only) that would widen the page */
   }
   table.h-table {
     width: 100%;
@@ -539,6 +552,9 @@
     font-size: 12px;
     flex: 0 0 auto;
   }
+  .avatar::before {
+    content: attr(data-initials);
+  }
   .legend-row {
     display: flex;
     align-items: center;
@@ -615,4 +631,11 @@
       padding: 20px 16px 56px;
     }
   }
+}
+
+/* Arabic letters join: no tracking, whatever the component asks for. */
+html:lang(ar),
+html:lang(ar) .topbar .title,
+html:lang(ar) .num-display {
+  letter-spacing: 0;
 }

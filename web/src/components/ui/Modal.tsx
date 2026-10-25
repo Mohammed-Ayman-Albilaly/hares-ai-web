@@ -26,12 +26,13 @@ export function Modal({ open, onClose, title, description, children, width = 460
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-[60]" style={{ background: 'rgb(8 14 28 / 0.55)', animation: 'fadeIn .14s ease' }} />
         <Dialog.Content
-          className="card fixed start-1/2 top-1/2 z-[61] max-h-[calc(100dvh-64px)] overflow-auto"
+          // Centred with inset-0 + auto margins, not a translate: a translate(-50%) goes the wrong way in
+          // right-to-left, and it would clash with the pop-in animation (which also sets transform).
+          className="card fixed inset-0 z-[61] m-auto max-h-[calc(100dvh-64px)] overflow-auto"
           style={{
             width,
             maxWidth: 'calc(100vw - 32px)',
-            transform: 'translate(-50%, -50%)',
-            insetInlineStart: '50%',
+            height: 'fit-content',
             boxShadow: 'var(--shadow-lg)',
             animation: 'popIn .14s ease',
           }}

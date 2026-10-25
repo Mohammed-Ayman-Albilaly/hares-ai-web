@@ -1,42 +1,29 @@
 import { createBrowserRouter, createMemoryRouter, type RouteObject } from 'react-router';
+import { FullPageLoading } from '@/components/FullPageLoading';
 import { AppLayout } from '@/layouts/AppLayout';
 import { LandingPage } from '@/pages/LandingPage';
-import { ProfilePage } from '@/pages/ProfilePage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
-import { AdminAuditPage } from '@/pages/admin/AdminAuditPage';
-import { AdminDepartmentsPage } from '@/pages/admin/AdminDepartmentsPage';
-import { AdminDashboardPage, AdminLogsPage } from '@/pages/admin/AdminOverviewPages';
-import { AdminPolicyPage } from '@/pages/admin/AdminPolicyPage';
-import { AdminRulesPage } from '@/pages/admin/AdminRulesPage';
-import { AdminPendingPage, AdminUsersPage } from '@/pages/admin/AdminUsersPages';
-import { ActivityPage } from '@/pages/activity/ActivityPage';
-import { BlockedPage } from '@/pages/blocked/BlockedPage';
-import { UserDashboardPage } from '@/pages/dashboard/UserDashboardPage';
-import {
-  DepartmentDashboardPage,
-  DepartmentLogsPage,
-  DepartmentPolicyPage,
-  DepartmentRulesPage,
-  DepartmentUsersPage,
-} from '@/pages/department/DepartmentPages';
-import { useAuth } from '@/auth/AuthProvider';
 import { NotFoundPage } from '@/pages/errors/NotFoundPage';
+import { RouteError } from '@/pages/errors/RouteError';
 import { GuestOnly, RequireAuth, RequireRole } from './guards';
 
 /**
- * Route map (ARCHITECTURE "Route map (per role)"). Public pages first, then the
- * authenticated shell. Role screens are added by batches B12 to B14 under the
- * guards below; the API enforces the same rules independently.
+ * A screen loaded on first visit. The public pages and the shell load with the
+ * app; role screens (and with them the chart library) are separate files, so a
+ * visitor only downloads the screens their role can open.
  */
-/** `/dashboard` is the personal dashboard for a user and the department dashboard for a Department Admin. */
-function DashboardRoute() {
-  const auth = useAuth();
-  return auth.user?.role === 'DEPARTMENT_ADMIN' ? <DepartmentDashboardPage /> : <UserDashboardPage />;
-}
+const screen = <M extends Record<string, unknown>>(load: () => Promise<M>, name: keyof M): Pick<RouteObject, 'lazy'> => ({
+  lazy: async () => ({ Component: (await load())[name] as React.ComponentType }),
+});
 
+/**
+ * Route map (ARCHITECTURE "Route map (per role)"). Public pages first, then the
+ * authenticated shell; the guards decide what each role may open and the API
+ * enforces the same rules independently.
+ */
 export const routes: RouteObject[] = [
   { path: '/', element: <LandingPage /> },
   {
@@ -50,42 +37,44 @@ export const routes: RouteObject[] = [
   { path: '/reset-password', element: <ResetPasswordPage /> },
   {
     element: <RequireAuth />,
+    HydrateFallback: FullPageLoading,
+    ErrorBoundary: RouteError,
     children: [
       {
         element: <AppLayout />,
         children: [
-          { path: '/profile', element: <ProfilePage /> },
+          { path: '/profile', ...screen(() => import('@/pages/ProfilePage'), 'ProfilePage') },
           {
             element: <RequireRole roles={['USER', 'DEPARTMENT_ADMIN']} />,
-            children: [{ path: '/dashboard', element: <DashboardRoute /> }],
+            children: [{ path: '/dashboard', ...screen(() => import('@/pages/dashboard/DashboardRoute'), 'DashboardRoute') }],
           },
           {
             element: <RequireRole roles={['DEPARTMENT_ADMIN']} />,
             children: [
-              { path: '/department/logs', element: <DepartmentLogsPage /> },
-              { path: '/department/users', element: <DepartmentUsersPage /> },
-              { path: '/department/policy', element: <DepartmentPolicyPage /> },
-              { path: '/department/rules', element: <DepartmentRulesPage /> },
+              { path: '/department/logs', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentLogsPage') },
+              { path: '/department/users', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentUsersPage') },
+              { path: '/department/policy', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentPolicyPage') },
+              { path: '/department/rules', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentRulesPage') },
             ],
           },
           {
             element: <RequireRole roles={['USER']} />,
             children: [
-              { path: '/activity', element: <ActivityPage /> },
-              { path: '/blocked', element: <BlockedPage /> },
+              { path: '/activity', ...screen(() => import('@/pages/activity/ActivityPage'), 'ActivityPage') },
+              { path: '/blocked', ...screen(() => import('@/pages/blocked/BlockedPage'), 'BlockedPage') },
             ],
           },
           {
             element: <RequireRole roles={['SYSTEM_ADMIN']} />,
             children: [
-              { path: '/admin/dashboard', element: <AdminDashboardPage /> },
-              { path: '/admin/logs', element: <AdminLogsPage /> },
-              { path: '/admin/pending', element: <AdminPendingPage /> },
-              { path: '/admin/users', element: <AdminUsersPage /> },
-              { path: '/admin/departments', element: <AdminDepartmentsPage /> },
-              { path: '/admin/policy', element: <AdminPolicyPage /> },
-              { path: '/admin/rules', element: <AdminRulesPage /> },
-              { path: '/admin/audit', element: <AdminAuditPage /> },
+              { path: '/admin/dashboard', ...screen(() => import('@/pages/admin/AdminOverviewPages'), 'AdminDashboardPage') },
+              { path: '/admin/logs', ...screen(() => import('@/pages/admin/AdminOverviewPages'), 'AdminLogsPage') },
+              { path: '/admin/pending', ...screen(() => import('@/pages/admin/AdminUsersPages'), 'AdminPendingPage') },
+              { path: '/admin/users', ...screen(() => import('@/pages/admin/AdminUsersPages'), 'AdminUsersPage') },
+              { path: '/admin/departments', ...screen(() => import('@/pages/admin/AdminDepartmentsPage'), 'AdminDepartmentsPage') },
+              { path: '/admin/policy', ...screen(() => import('@/pages/admin/AdminPolicyPage'), 'AdminPolicyPage') },
+              { path: '/admin/rules', ...screen(() => import('@/pages/admin/AdminRulesPage'), 'AdminRulesPage') },
+              { path: '/admin/audit', ...screen(() => import('@/pages/admin/AdminAuditPage'), 'AdminAuditPage') },
             ],
           },
         ],

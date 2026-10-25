@@ -1,0 +1,78 @@
+# Production-style stack: API + web. There is NO database container: PostgreSQL
+# is a managed service (DATABASE_URL / APP_DATABASE_URL in .env.prod). No dev
+# tools (Mailpit) either: SMTP_HOST must point at a real mail server.
+#
+#   cp .env.prod.example .env.prod      # fill every value, never commit it
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod build
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+#
+# Put a TLS terminator (load balancer / ingress) in front of the `web` port.
+#
+# Least privilege: only `migrate` receives the owner database URL and the first-admin
+# values. The API gets just what it needs at run time (listed below), through the
+# --env-file interpolation, not the whole file.
+name: hares-ai
+
+x-hardening: &hardening
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped
+
+services:
+  # One-shot: migrations, application role, audit-trail lock, seed. Runs before
+  # the API starts and on every deploy (each step is idempotent).
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      target: tools
+    # Not required at build time (a build needs no secrets); `up` without the file fails in the job itself.
+    env_file:
+      - path: .env.prod
+        required: false
+    <<: *hardening
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      target: api
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      APP_DATABASE_URL: ${APP_DATABASE_URL:-}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-}
+      WEB_BASE_URL: ${WEB_BASE_URL:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      TRUST_PROXY: ${TRUST_PROXY:-1}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-Hares AI <no-reply@hares.local>}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    <<: *hardening
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      # Loopback by default: a reverse proxy / load balancer on the host (or WEB_BIND=0.0.0.0 on purpose).
+      - "${WEB_BIND:-127.0.0.1}:${WEB_PORT:-8080}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+    <<: *hardening

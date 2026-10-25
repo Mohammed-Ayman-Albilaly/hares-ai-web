@@ -40,7 +40,7 @@ export function LandingPage() {
         {t('app.skipToContent')}
       </a>
       <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-4 sm:px-8 lg:px-12">
-        <Link to="/" className="no-underline" aria-label={t('app.name')}>
+        <Link to="/" className="no-underline">
           <Wordmark />
         </Link>
         <nav className="hidden items-center gap-7 text-[13.5px] font-medium text-ink-2 md:flex" aria-label={t('app.mainNavigation')}>

@@ -9,8 +9,9 @@ import { z } from 'zod';
  * confusing runtime error.
  *
  * Validation rules (DECISIONS / ARCHITECTURE):
- *  - `DATABASE_URL` is mandatory and must be a PostgreSQL connection string.
- *    It is used by the Prisma CLI and the seed script.
+ *  - `DATABASE_URL` must be a PostgreSQL connection string. It is used by the
+ *    Prisma CLI and the seed script, so it is required except in production,
+ *    where the API container runs with the least-privilege `APP_DATABASE_URL` only.
  *  - `APP_DATABASE_URL` is mandatory (except under `test`) and must be a
  *    PostgreSQL connection string for the `hares_app` application role. The
  *    runtime Prisma client connects with it.
@@ -43,13 +44,14 @@ export const envSchema = z
       .enum(['development', 'test', 'production'])
       .default('development'),
     PORT: z.coerce.number().int().positive().default(3000),
+    // The owner connection: migrations, grants and seed only. The production API container does not get it.
     DATABASE_URL: z
       .string()
-      .min(1, 'DATABASE_URL is required')
       .refine(
         (v) => /^postgres(ql)?:\/\//.test(v),
         'DATABASE_URL must be a postgres:// (or postgresql://) connection string',
-      ),
+      )
+      .optional(),
     APP_DATABASE_URL: z
       .string()
       .min(1)
@@ -90,6 +92,19 @@ export const envSchema = z
       .optional(),
   })
   .superRefine((val, ctx) => {
+    if (val.NODE_ENV !== 'production' && !val.DATABASE_URL) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['DATABASE_URL'], message: 'DATABASE_URL is required outside production' });
+    }
+    // The example file ships obvious placeholders: running with one would mean a publicly known secret.
+    const placeholder = /CHANGE_?ME|A_LONG_RANDOM|PLACEHOLDER/i;
+    if (val.NODE_ENV === 'production') {
+      if (val.JWT_ACCESS_SECRET && placeholder.test(val.JWT_ACCESS_SECRET)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['JWT_ACCESS_SECRET'], message: 'JWT_ACCESS_SECRET still has the example placeholder: generate a random secret' });
+      }
+      if (val.APP_DATABASE_URL && placeholder.test(val.APP_DATABASE_URL)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['APP_DATABASE_URL'], message: 'APP_DATABASE_URL still has the example placeholder password' });
+      }
+    }
     if (val.NODE_ENV !== 'test' && !val.APP_DATABASE_URL) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -139,7 +154,9 @@ export type Env = z.infer<typeof envSchema>;
 export function validateEnv(
   config: Record<string, unknown>,
 ): Record<string, unknown> {
-  const result = envSchema.safeParse(config);
+  // An empty value means "not set" (a compose file or a .env line with nothing after the =).
+  const present = Object.fromEntries(Object.entries(config).filter(([, v]) => v !== ''));
+  const result = envSchema.safeParse(present);
   if (!result.success) {
     const issues = result.error.issues
       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)

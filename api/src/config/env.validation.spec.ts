@@ -66,3 +66,32 @@ describe('env.validation → JWT_ACCESS_SECRET', () => {
     expect(config.JWT_ACCESS_SECRET).toBeUndefined();
   });
 });
+
+describe('env.validation → production hardening', () => {
+  const production = {
+    NODE_ENV: 'production',
+    APP_DATABASE_URL,
+    JWT_ACCESS_SECRET,
+    TRUST_PROXY: '1',
+    WEB_BASE_URL: 'https://hares.example.org',
+    SMTP_HOST: 'smtp.example.org',
+  };
+
+  it('does not need the owner DATABASE_URL: the API container runs with the application role only', () => {
+    expect(() => validateEnv({ ...production })).not.toThrow();
+  });
+
+  it('still needs DATABASE_URL outside production (Prisma CLI, seed)', () => {
+    expect(() => validateEnv({ NODE_ENV: 'development', APP_DATABASE_URL, JWT_ACCESS_SECRET })).toThrow(/DATABASE_URL/);
+  });
+
+  it('refuses the placeholder secrets of the example file in production', () => {
+    expect(() => validateEnv({ ...production, JWT_ACCESS_SECRET: 'CHANGE_ME_TO_A_LONG_RANDOM_SECRET_OF_AT_LEAST_32_CHARS' })).toThrow(/placeholder/);
+    expect(() => validateEnv({ ...production, APP_DATABASE_URL: 'postgresql://hares_app:A_LONG_RANDOM_PASSWORD@db:5432/hares' })).toThrow(/placeholder/);
+  });
+
+  it('treats an empty value as not set: a blank secret is "missing", a blank optional setting is ignored', () => {
+    expect(() => validateEnv({ ...production, JWT_ACCESS_SECRET: '' })).toThrow(/JWT_ACCESS_SECRET/);
+    expect(() => validateEnv({ ...production, SMTP_USER: '', SMTP_PASS: '' })).not.toThrow();
+  });
+});

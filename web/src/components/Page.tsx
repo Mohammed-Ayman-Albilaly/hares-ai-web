@@ -32,7 +32,7 @@ export function Page({ title, crumb, actions, children, narrow }: Props) {
     <>
       <header className="topbar">
         <div className="flex min-w-0 items-center gap-3">
-          <button type="button" className="btn btn-ghost !p-2 min-[900px]:hidden" onClick={openMenu} aria-label={t('app.menu')}>
+          <button type="button" className="btn btn-ghost !p-2 min-[900px]:hidden" onClick={(e) => openMenu(e.currentTarget)} aria-label={t('app.menu')}>
             <I.Menu size={18} />
           </button>
           <div className="min-w-0">

@@ -1,0 +1,5 @@
+{
+  "name": "@hares/e2e",
+  "private": true,
+  "type": "module"
+}

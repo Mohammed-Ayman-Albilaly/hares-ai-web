@@ -17,10 +17,13 @@ export function UserMenu({ user }: { user: UserPublic }) {
     <Menu.Root>
       <Menu.Trigger
         className="flex items-center gap-2 rounded-full border border-line bg-transparent py-1 pe-2.5 ps-1 hover:bg-surface-2"
-        aria-label={user.full_name}
       >
         <Avatar name={user.full_name} size={26} />
-        <span className="hidden text-[12.5px] font-medium text-ink-2 sm:inline">{first}</span>
+        {/* The accessible name is the full name; the first name shown on wide screens is part of it. */}
+        <span className="hidden text-[12.5px] font-medium text-ink-2 sm:inline" aria-hidden="true">
+          {first}
+        </span>
+        <span className="sr-only">{user.full_name}</span>
         <I.Chevron size={14} className="text-ink-4" />
       </Menu.Trigger>
       <Menu.Portal>

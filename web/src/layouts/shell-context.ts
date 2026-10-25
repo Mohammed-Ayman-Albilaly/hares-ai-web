@@ -2,7 +2,7 @@ import { createContext, useContext } from 'react';
 
 interface Shell {
   /** Open the navigation drawer (phones). */
-  openMenu: () => void;
+  openMenu: (opener?: HTMLElement | null) => void;
 }
 
 export const ShellContext = createContext<Shell>({ openMenu: () => undefined });

@@ -1,0 +1,58 @@
+# syntax=docker/dockerfile:1
+#
+# Hares AI API. Build context: the repository root.
+#
+#   docker build -f Dockerfile.api --target api   -t hares-api .     # the server
+#   docker build -f Dockerfile.api --target tools -t hares-tools .   # one-shot database setup
+#
+# The server image holds ONE bundled file (the API compiled together with the
+# @hares/contract workspace package, see api/scripts/bundle.mjs) plus the
+# production dependencies. No compiler, no dev dependencies, no source.
+
+ARG NODE_VERSION=22
+
+# ---- workspace with every dependency (build and tools) ---------------------
+FROM node:${NODE_VERSION}-alpine AS workspace
+RUN corepack enable
+WORKDIR /repo
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
+COPY api/package.json api/
+COPY contract/package.json contract/
+COPY web/package.json web/
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm install --frozen-lockfile
+COPY contract contract
+COPY api api
+# The Prisma client is generated code (git-ignored): it is needed to bundle the API and to run the seed.
+# Generating never connects to a database; the config only insists that the variable exists, so give it a dummy
+# (the image must not depend on, or contain, anyone's real .env).
+RUN DATABASE_URL=postgresql://build:build@localhost:5432/build pnpm --filter api exec prisma generate
+
+# ---- bundle ----------------------------------------------------------------
+FROM workspace AS build
+RUN pnpm --filter api build
+
+# ---- production dependencies only (pnpm deploy copies just what the API needs at run time).
+FROM workspace AS prod-deps
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm --filter @hares/api deploy --legacy --prod /out
+
+# ---- one-shot database setup: migrate, app role, audit lock, seed ----------
+FROM workspace AS tools
+RUN apk add --no-cache postgresql16-client
+COPY ops ops
+WORKDIR /repo/api
+USER node
+CMD ["sh", "scripts/prod-init.sh"]
+
+# ---- the server ------------------------------------------------------------
+FROM node:${NODE_VERSION}-alpine AS api
+ENV NODE_ENV=production
+WORKDIR /app
+COPY --from=prod-deps --chown=node:node /out/node_modules ./api/node_modules
+COPY --from=build --chown=node:node /repo/api/dist ./api/dist
+COPY --chown=node:node api/package.json ./api/package.json
+WORKDIR /app/api
+USER node
+EXPOSE 3000
+HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1
+CMD ["node", "dist/main.mjs"]

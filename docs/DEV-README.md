@@ -39,3 +39,16 @@ Demo accounts (password `Demo#Pass123`, development only):
 pnpm -w typecheck && pnpm -w lint && pnpm -w test
 pnpm --filter api e2e
 ```
+
+## Browser tests and the production stack
+
+```bash
+pnpm e2e:browser-install   # once: downloads the Chromium used by the browser tests
+pnpm e2e                   # builds the web app, starts the API and web on spare ports, runs Playwright, cleans up
+```
+
+`pnpm e2e` uses a throwaway database (never the development one) and ports 3200 and 1520. Reports are in `playwright-report/`.
+
+Production images and the compose file are described in `docs/audit.md` (section 5): copy `.env.prod.example` to `.env.prod`, fill it,
+then `docker compose -f docker-compose.prod.yml --env-file .env.prod build` and `up -d`. Do not point it at the development database
+cluster with the same application role name: the init job resets that role's password.
