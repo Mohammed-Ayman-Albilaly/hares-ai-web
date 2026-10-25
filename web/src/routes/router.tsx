@@ -7,6 +7,9 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { ResetPasswordPage } from '@/pages/auth/ResetPasswordPage';
 import { HomePlaceholder } from '@/pages/HomePlaceholder';
+import { ActivityPage } from '@/pages/activity/ActivityPage';
+import { BlockedPage } from '@/pages/blocked/BlockedPage';
+import { UserDashboardPage } from '@/pages/dashboard/UserDashboardPage';
 import { NotFoundPage } from '@/pages/errors/NotFoundPage';
 import { GuestOnly, RequireAuth, RequireRole } from './guards';
 
@@ -35,7 +38,14 @@ export const routes: RouteObject[] = [
           { path: '/profile', element: <ProfilePage /> },
           {
             element: <RequireRole roles={['USER', 'DEPARTMENT_ADMIN']} />,
-            children: [{ path: '/dashboard', element: <HomePlaceholder titleKey="nav.dashboard" /> }],
+            children: [{ path: '/dashboard', element: <UserDashboardPage /> }],
+          },
+          {
+            element: <RequireRole roles={['USER']} />,
+            children: [
+              { path: '/activity', element: <ActivityPage /> },
+              { path: '/blocked', element: <BlockedPage /> },
+            ],
           },
           {
             element: <RequireRole roles={['SYSTEM_ADMIN']} />,
