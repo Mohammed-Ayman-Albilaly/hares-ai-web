@@ -12,6 +12,32 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+
+    # Same image as docker-compose.dev.yml, so the DB integration tests run in CI
+    # instead of being skipped. CI-only credentials; nothing here is a real secret.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: hares
+          POSTGRES_PASSWORD: hares
+          POSTGRES_DB: hares
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hares -d hares"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://hares:hares@localhost:5432/hares
+      APP_DATABASE_URL: postgresql://hares_app:hares_app_ci@localhost:5432/hares
+      JWT_ACCESS_SECRET: ci-only-jwt-secret-not-used-anywhere-else-0123456789
+      INITIAL_ADMIN_NAME: CI Administrator
+      INITIAL_ADMIN_EMAIL: ci-admin@example.com
+      INITIAL_ADMIN_PASSWORD: CiOnly#Pass1234
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,11 +53,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The Prisma client is generated into api/src/prisma/generated (git-ignored),
+      # so it must be generated before typecheck and tests.
+      - name: Generate Prisma client
+        run: pnpm --filter api exec prisma generate
+
       - name: Typecheck
         run: pnpm -w typecheck
 
       - name: Lint
         run: pnpm lint
+
+      - name: Prepare database (migrate, app role, audit revoke, seed)
+        run: |
+          pnpm --filter api exec prisma migrate deploy
+          psql "$DATABASE_URL" -v app_role=hares_app -v app_password=hares_app_ci -f api/db/roles.sql
+          psql "$DATABASE_URL" -v app_role=hares_app -f ops/revoke-audit-privileges.sql
+          pnpm --filter api exec prisma db seed
 
       - name: Test
         run: pnpm -r --if-present test
