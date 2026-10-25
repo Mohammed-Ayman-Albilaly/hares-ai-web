@@ -3,21 +3,22 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from './generated/client';
-
-/** Fallback dev connection so the app can boot before `.env` is loaded. */
-const DEFAULT_DATABASE_URL = 'postgresql://hares:hares@localhost:5432/hares';
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
-  constructor() {
+  constructor(config: ConfigService) {
     super({
       adapter: new PrismaPg({
-        connectionString: process.env.DATABASE_URL ?? DEFAULT_DATABASE_URL,
+        // The runtime client connects as the `hares_app` application role.
+        // The value is validated at boot (`APP_DATABASE_URL` is required outside
+        // `test`), so there is no hardcoded fallback URL or credential here.
+        connectionString: config.getOrThrow<string>('APP_DATABASE_URL'),
       }),
     });
   }

@@ -10,37 +10,49 @@ import { z } from 'zod';
  *
  * Validation rules (DECISIONS / ARCHITECTURE):
  *  - `DATABASE_URL` is mandatory and must be a PostgreSQL connection string.
+ *    It is used by the Prisma CLI and the seed script.
+ *  - `APP_DATABASE_URL` is mandatory (except under `test`) and must be a
+ *    PostgreSQL connection string for the `hares_app` application role. The
+ *    runtime Prisma client connects with it.
  *  - `PORT` defaults to 3000.
  *  - `CORS_ORIGIN` is a comma-separated allowlist of origins.
  *
- * The admin bootstrap values (`INITIAL_ADMIN_*`) are validated for shape when
- * present; the seed script enforces the password policy itself.
+ * The bootstrap admin values (`INITIAL_ADMIN_*`) are used only by the seed
+ * script, which reads them from `process.env` directly, so they are not part
+ * of this runtime schema.
  */
-export const envSchema = z.object({
-  NODE_ENV: z
-    .enum(['development', 'test', 'production'])
-    .default('development'),
-  PORT: z.coerce.number().int().positive().default(3000),
-  DATABASE_URL: z
-    .string()
-    .min(1, 'DATABASE_URL is required')
-    .refine(
-      (v) => /^postgres(ql)?:\/\//.test(v),
-      'DATABASE_URL must be a postgres:// (or postgresql://) connection string',
-    ),
-  APP_DATABASE_URL: z
-    .string()
-    .min(1)
-    .refine(
-      (v) => /^postgres(ql)?:\/\//.test(v),
-      'APP_DATABASE_URL must be a postgres:// connection string',
-    )
-    .optional(),
-  CORS_ORIGIN: z.string().min(1).default('http://localhost:1420'),
-  INITIAL_ADMIN_NAME: z.string().min(1).optional(),
-  INITIAL_ADMIN_EMAIL: z.string().email().optional(),
-  INITIAL_ADMIN_PASSWORD: z.string().min(1).optional(),
-});
+export const envSchema = z
+  .object({
+    NODE_ENV: z
+      .enum(['development', 'test', 'production'])
+      .default('development'),
+    PORT: z.coerce.number().int().positive().default(3000),
+    DATABASE_URL: z
+      .string()
+      .min(1, 'DATABASE_URL is required')
+      .refine(
+        (v) => /^postgres(ql)?:\/\//.test(v),
+        'DATABASE_URL must be a postgres:// (or postgresql://) connection string',
+      ),
+    APP_DATABASE_URL: z
+      .string()
+      .min(1)
+      .refine(
+        (v) => /^postgres(ql)?:\/\//.test(v),
+        'APP_DATABASE_URL must be a postgres:// connection string',
+      )
+      .optional(),
+    CORS_ORIGIN: z.string().min(1).default('http://localhost:1420'),
+  })
+  .superRefine((val, ctx) => {
+    if (val.NODE_ENV !== 'test' && !val.APP_DATABASE_URL) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['APP_DATABASE_URL'],
+        message: 'APP_DATABASE_URL is required when NODE_ENV is not test',
+      });
+    }
+  });
 
 export type Env = z.infer<typeof envSchema>;
 

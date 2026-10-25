@@ -1,29 +1,25 @@
 import 'reflect-metadata';
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
+import { configureApp } from './app.setup';
 
 /**
  * API entry point.
  *
- * - Global route prefix `api` (so the health probe lives at `/api/health`).
- * - CORS enabled against the allowlisted dev origin; `credentials` so the
- *   HTTP-only refresh cookie is accepted on the same origin.
+ * The default Nest body parsers are disabled so the correlation middleware can
+ * be registered before body parsing (see `configureApp`). That way a malformed
+ * JSON body still produces a `request_id` and the `x-request-id` response
+ * header.
  */
 async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create(AppModule);
-
-  app.setGlobalPrefix('api');
-
-  app.enableCors({
-    origin: (process.env.CORS_ORIGIN ?? 'http://localhost:1420')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean),
-    credentials: true,
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bodyParser: false,
   });
 
-  const port = Number(process.env.PORT ?? 3000);
+  const { port } = configureApp(app);
+
   await app.listen(port);
   // eslint-disable-next-line no-console
   console.log(`hares-api listening on http://localhost:${port}/api`);
