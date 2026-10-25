@@ -1,0 +1,104 @@
+@import 'tailwindcss';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
+@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-400.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-500.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-600.css';
+@import '@fontsource/ibm-plex-sans-arabic/latin-700.css';
+
+/*
+ * Design tokens (decision 9, B9). DGA-aligned, not an official DGA release:
+ * the official Platforms Code could not be verified from its published pages, so
+ * the token NAMES follow the usual government design-system layers
+ * (primitive -> semantic) and the values are chosen here and checked for
+ * WCAG 2.1 AA contrast. Never claim DGA certification (decision 9).
+ */
+@theme {
+  /* Primitive: Hares green (the guard), neutrals, status hues */
+  --color-green-50: #effaf4;
+  --color-green-100: #d6f1e2;
+  --color-green-200: #aee2c8;
+  --color-green-500: #1f9d63;
+  --color-green-600: #12804d;
+  --color-green-700: #0d6a40;
+  --color-green-800: #0b5535;
+  --color-green-900: #08402a;
+
+  --color-ink-50: #f5f7f6;
+  --color-ink-100: #eaefec;
+  --color-ink-200: #d7dfdb;
+  --color-ink-300: #bcc8c2;
+  --color-ink-500: #6b7c74;
+  --color-ink-600: #55645d;
+  --color-ink-700: #3d4a44;
+  --color-ink-900: #14201a;
+
+  --color-red-50: #fef3f2;
+  --color-red-600: #c0261b;
+  --color-red-700: #a01d14;
+  --color-amber-50: #fff8eb;
+  --color-amber-600: #b25e09;
+  --color-amber-700: #8f4a06;
+  --color-blue-50: #eff6fc;
+  --color-blue-600: #1a6aa6;
+  --color-blue-700: #14568a;
+
+  /* Semantic */
+  --color-bg: var(--color-ink-50);
+  --color-surface: #ffffff;
+  --color-surface-muted: var(--color-ink-100);
+  --color-border: var(--color-ink-200);
+  --color-border-strong: var(--color-ink-300);
+  --color-text: var(--color-ink-900);
+  --color-text-muted: var(--color-ink-600);
+  --color-primary: var(--color-green-700);
+  --color-primary-hover: var(--color-green-800);
+  --color-primary-soft: var(--color-green-50);
+  --color-on-primary: #ffffff;
+  --color-focus: #0b57d0;
+  --color-risk-high: var(--color-red-600);
+  --color-risk-medium: var(--color-amber-600);
+  --color-risk-low: var(--color-blue-600);
+  --color-risk-none: var(--color-ink-500);
+
+  --font-sans: 'IBM Plex Sans Arabic', 'Segoe UI', Tahoma, system-ui, sans-serif;
+
+  --radius-control: 0.5rem;
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 2px rgb(20 32 26 / 0.06), 0 1px 3px rgb(20 32 26 / 0.1);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    background: var(--color-bg);
+    color: var(--color-text);
+    /* Western digits everywhere: data tables, counters and charts stay unambiguous. */
+    font-variant-numeric: tabular-nums;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  /* One visible focus style for every interactive element (WCAG 2.4.7). */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

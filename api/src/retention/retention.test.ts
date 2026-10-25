@@ -159,9 +159,9 @@ describe.skipIf(!dbEnabled)('reconcile and purge (B8)', () => {
       VALUES (gen_random_uuid(), (now() - interval '95 days')::date, $1, 'CHATGPT', 'LOW', 'ALLOWED', 'NONE', NULL, 4)`, [dept]);
     const sa = await fx.user('r-sa', { role: 'SYSTEM_ADMIN' });
     await t.app.get(PurgeService); // resolved
+    const oldAudit = randomUUID();
     await fx.owner.query(`INSERT INTO "AdminAuditLog" (id, acting_admin_id, action_type, target_type, target_id, created_at)
-      VALUES (gen_random_uuid(), $1, 'USER_APPROVED', 'USER', $1, now() - interval '400 days')`, [sa.id]);
-    const auditBefore = Number((await sql(`SELECT count(*)::int AS n FROM "AdminAuditLog"`))[0].n);
+      VALUES ($1, $2, 'USER_APPROVED', 'USER', $2, now() - interval '400 days')`, [oldAudit, sa.id]);
     const counterBefore = await eventTotal('CHATGPT');
 
     const result = await t.app.get(PurgeService).purge();
@@ -170,7 +170,8 @@ describe.skipIf(!dbEnabled)('reconcile and purge (B8)', () => {
     expect(left.map((r) => r.log_id).sort()).toEqual([edgeId, fresh].sort());
     expect((await sql(`SELECT count(*)::int AS n FROM "LogCategory" WHERE log_id = $1`, [oldId]))[0].n).toBe(0);
     expect(await eventTotal('CHATGPT')).toBe(counterBefore);
-    expect(Number((await sql(`SELECT count(*)::int AS n FROM "AdminAuditLog"`))[0].n)).toBe(auditBefore);
+    // The 400-day-old audit entry is still there (other suites write audit rows in parallel, so no global count).
+    expect((await sql(`SELECT 1 FROM "AdminAuditLog" WHERE id = $1`, [oldAudit])).length).toBe(1);
   });
 
   it('purges in batches (more rows than one batch) and a reconcile afterwards leaves old counters alone', async () => {

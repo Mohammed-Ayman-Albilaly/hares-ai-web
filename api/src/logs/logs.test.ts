@@ -196,7 +196,8 @@ describe.skipIf(!dbEnabled)('log review and export (B7b)', () => {
   });
 
   it('keyset paging keeps microsecond precision (rows within the same millisecond are not skipped)', async () => {
-    const base = '2026-03-01T10:00:00';
+    // Recent (inside the 90-day retention): the retention suite purges old rows in the same database.
+    const base = `${new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10)}T10:00:00`;
     const stamps = ['.123900', '.123456', '.123100', '.123000'];
     const created: string[] = [];
     for (const frac of stamps) {
