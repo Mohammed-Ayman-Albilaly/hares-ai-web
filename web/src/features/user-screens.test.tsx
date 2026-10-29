@@ -57,6 +57,7 @@ const item = (n: number, over: Record<string, unknown> = {}) => ({
   action: 'BLOCKED',
   user_decision: 'CANCELLED',
   categories: ['PERSONAL_IDENTITY', 'CONTACT_INFO', 'FINANCIAL_BANKING'],
+  rule_name: null,
   ...over,
 });
 
@@ -138,6 +139,12 @@ describe('user dashboard', () => {
 });
 
 describe('activity and blocked pages', () => {
+  it('activity: an event caught only by a rule shows the rule name instead of "none"', async () => {
+    mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1, { categories: [], rule_name: 'Project Atlas' })], next_cursor: null }) });
+    renderRoute('/activity');
+    expect(await screen.findByText('قاعدة: Project Atlas')).toBeTruthy();
+  });
+
   it('activity: filters go to the server and clear returns to the full list', async () => {
     const m = mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1)], next_cursor: null }) });
     renderRoute('/activity');

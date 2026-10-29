@@ -283,6 +283,7 @@ export const ar = {
     expandRow: 'عرض تفاصيل رسالة {{platform}} في {{time}}',
     collapseRow: 'إخفاء تفاصيل رسالة {{platform}} في {{time}}',
     noCategories: 'لا شيء',
+    ruleNamed: 'قاعدة: {{name}}',
     detectedCategories: 'أنواع البيانات المرصودة',
     nothingDetected: 'لم تُرصد بيانات حساسة.',
     privacyNote: 'لا يحفظ حارس نص الرسائل أبداً، بل نوع البيانات المرصودة والإجراء فقط.',

@@ -94,6 +94,8 @@ export const LogListItemSchema = z.object({
   action: LogActionSchema,
   user_decision: UserDecisionSchema,
   categories: z.array(CategoryCodeSchema),
+  /** Name of the custom rule that matched (its current name), for events caught by a rule; null otherwise. */
+  rule_name: z.string().nullable(),
 });
 export type LogListItem = z.infer<typeof LogListItemSchema>;
 

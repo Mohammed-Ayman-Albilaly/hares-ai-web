@@ -1914,6 +1914,12 @@
                 "REGION_BANKING_IDENTITY"
               ]
             }
+          },
+          "rule_name": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -1927,7 +1933,8 @@
           "risk_level",
           "action",
           "user_decision",
-          "categories"
+          "categories",
+          "rule_name"
         ]
       },
       "LogListResponse": {
@@ -2032,6 +2039,12 @@
                       "REGION_BANKING_IDENTITY"
                     ]
                   }
+                },
+                "rule_name": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
                 }
               },
               "required": [
@@ -2045,7 +2058,8 @@
                 "risk_level",
                 "action",
                 "user_decision",
-                "categories"
+                "categories",
+                "rule_name"
               ]
             }
           },
@@ -2159,6 +2173,12 @@
               ]
             }
           },
+          "rule_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "user_email": {
             "type": "string"
           },
@@ -2198,6 +2218,7 @@
           "action",
           "user_decision",
           "categories",
+          "rule_name",
           "user_email",
           "classification_source",
           "rule_id",
@@ -16269,6 +16290,12 @@
                                 "REGION_BANKING_IDENTITY"
                               ]
                             }
+                          },
+                          "rule_name": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -16282,7 +16309,8 @@
                           "risk_level",
                           "action",
                           "user_decision",
-                          "categories"
+                          "categories",
+                          "rule_name"
                         ]
                       }
                     },
@@ -16747,6 +16775,12 @@
                                 "REGION_BANKING_IDENTITY"
                               ]
                             }
+                          },
+                          "rule_name": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -16760,7 +16794,8 @@
                           "risk_level",
                           "action",
                           "user_decision",
-                          "categories"
+                          "categories",
+                          "rule_name"
                         ]
                       }
                     },
@@ -17412,6 +17447,12 @@
                         ]
                       }
                     },
+                    "rule_name": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "user_email": {
                       "type": "string"
                     },
@@ -17451,6 +17492,7 @@
                     "action",
                     "user_decision",
                     "categories",
+                    "rule_name",
                     "user_email",
                     "classification_source",
                     "rule_id",

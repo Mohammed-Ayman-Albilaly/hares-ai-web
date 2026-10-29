@@ -36,14 +36,15 @@ describe.skipIf(!dbEnabled)('log review and export (B7b)', () => {
       user_decision?: string;
       categories?: string[];
       hoursAgo?: number;
+      ruleId?: string;
     } = {},
   ) {
     const id = randomUUID();
     ids[key] = id;
     await fx.owner.query(
       `INSERT INTO "ActivityLog" (log_id, user_id, department_id, platform, risk_level, action, classification_source,
-                                  user_decision, schema_version, event_time, received_at)
-       VALUES ($1, $2, $3, $4::platform, $5::risk_level, $6::log_action, 'LOCAL', $7::user_decision, 1, $8, now())`,
+                                  user_decision, schema_version, event_time, received_at, rule_id)
+       VALUES ($1, $2, $3, $4::platform, $5::risk_level, $6::log_action, 'LOCAL', $7::user_decision, 1, $8, now(), $9)`,
       [
         id,
         userId,
@@ -53,6 +54,7 @@ describe.skipIf(!dbEnabled)('log review and export (B7b)', () => {
         over.action ?? 'BLOCKED',
         over.user_decision ?? 'NONE',
         hours(over.hoursAgo ?? 1),
+        over.ruleId ?? null,
       ],
     );
     for (const c of over.categories ?? ['CONTACT_INFO']) {
@@ -102,7 +104,7 @@ describe.skipIf(!dbEnabled)('log review and export (B7b)', () => {
     expect(idsOf(res)).toEqual([ids.a3, ids.a2, ids.a1]);
     expect(res.body.items[2]).toMatchObject({ platform: 'CHATGPT', risk_level: 'HIGH', action: 'BLOCKED', categories: ['CONTACT_INFO', 'FINANCIAL_BANKING'] });
     expect(Object.keys(res.body.items[0]).sort()).toEqual(
-      ['action', 'categories', 'department_id', 'department_name', 'event_time', 'log_id', 'platform', 'risk_level', 'user_decision', 'user_id', 'user_name'].sort(),
+      ['action', 'categories', 'department_id', 'department_name', 'event_time', 'log_id', 'platform', 'risk_level', 'rule_name', 'user_decision', 'user_id', 'user_name'].sort(),
     );
     expect(res.body.next_cursor).toBeNull();
   });
@@ -253,6 +255,26 @@ describe.skipIf(!dbEnabled)('log review and export (B7b)', () => {
     expect(missing.body).toMatchObject({ code: other.body.code, message: other.body.message });
     expect((await get(`/api/admin/logs/${ids.c1}`, tok.sa)).status).toBe(200);
     expect((await get('/api/admin/logs/not-a-uuid', tok.sa)).status).toBe(400);
+  });
+
+  it('an event caught only by a rule carries the rule name in the list and the detail, and others carry null', async () => {
+    const ruleId = randomUUID();
+    await fx.owner.query(
+      `INSERT INTO "CustomRule" (id, created_by, kind, name, definition, risk_level, action, scope, enabled)
+       VALUES ($1, $2, 'KEYWORD', 'Project Atlas', 'atlas', 'HIGH', 'BLOCK', 'ORG_WIDE', true)`,
+      [ruleId, sa.id],
+    );
+    const id = await insertLog('rule-only', alice.id, deptA, { categories: [], ruleId });
+
+    const list = await get('/api/admin/logs', tok.daA);
+    expect(LogListResponseSchema.safeParse(list.body).success).toBe(true);
+    const row = list.body.items.find((x: { log_id: string }) => x.log_id === id);
+    expect(row).toMatchObject({ categories: [], rule_name: 'Project Atlas' });
+    expect(list.body.items.find((x: { log_id: string }) => x.log_id === ids.a1).rule_name).toBeNull();
+    expect((await get(`/api/admin/logs/${id}`, tok.daA)).body.rule_name).toBe('Project Atlas');
+    // The user sees why their own message was caught.
+    const own = await get('/api/logs/mine', tok.alice);
+    expect(own.body.items.find((x: { log_id: string }) => x.log_id === id).rule_name).toBe('Project Atlas');
   });
 
   // ---------- CSV export ----------

@@ -77,7 +77,11 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
                   {showUser && <td style={{ color: 'var(--ink-3)' }}>{r.department_name ?? '—'}</td>}
                   <td>{t(`platform.${r.platform}`)}</td>
                   <td style={{ fontSize: 12.5 }}>
-                    {r.categories.length === 0 ? (
+                    {r.categories.length === 0 && r.rule_name ? (
+                      <span className="h-pill risk-none" style={{ fontSize: 11 }}>
+                        {t('logs.ruleNamed', { name: r.rule_name })}
+                      </span>
+                    ) : r.categories.length === 0 ? (
                       <span style={{ color: 'var(--ink-4)' }}>{t('logs.noCategories')}</span>
                     ) : (
                       <>
@@ -120,7 +124,7 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
                       <div className="grid gap-5 p-4 sm:grid-cols-2">
                         <div>
                           <div className="mb-2 text-[11px] font-medium text-ink-4">{t('logs.detectedCategories')}</div>
-                          {r.categories.length === 0 ? (
+                          {r.categories.length === 0 && !r.rule_name ? (
                             <div className="text-[13px] text-ink-4">{t('logs.nothingDetected')}</div>
                           ) : (
                             <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
@@ -129,6 +133,11 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
                                   {t(`category.${c}`)}
                                 </li>
                               ))}
+                              {r.rule_name && (
+                                <li className="h-pill risk-none" style={{ fontSize: 12 }}>
+                                  {t('logs.ruleNamed', { name: r.rule_name })}
+                                </li>
+                              )}
                             </ul>
                           )}
                         </div>

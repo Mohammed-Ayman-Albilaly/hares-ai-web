@@ -283,6 +283,7 @@ export const en: Widen<typeof ar> = {
     expandRow: 'Show details of the {{platform}} message at {{time}}',
     collapseRow: 'Hide details of the {{platform}} message at {{time}}',
     noCategories: 'None',
+    ruleNamed: 'Rule: {{name}}',
     detectedCategories: 'Data types found',
     nothingDetected: 'No sensitive data was found.',
     privacyNote: 'Hares never stores message text, only the data types found and the action taken.',

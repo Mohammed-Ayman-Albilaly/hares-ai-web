@@ -44,6 +44,7 @@ interface Row {
   user_decision: LogListItem['user_decision'];
   classification_source: LogDetail['classification_source'];
   rule_id: string | null;
+  rule_name: string | null;
   schema_version: number;
   categories: LogListItem['categories'];
 }
@@ -56,12 +57,13 @@ const SELECT = Prisma.sql`
          l.received_at, l.user_id, u.full_name AS user_name, u.email AS user_email,
          l.department_id, d.name AS department_name, l.platform::text AS platform, l.risk_level::text AS risk_level,
          l.action::text AS action, l.user_decision::text AS user_decision,
-         l.classification_source::text AS classification_source, l.rule_id, l.schema_version,
+         l.classification_source::text AS classification_source, l.rule_id, cr.name AS rule_name, l.schema_version,
          COALESCE((SELECT array_agg(lc.category_code ORDER BY lc.category_code)
                      FROM "LogCategory" lc WHERE lc.log_id = l.log_id), ARRAY[]::text[]) AS categories
     FROM "ActivityLog" l
     JOIN "User" u ON u.id = l.user_id
-    LEFT JOIN "Department" d ON d.id = l.department_id`;
+    LEFT JOIN "Department" d ON d.id = l.department_id
+    LEFT JOIN "CustomRule" cr ON cr.id = l.rule_id`;
 
 function toItem(r: Row): LogListItem {
   return {
@@ -76,6 +78,7 @@ function toItem(r: Row): LogListItem {
     action: r.action,
     user_decision: r.user_decision,
     categories: r.categories,
+    rule_name: r.rule_name,
   };
 }
 
