@@ -39,6 +39,8 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm --filter @hares
 FROM workspace AS tools
 RUN apk add --no-cache postgresql16-client
 COPY ops ops
+# Public root certificate of Supabase's private CA, trusted only when NODE_EXTRA_CA_CERTS points at it.
+COPY ops/certs/supabase-root-2021-ca.crt /usr/local/share/ca-certificates/supabase-root-2021-ca.crt
 WORKDIR /repo/api
 USER node
 CMD ["sh", "scripts/prod-init.sh"]
@@ -50,6 +52,8 @@ WORKDIR /app
 COPY --from=prod-deps --chown=node:node /out/node_modules ./api/node_modules
 COPY --from=build --chown=node:node /repo/api/dist ./api/dist
 COPY --chown=node:node api/package.json ./api/package.json
+# Same path as in `tools`: set NODE_EXTRA_CA_CERTS to it when the database is on Supabase.
+COPY ops/certs/supabase-root-2021-ca.crt /usr/local/share/ca-certificates/supabase-root-2021-ca.crt
 WORKDIR /app/api
 USER node
 EXPOSE 3000
