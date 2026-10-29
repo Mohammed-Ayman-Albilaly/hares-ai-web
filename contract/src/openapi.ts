@@ -817,13 +817,27 @@ registry.registerPath({
 registry.registerPath({
   method: 'put',
   path: '/admin/policy/departments/{id}/{category}',
-  summary: 'Set a department override for a category (System Admin)',
+  summary: 'Set a department override for a category (System Admin; Department Admin: own department)',
   tags: ['policy'],
   security: [{ bearerAuth: [] }],
   request: { params: deptCategoryParams, body: jsonBody(PolicyCategoryActionRequestSchema) },
   responses: {
     200: { description: 'Updated.', ...jsonBody(DepartmentPolicyResponseSchema) },
     400: webError(400, 'Invalid id, category or body.', 'VALIDATION_ERROR'),
+    ...policyErrors,
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/admin/policy/departments/{id}/copy-from/{sourceId}',
+  summary: 'Make a department follow the policy in force for another department (System Admin)',
+  tags: ['policy'],
+  security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.string().uuid(), sourceId: z.string().uuid() }) },
+  responses: {
+    200: { description: 'Updated; a change bumps the bundle version once.', ...jsonBody(DepartmentPolicyResponseSchema) },
+    400: webError(400, 'Source and target are the same department.', 'VALIDATION_ERROR'),
     ...policyErrors,
   },
 });

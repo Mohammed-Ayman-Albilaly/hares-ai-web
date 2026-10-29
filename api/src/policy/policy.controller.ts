@@ -85,6 +85,19 @@ export class PolicyController {
     return this.policy.setDepartment(actor, id, category, body);
   }
 
+  /** Copy the policy in force for one department onto another (a new department's starting point). System Admin only. */
+  @RequireCapability('ORG_POLICY_MANAGE')
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  @Post('departments/:id/copy-from/:sourceId')
+  @HttpCode(200)
+  copyDepartment(
+    @CurrentUser() actor: AuthUser,
+    @Param('id', idPipe) id: string,
+    @Param('sourceId', idPipe) sourceId: string,
+  ): Promise<DepartmentPolicyResponse> {
+    return this.policy.copyDepartment(actor, id, sourceId);
+  }
+
   @RequireCapability('POLICY_MANAGE')
   @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Delete('departments/:id/:category')

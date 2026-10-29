@@ -28,10 +28,19 @@ import { zodResolver } from '@/lib/form';
  * its answer is shown under the definition. A TOPIC description is free text the
  * extension's classifier reads: the form warns not to put real secrets in it.
  */
-export function RuleForm({ rule, onClose }: { rule: CustomRuleResponse | null; onClose: () => void }) {
+export function RuleForm({
+  rule,
+  onClose,
+  fixedDepartmentId,
+}: {
+  rule: CustomRuleResponse | null;
+  onClose: () => void;
+  /** A Department Admin writes rules for their own department only: scope and departments are not offered. */
+  fixedDepartmentId?: string;
+}) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const departments = useDepartments();
+  const departments = useDepartments(!fixedDepartmentId); // a Department Admin may not list departments and does not need to
   const form = useForm<CustomRuleRequest>({
     resolver: zodResolver(CustomRuleRequestSchema, () => t),
     defaultValues: rule
@@ -45,7 +54,16 @@ export function RuleForm({ rule, onClose }: { rule: CustomRuleResponse | null; o
           department_ids: rule.department_ids,
           enabled: rule.enabled,
         }
-      : { name: '', kind: 'KEYWORD', definition: '', risk_level: 'HIGH', action: 'BLOCK', scope: 'ORG_WIDE', department_ids: [], enabled: true },
+      : {
+          name: '',
+          kind: 'KEYWORD',
+          definition: '',
+          risk_level: 'HIGH',
+          action: 'BLOCK',
+          scope: fixedDepartmentId ? 'DEPARTMENTS' : 'ORG_WIDE',
+          department_ids: fixedDepartmentId ? [fixedDepartmentId] : [],
+          enabled: true,
+        },
   });
   const { register, watch, setValue, formState } = form;
   const kind = watch('kind');
@@ -55,7 +73,10 @@ export function RuleForm({ rule, onClose }: { rule: CustomRuleResponse | null; o
   const definition = watch('definition');
 
   const m = useMutation({
-    mutationFn: (v: CustomRuleRequest) => (rule ? api.put(`/admin/rules/${rule.id}`, v) : api.post('/admin/rules', v)),
+    mutationFn: (v: CustomRuleRequest) => {
+      const body = fixedDepartmentId ? { ...v, scope: 'DEPARTMENTS' as const, department_ids: [fixedDepartmentId] } : v;
+      return rule ? api.put(`/admin/rules/${rule.id}`, body) : api.post('/admin/rules', body);
+    },
     onSuccess: () => {
       void invalidateAdmin(qc);
       onClose();
@@ -117,7 +138,7 @@ export function RuleForm({ rule, onClose }: { rule: CustomRuleResponse | null; o
         </div>
         {kind === 'TOPIC' && (
           <div className="card px-3.5 py-3 text-[13px]" role="note" style={{ background: 'var(--risk-med-soft)', color: 'var(--risk-med)' }}>
-            {t('rules.topicWarning')}
+            {t('rules.topicWarning')} {t('rules.topicNotEnforced')}
           </div>
         )}
 
@@ -138,6 +159,7 @@ export function RuleForm({ rule, onClose }: { rule: CustomRuleResponse | null; o
           </SelectField>
         </div>
 
+        {!fixedDepartmentId && (
         <SelectField
           label={t('rules.scope')}
           {...register('scope', {
@@ -152,8 +174,9 @@ export function RuleForm({ rule, onClose }: { rule: CustomRuleResponse | null; o
             </option>
           ))}
         </SelectField>
+        )}
 
-        {scope === 'DEPARTMENTS' && (
+        {!fixedDepartmentId && scope === 'DEPARTMENTS' && (
           <fieldset className="m-0 border-0 p-0" aria-describedby={depErr ? 'rule-dep-err' : undefined}>
             <legend className="mb-1.5 p-0 text-[12.5px] font-medium text-ink-2">{t('rules.departmentsLabel')}</legend>
             <div className="flex max-h-40 flex-col gap-1.5 overflow-auto rounded-lg border border-line p-3">

@@ -125,8 +125,8 @@ describe('department users', () => {
   });
 });
 
-describe('department policy and rules are read-only', () => {
-  it('policy shows the effective action per category with no edit controls', async () => {
+describe('department policy and rules', () => {
+  it('policy lets the Department Admin change the action of their own department', async () => {
     mockFetch({
       ...refresh,
       [`GET /api/admin/policy/departments/${me.user.department_id}`]: () =>
@@ -137,12 +137,27 @@ describe('department policy and rules are read-only', () => {
         }),
     });
     renderRoute('/department/policy');
-    const cell = await screen.findByText('معلومات الاتصال', { selector: 'td' });
-    const row = cell.closest('tr')!;
-    expect(within(row).getByText('تنبيه')).toBeTruthy();
-    expect(screen.getByRole('note').textContent).toContain('للعرض فقط');
-    expect(screen.queryByRole('button', { name: /حفظ|تعديل|إضافة/ })).toBeNull();
-    expect(screen.queryByRole('combobox')).toBeNull();
+    const select = await screen.findByLabelText('الإجراء لنوع معلومات الاتصال');
+    expect((select as HTMLSelectElement).value).toBe('WARN');
+    expect(screen.getByRole('note').textContent).toContain('تعديلك يسري على موظفي إدارتك فقط');
+  });
+
+  it('saves to the Department Admin\'s own department', async () => {
+    const put = `PUT /api/admin/policy/departments/${me.user.department_id}/CONTACT_INFO`;
+    const m = mockFetch({
+      ...refresh,
+      [`GET /api/admin/policy/departments/${me.user.department_id}`]: () =>
+        json({
+          version: 3,
+          department_id: me.user.department_id,
+          items: [{ category_code: 'CONTACT_INFO', name: 'Contact Information', default_risk_level: 'MEDIUM', action: 'WARN', enabled: true, source: 'DEFAULT' }],
+        }),
+      [put]: () => json({}),
+    });
+    renderRoute('/department/policy');
+    await userEvent.selectOptions(await screen.findByLabelText('الإجراء لنوع معلومات الاتصال'), 'BLOCK');
+    await waitFor(() => expect(m.count(put)).toBe(1));
+    expect(m.calls.find((c) => c.key === put)?.body).toEqual({ action: 'BLOCK', enabled: true });
   });
 
   it('rules: pattern and keyword text is shown, the TOPIC description never is', async () => {
@@ -162,6 +177,28 @@ describe('department policy and rules are read-only', () => {
     expect(await screen.findByText('EMP-\\d{6}')).toBeTruthy();
     expect(screen.queryByText(/atlas/)).toBeNull();
     expect(screen.getByText('مخفي (وصف سري)')).toBeTruthy();
+    // Neither is editable for them: both are organisation-wide.
+    expect(screen.queryByRole('button', { name: /تعديل القاعدة/ })).toBeNull();
+  });
+
+  it('rules: only the editable ones have an edit button, and a new rule is for the own department', async () => {
+    const rule = (id: string, name: string, editable: boolean) => ({ id, name, kind: 'KEYWORD', definition: 'alpha', risk_level: 'HIGH', action: 'BLOCK', scope: 'DEPARTMENTS', department_ids: [me.user.department_id], enabled: true, editable });
+    const m = mockFetch({
+      ...refresh,
+      'GET /api/admin/rules': () => json({ version: 1, items: [rule('00000000-0000-4000-8000-0000000000b1', 'Mine', true), rule('00000000-0000-4000-8000-0000000000b2', 'Shared', false)] }),
+      'POST /api/admin/rules': () => json({}),
+    });
+    renderRoute('/department/rules');
+    expect(await screen.findByRole('button', { name: 'تعديل القاعدة Mine' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'تعديل القاعدة Shared' })).toBeNull();
+    await userEvent.click(screen.getAllByRole('button', { name: /إضافة قاعدة/ })[0]!);
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).queryByLabelText('النطاق')).toBeNull();
+    await userEvent.type(within(dialog).getByLabelText('الاسم'), 'Atlas');
+    await userEvent.type(within(dialog).getByLabelText(/الكلمات/), 'alpha');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(m.count('POST /api/admin/rules')).toBe(1));
+    expect(m.calls.find((c) => c.key === 'POST /api/admin/rules')?.body).toMatchObject({ scope: 'DEPARTMENTS', department_ids: [me.user.department_id] });
   });
 });
 

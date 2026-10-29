@@ -310,12 +310,42 @@ describe('departments', () => {
 
 describe('policy', () => {
   const entry = (code: string, over: Record<string, unknown> = {}) => ({ category_code: code, name: code, default_risk_level: 'MEDIUM', action: 'WARN', enabled: true, source: 'DEFAULT', ...over });
+  // The comparison table reads the policy of every active department.
+  const matrixRoutes = {
+    [`GET /api/admin/policy/departments/${DEPT_A}`]: () => json({ version: 2, department_id: DEPT_A, items: [entry('CONTACT_INFO', { source: 'DEPARTMENT', action: 'BLOCK', enabled: false })] }),
+    [`GET /api/admin/policy/departments/${DEPT_B}`]: () => json({ version: 2, department_id: DEPT_B, items: [entry('CONTACT_INFO')] }),
+  };
+
+  it('the comparison table shows the action per department and Off where a category is disabled', async () => {
+    mockFetch({ ...refresh, ...deptRoute, ...matrixRoutes, 'GET /api/admin/policy/org': () => json({ version: 2, items: [entry('CONTACT_INFO')] }) });
+    renderRoute('/admin/policy');
+    const table = await screen.findByRole('table', { name: 'السياسة حسب نوع البيانات والإدارة' });
+    const row = within(table).getByRole('row', { name: /معلومات الاتصال/ });
+    expect(within(row).getByText('معطّل')).toBeTruthy();
+    expect(within(row).getAllByText('تنبيه').length).toBe(2);
+  });
+
+  it('copying one department\'s policy to another asks first, then sends one request', async () => {
+    const url = `POST /api/admin/policy/departments/${DEPT_B}/copy-from/${DEPT_A}`;
+    const m = mockFetch({ ...refresh, ...deptRoute, ...matrixRoutes, 'GET /api/admin/policy/org': () => json({ version: 2, items: [entry('CONTACT_INFO')] }), [url]: () => json({ version: 3, department_id: DEPT_B, items: [] }) });
+    renderRoute('/admin/policy');
+    const from = await screen.findByLabelText('من الإدارة');
+    await waitFor(() => expect(within(from).getAllByRole('option').length).toBeGreaterThan(1));
+    await userEvent.selectOptions(from, DEPT_A);
+    await userEvent.selectOptions(screen.getByLabelText('إلى الإدارة'), DEPT_B);
+    await userEvent.click(screen.getByRole('button', { name: 'نسخ السياسة' }));
+    expect(m.count(url)).toBe(0);
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'نسخ السياسة' }));
+    await waitFor(() => expect(m.count(url)).toBe(1));
+  });
 
   it('a change is saved for that category with its action and enabled flag, then the table is reloaded', async () => {
     let action = 'WARN';
     const m = mockFetch({
       ...refresh,
       ...deptRoute,
+      ...matrixRoutes,
       'GET /api/admin/policy/org': () => json({ version: 2, items: [entry('CONTACT_INFO', { action })] }),
       'PUT /api/admin/policy/org/CONTACT_INFO': ({ body }) => {
         action = (body as { action: string }).action;
@@ -333,6 +363,7 @@ describe('policy', () => {
     mockFetch({
       ...refresh,
       ...deptRoute,
+      ...matrixRoutes,
       'GET /api/admin/policy/org': () => json({ version: 2, items: [entry('CONTACT_INFO')] }),
       'PUT /api/admin/policy/org/CONTACT_INFO': () => envelope(500, 'INTERNAL_ERROR'),
     });
@@ -346,6 +377,7 @@ describe('policy', () => {
     const m = mockFetch({
       ...refresh,
       ...deptRoute,
+      ...matrixRoutes,
       'GET /api/admin/policy/org': () => json({ version: 2, items: [entry('CONTACT_INFO')] }),
       [`GET /api/admin/policy/departments/${DEPT_B}`]: () => json({ version: 2, department_id: DEPT_B, items: [entry('CONTACT_INFO', { source: 'DEPARTMENT', action: 'BLOCK' })] }),
       [`DELETE /api/admin/policy/departments/${DEPT_B}/CONTACT_INFO`]: () => json({}),

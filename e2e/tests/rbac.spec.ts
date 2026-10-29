@@ -106,7 +106,7 @@ const API: [string, string, number, number, number][] = [
   ['GET', '/api/admin/rules', 403, 200, 200],
   ['GET', '/api/admin/audit', 403, 403, 200],
   ['PUT', '/api/admin/policy/org/CONTACT_INFO', 403, 403, 400], // a System Admin with an empty body: refused as invalid, not as forbidden
-  ['POST', '/api/admin/rules', 403, 403, 400],
+  ['POST', '/api/admin/rules', 403, 400, 400],
   ['POST', '/api/admin/departments', 403, 403, 400],
 ];
 

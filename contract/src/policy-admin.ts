@@ -16,6 +16,7 @@ import {
  *   GET    /admin/policy/departments/:id                      -> DepartmentPolicyResponse  (SA any, DA own)
  *   PUT    /admin/policy/departments/:id/:category            -> DepartmentPolicyResponse  (SA any, DA own)
  *   DELETE /admin/policy/departments/:id/:category            -> DepartmentPolicyResponse  (SA any, DA own; back to org value)
+ *   POST   /admin/policy/departments/:id/copy-from/:sourceId  -> DepartmentPolicyResponse  (SA; target follows the source's effective policy)
  *   GET    /admin/rules                                       -> CustomRuleListResponse    (SA all, DA applicable)
  *   POST   /admin/rules                                       -> 201 CustomRuleResponse    (SA; DA: own department only)
  *   PUT    /admin/rules/:id                                   -> CustomRuleResponse        (SA; DA: rules of own department only)

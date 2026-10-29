@@ -170,6 +170,38 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     expect(entry(cleared.body)).toMatchObject({ action: 'ALLOW', source: 'ORG' });
   });
 
+  it('copies the policy in force for one department onto another in one version bump, audited', async () => {
+    await t.call('PUT', `/api/admin/policy/departments/${deptA}/CONTACT_INFO`, { bearer: saToken, body: { action: 'BLOCK', enabled: false } });
+    await t.call('PUT', `/api/admin/policy/departments/${deptA}/LEGAL_GOVERNMENT`, { bearer: saToken, body: { action: 'ALLOW', enabled: true } });
+    const v = await version();
+    const copy = (to: string, from: string, bearer = saToken) => t.call('POST', `/api/admin/policy/departments/${to}/copy-from/${from}`, { bearer });
+    const copied = await copy(deptB, deptA);
+    expect(copied.status).toBe(200);
+    expect(copied.body.version).toBe(v + 1);
+    const pick = (code: string) => copied.body.items.find((e: { category_code: string }) => e.category_code === code);
+    expect(pick('CONTACT_INFO')).toMatchObject({ action: 'BLOCK', enabled: false, source: 'DEPARTMENT' });
+    expect(pick('LEGAL_GOVERNMENT')).toMatchObject({ action: 'ALLOW', enabled: true });
+    const a = await t.call('GET', `/api/admin/policy/departments/${deptA}`, { bearer: saToken });
+    const strip = (items: { category_code: string; action: string; enabled: boolean }[]) => items.map((e) => [e.category_code, e.action, e.enabled]);
+    expect(strip(copied.body.items)).toEqual(strip(a.body.items));
+    const last = (await audits('POLICY_CHANGED')).at(-1)!.detail;
+    expect(last).toMatchObject({ change: 'copied', source_department_id: deptA, version: v + 1 });
+    // Nothing left to change: a quiet no-op.
+    expect((await copy(deptB, deptA)).body.version).toBe(v + 1);
+    // The target's own settings that the source does not have are removed, so it follows the organisation there again.
+    await t.call('PUT', `/api/admin/policy/departments/${deptB}/FILE_PATH`, { bearer: saToken, body: { action: 'BLOCK', enabled: true } });
+    const replaced = await copy(deptB, deptA);
+    expect(replaced.body.items.find((e: { category_code: string }) => e.category_code === 'FILE_PATH').source).not.toBe('DEPARTMENT');
+    // An inactive department cannot be the target.
+    await fx.owner.query(`UPDATE "Department" SET active = false WHERE id = $1`, [deptB]);
+    expect((await copy(deptB, deptA)).status).toBe(409);
+    await fx.owner.query(`UPDATE "Department" SET active = true WHERE id = $1`, [deptB]);
+    // Same department, unknown department, and roles other than the System Admin.
+    expect((await copy(deptA, deptA)).status).toBe(400);
+    expect((await copy(deptB, '00000000-0000-4000-8000-000000000077')).status).toBe(404);
+    expect((await copy(deptA, deptB, daToken)).status).toBe(403);
+  });
+
   it('404 for an unknown department', async () => {
     const res = await t.call('GET', '/api/admin/policy/departments/00000000-0000-4000-8000-000000000077', { bearer: saToken });
     expect(res.status).toBe(404);

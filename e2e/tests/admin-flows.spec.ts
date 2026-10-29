@@ -48,10 +48,34 @@ test.describe('policy', () => {
     await expect(select).toBeEnabled();
   });
 
+  test('a Department Admin turns a category off for their own department only', async ({ page, request }) => {
+    const bundleOf = async (email: string) => {
+      const ext = await extensionToken(request, email);
+      const res = await (await request.get('/api/policy/bundle', { headers: bearer(ext) })).json();
+      return res.policy.find((p: { category_code: string }) => p.category_code === 'VEHICLE') as { enabled: boolean; risk_level: string };
+    };
+    expect((await bundleOf(accounts.engUser)).enabled).toBe(true);
+
+    await signIn(page, accounts.engAdmin);
+    await open(page, '/department/policy');
+    await page.getByRole('switch', { name: 'تفعيل بيانات المركبات' }).click();
+    await expect(page.getByRole('button', { name: 'إلغاء تخصيص بيانات المركبات' })).toBeVisible();
+
+    const mine = await bundleOf(accounts.engUser);
+    expect(mine.enabled).toBe(false);
+    expect(mine.risk_level).toMatch(/^(HIGH|MEDIUM|LOW|NONE)$/);
+    // Another department keeps the organisation value.
+    expect((await bundleOf(accounts.financeUser)).enabled).toBe(true);
+
+    await page.getByRole('button', { name: 'إلغاء تخصيص بيانات المركبات' }).click();
+    await expect(page.getByRole('button', { name: 'إلغاء تخصيص بيانات المركبات' })).toHaveCount(0);
+    expect((await bundleOf(accounts.engUser)).enabled).toBe(true);
+  });
+
   test('a department override is limited to that department and can be removed', async ({ page, request }) => {
     await signIn(page, accounts.admin);
     await open(page, '/admin/policy');
-    await page.getByLabel('الإدارة').selectOption({ label: 'E2E Finance' });
+    await page.getByLabel('الإدارة', { exact: true }).selectOption({ label: 'E2E Finance' });
     const select = page.getByLabel('الإجراء لنوع بيانات الموقع').nth(1); // the department table, below the organisation one
     await expect(select).toBeVisible();
     const original = await select.inputValue();
@@ -74,7 +98,7 @@ test.describe('policy', () => {
 test.describe('detection rules', () => {
   const name = `E2E keywords ${Date.now()}`;
 
-  test('a rule is created, reaches the extension, is read-only for a Department Admin, and a TOPIC text stays secret', async ({ page, request }) => {
+  test('a rule is created, reaches the extension, is read-only for a Department Admin outside their department, and a TOPIC text stays secret', async ({ page, request }) => {
     await signIn(page, accounts.admin);
     await open(page, '/admin/rules');
     await page.getByRole('button', { name: /إضافة قاعدة/ }).first().click();
@@ -106,7 +130,13 @@ test.describe('detection rules', () => {
     const list = await (await request.get('/api/admin/rules', { headers: bearer(da) })).json();
     expect(list.items.find((r: { name: string }) => r.name === `${name} topic`).definition).toBe('');
     expect(JSON.stringify(list)).not.toContain('confidential acquisition plans');
-    expect((await request.post('/api/admin/rules', { headers: bearer(da), data: {} })).status()).toBe(403);
+    // An organisation-wide rule is not theirs to write, whatever the body says.
+    const orgWide = list.items.find((r: { name: string }) => r.name === name);
+    expect(orgWide.editable).toBe(false);
+    const attempt = { ...orgWide, scope: 'ORG_WIDE', department_ids: [] };
+    delete attempt.id;
+    delete attempt.editable;
+    expect((await request.post('/api/admin/rules', { headers: bearer(da), data: attempt })).status()).toBe(403);
 
     const daPage = await page.context().browser()!.newContext({ locale: 'ar-SA' });
     const p2 = await daPage.newPage();
@@ -114,7 +144,9 @@ test.describe('detection rules', () => {
     await open(p2, '/department/rules');
     await expect(p2.getByRole('row', { name: new RegExp(name) }).first()).toBeVisible();
     await expect(p2.getByText('مخفي (وصف سري)').first()).toBeVisible();
-    await expect(p2.getByRole('button', { name: /إضافة|تعديل|حفظ/ })).toHaveCount(0);
+    // No edit button on an organisation-wide rule; adding a rule for their own department is offered.
+    await expect(p2.getByRole('button', { name: /تعديل القاعدة/ })).toHaveCount(0);
+    await expect(p2.getByRole('button', { name: /إضافة قاعدة/ }).first()).toBeVisible();
     await daPage.close();
   });
 

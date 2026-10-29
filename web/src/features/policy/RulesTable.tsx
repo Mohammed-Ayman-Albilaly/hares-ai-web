@@ -1,13 +1,14 @@
 import type { CustomRuleResponse } from '@hares/contract';
 import { useTranslation } from 'react-i18next';
 import { PolicyActionBadge, RiskBadge } from '@/components/ui/badges';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/layout';
 
 /**
- * Detection rules, read-only. The text of a TOPIC rule is never shown here: it
+ * Detection rules; with `onEdit`, editable rows get an Edit button. The text of a TOPIC rule is never shown here: it
  * describes what to look for and is treated as confidential (decision 30: examples may hold sensitive hints).
  */
-export function RulesTable({ items }: { items: CustomRuleResponse[] }) {
+export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onEdit?: (rule: CustomRuleResponse) => void }) {
   const { t } = useTranslation();
   return (
     <Card padded={false}>
@@ -23,6 +24,11 @@ export function RulesTable({ items }: { items: CustomRuleResponse[] }) {
               <th scope="col">{t('logs.action')}</th>
               <th scope="col">{t('rules.scope')}</th>
               <th scope="col">{t('policy.enabled')}</th>
+              {onEdit && (
+                <th scope="col">
+                  <span className="sr-only">{t('users.actions')}</span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -47,6 +53,17 @@ export function RulesTable({ items }: { items: CustomRuleResponse[] }) {
                 </td>
                 <td style={{ color: 'var(--ink-3)' }}>{t(`rules.scopes.${r.scope}`)}</td>
                 <td>{r.enabled ? t('policy.on') : t('policy.off')}</td>
+                {onEdit && (
+                  <td>
+                    {r.editable ? (
+                      <Button small variant="secondary" onClick={() => onEdit(r)} aria-label={t('rules.editNamed', { name: r.name })}>
+                        {t('rules.edit')}
+                      </Button>
+                    ) : (
+                      <span className="text-ink-4">{t('rules.readOnly')}</span>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

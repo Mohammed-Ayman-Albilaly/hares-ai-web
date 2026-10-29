@@ -66,6 +66,7 @@ export function PolicyEditor({ items, save, reset }: Props) {
                 <tr key={p.category_code}>
                   <td className="font-medium text-ink">
                     {name}
+                    {p.category_code === 'PERSONAL_IDENTITY' && <div className="hint">{t('policy.personalIdentityHint')}</div>}
                     {error?.code === p.category_code && (
                       <div className="err" role="alert">
                         {error.message}

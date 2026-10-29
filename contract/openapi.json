@@ -13900,7 +13900,7 @@
     },
     "/admin/policy/departments/{id}/{category}": {
       "put": {
-        "summary": "Set a department override for a category (System Admin)",
+        "summary": "Set a department override for a category (System Admin; Department Admin: own department)",
         "tags": [
           "policy"
         ],
@@ -14462,6 +14462,366 @@
                     "items",
                     "department_id"
                   ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or revoked access token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 401,
+                  "code": "INVALID_TOKEN",
+                  "message": "Missing, expired or revoked access token.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The role of the caller may not use this endpoint (capability matrix).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 403,
+                  "code": "FORBIDDEN",
+                  "message": "The role of the caller may not use this endpoint (capability matrix).",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "DEPARTMENT_NOT_FOUND or RULE_NOT_FOUND.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 404,
+                  "code": "DEPARTMENT_NOT_FOUND",
+                  "message": "DEPARTMENT_NOT_FOUND or RULE_NOT_FOUND.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/policy/departments/{id}/copy-from/{sourceId}": {
+      "post": {
+        "summary": "Make a department follow the policy in force for another department (System Admin)",
+        "tags": [
+          "policy"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "sourceId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated; a change bumps the bundle version once.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "category_code": {
+                            "type": "string",
+                            "enum": [
+                              "CONTACT_INFO",
+                              "PERSONAL_IDENTITY",
+                              "FINANCIAL_BANKING",
+                              "AUTH_SECRETS",
+                              "NETWORK_SYSTEM",
+                              "WEB_LINKS",
+                              "LOCATION",
+                              "HEALTH_MEDICAL",
+                              "LEGAL_GOVERNMENT",
+                              "VEHICLE",
+                              "CORPORATE_DOCUMENTS",
+                              "FILE_PATH",
+                              "DIGITAL_FINGERPRINTS",
+                              "SHIPPING_LOGISTICS",
+                              "CRYPTO_CERTIFICATES",
+                              "ACCOUNT_APPLICATION",
+                              "DATES_TIME",
+                              "KEYWORD_PATTERNS",
+                              "LOGS_HEADERS",
+                              "NUMERIC_SENSITIVE",
+                              "DEVELOPER_SECRETS",
+                              "EDUCATION_IDS",
+                              "UNIVERSAL_IDS",
+                              "REGION_BANKING_IDENTITY"
+                            ]
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "default_risk_level": {
+                            "type": "string",
+                            "enum": [
+                              "HIGH",
+                              "MEDIUM",
+                              "LOW",
+                              "NONE"
+                            ]
+                          },
+                          "action": {
+                            "type": "string",
+                            "enum": [
+                              "ALLOW",
+                              "WARN",
+                              "BLOCK"
+                            ]
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "DEFAULT",
+                              "ORG",
+                              "DEPARTMENT"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "category_code",
+                          "name",
+                          "default_risk_level",
+                          "action",
+                          "enabled",
+                          "source"
+                        ]
+                      }
+                    },
+                    "department_id": {
+                      "type": "string",
+                      "format": "uuid"
+                    }
+                  },
+                  "required": [
+                    "version",
+                    "items",
+                    "department_id"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Source and target are the same department.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "integer"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "status",
+                    "code",
+                    "message",
+                    "path",
+                    "timestamp",
+                    "request_id"
+                  ]
+                },
+                "example": {
+                  "status": 400,
+                  "code": "VALIDATION_ERROR",
+                  "message": "Source and target are the same department.",
+                  "path": "",
+                  "timestamp": "2026-01-01T00:00:00Z",
+                  "request_id": "00000000-0000-0000-0000-000000000000"
                 }
               }
             }

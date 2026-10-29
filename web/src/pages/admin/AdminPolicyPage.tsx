@@ -8,7 +8,9 @@ import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { invalidateAdmin } from '@/features/common/invalidate';
 import { useDepartments } from '@/features/common/useDepartments';
+import { CopyPolicy } from '@/features/policy/CopyPolicy';
 import { PolicyEditor } from '@/features/policy/PolicyEditor';
+import { PolicyMatrix } from '@/features/policy/PolicyMatrix';
 import { api } from '@/lib/api';
 
 /**
@@ -69,6 +71,14 @@ export function AdminPolicyPage() {
             {dept.data && <PolicyEditor key={departmentId} items={dept.data.items} save={saveDept} reset={resetDept} />}
           </DataState>
         )}
+      </Section>
+
+      <Section title={t('policy.matrixTitle')} sub={t('policy.matrixSub')}>
+        <PolicyMatrix />
+      </Section>
+
+      <Section title={t('policy.copyTitle')} sub={t('policy.copySub')}>
+        <CopyPolicy />
       </Section>
     </Page>
   );

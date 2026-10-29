@@ -1,16 +1,26 @@
-import type { AdminUserResponse, CustomRuleListResponse, DepartmentPolicyResponse, UserListResponse } from '@hares/contract';
-import { useQuery } from '@tanstack/react-query';
+import type {
+  AdminUserResponse,
+  CustomRuleListResponse,
+  CustomRuleResponse,
+  DepartmentPolicyResponse,
+  PolicyCategoryActionRequest,
+  UserListResponse,
+} from '@hares/contract';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/auth/AuthProvider';
 import { Page } from '@/components/Page';
+import { Button } from '@/components/ui/Button';
 import { SelectField } from '@/components/ui/SelectField';
 import { I } from '@/components/ui/icons';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { DashboardView } from '@/features/analytics/DashboardView';
 import { TopRiskyUsers } from '@/features/analytics/TopRiskyUsers';
 import { LogsView } from '@/features/logs/LogsView';
-import { PolicyTable } from '@/features/policy/PolicyTable';
+import { invalidateAdmin } from '@/features/common/invalidate';
+import { PolicyEditor } from '@/features/policy/PolicyEditor';
+import { RuleForm } from '@/features/policy/RuleForm';
 import { RulesTable } from '@/features/policy/RulesTable';
 import { DeactivateButton } from '@/features/users/DeactivateButton';
 import { UsersView } from '@/features/users/UsersView';
@@ -81,21 +91,20 @@ export function DepartmentUsersPage() {
   );
 }
 
-function ReadOnlyNote() {
-  const { t } = useTranslation();
-  return (
-    <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
-      <I.Lock size={16} />
-      <span>{t('policy.readOnlyNote')}</span>
-    </div>
-  );
-}
-
-/** The policy that applies to this department: effective action per data category, read-only (WEB-FR-040). */
+/** The policy of this department: the Department Admin changes the action and the on/off switch of each data category. */
 export function DepartmentPolicyPage() {
   const { t } = useTranslation();
+  const qc = useQueryClient();
   const auth = useAuth();
   const deptId = auth.user?.department_id;
+  const save = async (category: string, body: PolicyCategoryActionRequest) => {
+    await api.put(`/admin/policy/departments/${deptId}/${category}`, body);
+    await invalidateAdmin(qc);
+  };
+  const reset = async (category: string) => {
+    await api.delete(`/admin/policy/departments/${deptId}/${category}`);
+    await invalidateAdmin(qc);
+  };
   const q = useQuery({
     queryKey: ['policy', 'department', deptId],
     enabled: Boolean(deptId),
@@ -103,7 +112,10 @@ export function DepartmentPolicyPage() {
   });
   return (
     <Page title={t('nav.deptPolicy')} crumb={t('navGroup.department')}>
-      <ReadOnlyNote />
+      <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
+        <I.Shield size={16} />
+        <span>{t('policy.deptEditNote')}</span>
+      </div>
       <DataState
         isLoading={Boolean(deptId) && q.isLoading}
         isError={q.isError}
@@ -111,24 +123,40 @@ export function DepartmentPolicyPage() {
         refetch={() => void q.refetch()}
         skeleton={<TableSkeleton rows={10} />}
       >
-        {q.data && <PolicyTable items={q.data.items} />}
+        {q.data && <PolicyEditor key={deptId} items={q.data.items} save={save} reset={reset} />}
       </DataState>
       {!deptId && <EmptyState title={t('policy.noDepartmentTitle')} body={t('policy.noDepartmentBody')} />}
     </Page>
   );
 }
 
-/** Detection rules that apply to this department, read-only. */
+/** Detection rules that apply to this department. The Department Admin writes rules for their own department only. */
 export function DepartmentRulesPage() {
   const { t } = useTranslation();
+  const auth = useAuth();
+  const deptId = auth.user?.department_id ?? undefined;
+  const [editing, setEditing] = useState<CustomRuleResponse | 'new' | null>(null);
   const q = useQuery({
     queryKey: ['rules'],
     queryFn: ({ signal }) => api.get<CustomRuleListResponse>('/admin/rules', { signal }),
   });
   const items = q.data?.items ?? [];
   return (
-    <Page title={t('nav.deptRules')} crumb={t('navGroup.department')}>
-      <ReadOnlyNote />
+    <Page
+      title={t('nav.deptRules')}
+      crumb={t('navGroup.department')}
+      actions={
+        deptId ? (
+          <Button variant="primary" onClick={() => setEditing('new')}>
+            <I.Plus size={14} /> {t('rules.create')}
+          </Button>
+        ) : undefined
+      }
+    >
+      <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
+        <I.Lock size={16} />
+        <span>{t('rules.deptRulesNote')}</span>
+      </div>
       <DataState
         isLoading={q.isLoading}
         isError={q.isError}
@@ -138,8 +166,11 @@ export function DepartmentRulesPage() {
         skeleton={<TableSkeleton rows={5} />}
         empty={<EmptyState title={t('rules.emptyTitle')} body={t('rules.emptyBody')} />}
       >
-        <RulesTable items={items} />
+        <RulesTable items={items} onEdit={(r) => setEditing(r)} />
       </DataState>
+      {editing && deptId && (
+        <RuleForm key={editing === 'new' ? 'new' : editing.id} rule={editing === 'new' ? null : editing} fixedDepartmentId={deptId} onClose={() => setEditing(null)} />
+      )}
     </Page>
   );
 }

@@ -65,9 +65,15 @@ test.describe('sign-in and session', () => {
     let status = 401;
     for (let i = 0; i < 12 && status !== 429; i++) status = await attempt(`Wrong#Pass${i}00`);
     expect(status, 'the throttle must kick in after repeated failures').toBe(429);
-    await expect(page.getByText(/حاول مرة أخرى بعد \d+ ثانية/)).toBeVisible();
     // The correct password is refused too while the wait lasts (guessing right later cannot bypass it).
-    expect(await attempt(PASSWORD)).toBe(429);
+    // Sent straight away: the first waits are only a few seconds, a page reload could outlast them.
+    const correct = await page.evaluate(
+      async ([e, p]) =>
+        (await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: e, password: p }) })).status,
+      [email, PASSWORD],
+    );
+    expect(correct).toBe(429);
+    await expect(page.getByText(/حاول مرة أخرى بعد \d+ ثانية/)).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
 });

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   CATEGORY_CODES,
   defaultActionFor,
@@ -150,6 +150,58 @@ export class PolicyService {
       });
     });
     return this.departmentPolicy(actor, departmentId);
+  }
+
+  /**
+   * Give `targetId` exactly the department settings of `sourceId`: its own values are replaced by the source's own
+   * values, and a category the source leaves to the organisation is left to the organisation in the target too (so
+   * both keep following later organisation changes). One transaction, one version bump, one audit entry.
+   */
+  async copyDepartment(actor: AuthUser, targetId: string, sourceId: string): Promise<DepartmentPolicyResponse> {
+    if (targetId === sourceId) {
+      throw new ValidationException({ source: ['policy.copy_same_department'] });
+    }
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT 1 FROM (SELECT pg_advisory_xact_lock(hashtext('lock:policy-write'))) AS l`;
+      await this.requireDepartment(tx, sourceId);
+      const target = await tx.department.findUnique({ where: { id: targetId }, select: { active: true } });
+      if (!target) throw deptNotFound();
+      if (!target.active) throw new ConflictException({ code: 'DEPARTMENT_INACTIVE', message: 'The department is not active.' });
+      const [sourceRows, targetRows] = await Promise.all([
+        tx.policyCategoryAction.findMany({ where: { departmentId: sourceId }, select: { categoryCode: true, action: true, enabled: true } }),
+        tx.policyCategoryAction.findMany({ where: { departmentId: targetId }, select: { id: true, categoryCode: true, action: true, enabled: true } }),
+      ]);
+      const own = new Map(targetRows.map((r) => [r.categoryCode, r]));
+      let changed = 0;
+      for (const s of sourceRows) {
+        const now = own.get(s.categoryCode);
+        if (now && now.action === s.action && now.enabled === s.enabled) continue;
+        if (now) {
+          await tx.policyCategoryAction.update({ where: { id: now.id }, data: { action: s.action, enabled: s.enabled } });
+        } else {
+          await tx.policyCategoryAction.create({
+            data: { id: randomUUID(), departmentId: targetId, categoryCode: s.categoryCode, action: s.action, enabled: s.enabled },
+          });
+        }
+        changed += 1;
+      }
+      const sourceCodes = new Set(sourceRows.map((r) => r.categoryCode));
+      for (const r of targetRows) {
+        if (sourceCodes.has(r.categoryCode)) continue;
+        await tx.policyCategoryAction.delete({ where: { id: r.id } });
+        changed += 1;
+      }
+      if (changed === 0) return;
+      const version = await this.bump(tx);
+      await this.audit.recordIn(tx, {
+        acting_admin_id: actor.id,
+        action: 'POLICY_CHANGED',
+        target_type: 'DEPARTMENT',
+        target_id: targetId,
+        detail: { change: 'copied', source_department_id: sourceId, changed_categories: changed, version },
+      });
+    });
+    return this.departmentPolicy(actor, targetId);
   }
 
   private async writeCategory(
