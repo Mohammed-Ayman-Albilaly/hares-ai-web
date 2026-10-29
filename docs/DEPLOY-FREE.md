@@ -95,7 +95,7 @@ Environment variables (**not** `DATABASE_URL` nor the `INITIAL_ADMIN_*` values: 
 
 ## 4. Vercel (the web app)
 
-1. Put the Render host in `web/vercel.json` (replace `YOUR-RENDER-SERVICE`), commit and push.
+1. Put the Render host in `web/vercel.json` (the `/api/:path*` rewrite destination), commit and push.
 2. Add New → Project → the repository, **Root Directory: `web`** (keep "Include files outside the root directory").
    The build settings come from `web/vercel.json`.
 3. Environment variable `ENABLE_EXPERIMENTAL_COREPACK=1`, so the pnpm version of `packageManager` is used.
