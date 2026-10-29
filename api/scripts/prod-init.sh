@@ -22,7 +22,14 @@ export PATH="$PWD/node_modules/.bin:$PATH"
 : "${DATABASE_URL:?DATABASE_URL is required}"
 : "${APP_DATABASE_URL:?APP_DATABASE_URL is required}"
 
-APP_ROLE=$(node -e "console.log(decodeURIComponent(new URL(process.env.APP_DATABASE_URL).username))")
+# The Supabase connection pooler (Supavisor, host *.pooler.supabase.com) expects the user name as
+# "<role>.<project-ref>": the database role itself is only the part before the dot.
+APP_ROLE=$(node -e "
+const u = new URL(process.env.APP_DATABASE_URL);
+let name = decodeURIComponent(u.username);
+if (u.hostname.endsWith('.pooler.supabase.com') && name.includes('.')) name = name.slice(0, name.lastIndexOf('.'));
+console.log(name);
+")
 APP_PASSWORD=$(node -e "console.log(decodeURIComponent(new URL(process.env.APP_DATABASE_URL).password))")
 if [ -z "$APP_ROLE" ] || [ -z "$APP_PASSWORD" ]; then
   echo "APP_DATABASE_URL must contain the runtime role and its password" >&2
