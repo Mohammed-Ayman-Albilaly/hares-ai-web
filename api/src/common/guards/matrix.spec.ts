@@ -25,13 +25,15 @@ describe('capability matrix (contract)', () => {
       'USERS_REACTIVATE',
       'SYSTEM_ADMIN_GRANT',
       'DEPARTMENTS_MANAGE',
-      'RULES_MANAGE',
-      'POLICY_MANAGE',
+      'ORG_POLICY_MANAGE',
       'AUDIT_VIEW',
     ] as const;
     for (const c of deniedForDeptAdmin) expect(grantFor(c, 'DEPARTMENT_ADMIN')).toBe('DENY');
     for (const c of CAPABILITIES) expect(grantFor(c, 'SYSTEM_ADMIN')).not.toBe('DENY');
     expect(grantFor('USERS_DEACTIVATE', 'DEPARTMENT_ADMIN')).toBe('SCOPED');
+    // A Department Admin edits the policy and the rules of their own department only.
+    expect(grantFor('POLICY_MANAGE', 'DEPARTMENT_ADMIN')).toBe('SCOPED');
+    expect(grantFor('RULES_MANAGE', 'DEPARTMENT_ADMIN')).toBe('SCOPED');
     expect(grantFor('PROFILE_VIEW', null)).toBe('DENY');
   });
 });

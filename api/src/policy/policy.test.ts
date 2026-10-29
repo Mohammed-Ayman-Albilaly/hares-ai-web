@@ -76,7 +76,9 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     for (const e of res.body.items) {
       expect(e.source).toBe('DEFAULT');
       expect(e.enabled).toBe(true);
-      expect(e.action).toBe({ HIGH: 'BLOCK', MEDIUM: 'WARN', LOW: 'ALLOW', NONE: 'ALLOW' }[e.default_risk_level as string]);
+      const byRisk = { HIGH: 'BLOCK', MEDIUM: 'WARN', LOW: 'ALLOW', NONE: 'ALLOW' }[e.default_risk_level as string];
+      // PERSONAL_IDENTITY also covers person names, so it warns by default instead of blocking.
+      expect(e.action).toBe(e.category_code === 'PERSONAL_IDENTITY' ? 'WARN' : byRisk);
     }
   });
 
@@ -128,12 +130,13 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     const other = await t.call('GET', `/api/admin/policy/departments/${deptB}`, { bearer: saToken });
     expect(entry(other.body)).toMatchObject({ action: 'WARN', source: 'ORG' });
 
-    // Department Admin: own department readable, another one is 403, writes are 403.
+    // Department Admin: own department readable and writable, another one is 403, the org policy is 403.
     const own = await t.call('GET', `/api/admin/policy/departments/${deptA}`, { bearer: daToken });
     expect(own.status).toBe(200);
     expect(entry(own.body)).toMatchObject({ action: 'BLOCK', source: 'DEPARTMENT' });
     expect((await t.call('GET', `/api/admin/policy/departments/${deptB}`, { bearer: daToken })).status).toBe(403);
-    expect((await t.call('PUT', `/api/admin/policy/departments/${deptA}/HEALTH_MEDICAL`, { bearer: daToken, body: { action: 'ALLOW', enabled: true } })).status).toBe(403);
+    expect((await t.call('PUT', `/api/admin/policy/departments/${deptB}/HEALTH_MEDICAL`, { bearer: daToken, body: { action: 'ALLOW', enabled: true } })).status).toBe(403);
+    expect((await t.call('DELETE', `/api/admin/policy/departments/${deptB}/HEALTH_MEDICAL`, { bearer: daToken })).status).toBe(403);
     expect((await t.call('PUT', '/api/admin/policy/org/HEALTH_MEDICAL', { bearer: daToken, body: { action: 'ALLOW', enabled: true } })).status).toBe(403);
     expect((await t.call('GET', '/api/admin/policy/org', { bearer: userToken })).status).toBe(403);
 
@@ -143,6 +146,28 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     expect(cleared.body.version).toBe(v + 1);
     // Removing a non-existent override is a quiet no-op.
     expect((await t.call('DELETE', `/api/admin/policy/departments/${deptA}/HEALTH_MEDICAL`, { bearer: saToken })).body.version).toBe(v + 1);
+  });
+
+  it('a Department Admin edits their own department; a later org change does not override it; the audit names them', async () => {
+    const entry = (b: { items: { category_code: string }[] }) => b.items.find((e) => e.category_code === 'VEHICLE');
+    const v = await version();
+    const set = await t.call('PUT', `/api/admin/policy/departments/${deptA}/VEHICLE`, { bearer: daToken, body: { action: 'BLOCK', enabled: false } });
+    expect(set.status).toBe(200);
+    expect(set.body.version).toBe(v + 1);
+    expect(entry(set.body)).toMatchObject({ action: 'BLOCK', enabled: false, source: 'DEPARTMENT' });
+    const last = (await fx.owner.query(`SELECT acting_admin_id, detail FROM "AdminAuditLog" WHERE action_type = 'POLICY_CHANGED' ORDER BY created_at DESC LIMIT 1`)).rows[0];
+    expect(last.acting_admin_id).toBe(da.id);
+    expect(last.detail).toMatchObject({ category_code: 'VEHICLE', enabled: false });
+
+    // The System Admin changes the organisation value afterwards: the department keeps its own choice.
+    await t.call('PUT', '/api/admin/policy/org/VEHICLE', { bearer: saToken, body: { action: 'ALLOW', enabled: true } });
+    const after = await t.call('GET', `/api/admin/policy/departments/${deptA}`, { bearer: daToken });
+    expect(entry(after.body)).toMatchObject({ action: 'BLOCK', enabled: false, source: 'DEPARTMENT' });
+    const other = await t.call('GET', `/api/admin/policy/departments/${deptB}`, { bearer: saToken });
+    expect(entry(other.body)).toMatchObject({ action: 'ALLOW', enabled: true, source: 'ORG' });
+
+    const cleared = await t.call('DELETE', `/api/admin/policy/departments/${deptA}/VEHICLE`, { bearer: daToken });
+    expect(entry(cleared.body)).toMatchObject({ action: 'ALLOW', source: 'ORG' });
   });
 
   it('404 for an unknown department', async () => {
@@ -252,13 +277,16 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     const asDa = (await t.call('GET', '/api/admin/rules', { bearer: daToken })).body.items;
     expect(asDa.find((r: { id: string }) => r.id === topic.body.id).definition).toBe('');
     expect(asDa.find((r: { id: string }) => r.id === pattern.body.id).definition).toBe('EMP-[0-9]{6}');
+    // Not editable for them either: they cannot see what they would overwrite.
+    expect(asDa.find((r: { id: string }) => r.id === topic.body.id).editable).toBe(false);
+    expect((await t.call('PUT', `/api/admin/rules/${topic.body.id}`, { bearer: daToken, body: rule({ kind: 'TOPIC', definition: 'x', scope: 'DEPARTMENTS', department_ids: [deptA] }) })).status).toBe(403);
     const asSa = (await t.call('GET', '/api/admin/rules', { bearer: saToken })).body.items;
     expect(asSa.find((r: { id: string }) => r.id === topic.body.id).definition).toBe('confidential acquisition plans');
     // and nowhere else in the answer
     expect(JSON.stringify(asDa)).not.toContain('confidential acquisition plans');
   });
 
-  it('Department Admin lists only the rules that apply to their department and cannot write', async () => {
+  it('Department Admin lists the rules of their department and edits only the ones that apply to it alone', async () => {
     const mine = await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `Mine ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptA] }) });
     const theirs = await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `Theirs ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptB] }) });
     const list = await t.call('GET', '/api/admin/rules', { bearer: daToken });
@@ -266,8 +294,23 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     const ids = list.body.items.map((r: { id: string }) => r.id);
     expect(ids).toContain(mine.body.id);
     expect(ids).not.toContain(theirs.body.id);
+    expect(list.body.items.find((r: { id: string }) => r.id === mine.body.id).editable).toBe(true);
+    // Org-wide rules and rules of another department are not theirs to write.
     expect((await t.call('POST', '/api/admin/rules', { bearer: daToken, body: rule() })).status).toBe(403);
-    expect((await t.call('PUT', `/api/admin/rules/${mine.body.id}`, { bearer: daToken, body: rule() })).status).toBe(403);
+    expect((await t.call('POST', '/api/admin/rules', { bearer: daToken, body: rule({ scope: 'DEPARTMENTS', department_ids: [deptB] }) })).status).toBe(403);
+    expect((await t.call('POST', '/api/admin/rules', { bearer: daToken, body: rule({ scope: 'DEPARTMENTS', department_ids: [deptA, deptB] }) })).status).toBe(403);
+    expect((await t.call('PUT', `/api/admin/rules/${theirs.body.id}`, { bearer: daToken, body: rule({ scope: 'DEPARTMENTS', department_ids: [deptA] }) })).status).toBe(403);
+    const orgWide = await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `Org ${fx.salt}` }) });
+    expect((await t.call('PUT', `/api/admin/rules/${orgWide.body.id}`, { bearer: daToken, body: rule({ scope: 'DEPARTMENTS', department_ids: [deptA] }) })).status).toBe(403);
+    const relist = await t.call('GET', '/api/admin/rules', { bearer: daToken });
+    expect(relist.body.items.find((r: { id: string }) => r.id === orgWide.body.id).editable).toBe(false);
+    // Their own department: create and edit work, and the audit entry names the Department Admin.
+    const own = await t.call('POST', '/api/admin/rules', { bearer: daToken, body: rule({ name: `DA ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptA] }) });
+    expect(own.status).toBe(201);
+    expect(own.body.editable).toBe(true);
+    const edited = await t.call('PUT', `/api/admin/rules/${own.body.id}`, { bearer: daToken, body: rule({ name: `DA ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptA], action: 'BLOCK' }) });
+    expect(edited.status).toBe(200);
+    expect((await audits('RULE_CHANGED')).length).toBeGreaterThan(0);
     expect((await t.call('GET', '/api/admin/rules', { bearer: userToken })).status).toBe(403);
     const all = await t.call('GET', '/api/admin/rules', { bearer: saToken });
     expect(all.body.items.map((r: { id: string }) => r.id)).toContain(theirs.body.id);
@@ -324,6 +367,15 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     expect(changed.status).toBe(200);
     expect(changed.headers.etag).not.toBe(etag);
     expect(changed.body.version).toBe(first.body.version + 1);
+  });
+
+  it('every bundle entry carries its fixed risk level', async () => {
+    const res = await bundle(extA);
+    expect(res.status).toBe(200);
+    const org = await t.call('GET', '/api/admin/policy/org', { bearer: saToken });
+    for (const e of res.body.policy) {
+      expect(e.risk_level).toBe(org.body.items.find((o: { category_code: string }) => o.category_code === e.category_code).default_risk_level);
+    }
   });
 
   it('the bundle holds no auth material and is refused to web tokens and anonymous callers', async () => {
@@ -395,6 +447,9 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     const list = await t.call('GET', '/api/admin/rules', { bearer: daToken });
     const mine = list.body.items.find((r: { id: string }) => r.id === shared.body.id);
     expect(mine.department_ids).toEqual([deptA]);
+    // A rule shared with another department is read-only for them.
+    expect(mine.editable).toBe(false);
+    expect((await t.call('PUT', `/api/admin/rules/${shared.body.id}`, { bearer: daToken, body: rule({ scope: 'DEPARTMENTS', department_ids: [deptA] }) })).status).toBe(403);
   });
 
   it('an update that changes the action records the old values in the audit entry', async () => {

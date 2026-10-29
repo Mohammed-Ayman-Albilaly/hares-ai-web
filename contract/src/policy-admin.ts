@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   CategoryCodeSchema,
+  type CategoryCode,
   PolicyActionSchema,
   RiskLevelSchema,
   RuleKindSchema,
@@ -13,11 +14,11 @@ import {
  *   GET    /admin/policy/org                                  -> OrgPolicyResponse         (POLICY_VIEW)
  *   PUT    /admin/policy/org/:category   (action, enabled)    -> OrgPolicyResponse         (SA)
  *   GET    /admin/policy/departments/:id                      -> DepartmentPolicyResponse  (SA any, DA own)
- *   PUT    /admin/policy/departments/:id/:category            -> DepartmentPolicyResponse  (SA)
- *   DELETE /admin/policy/departments/:id/:category            -> DepartmentPolicyResponse  (SA, back to org value)
+ *   PUT    /admin/policy/departments/:id/:category            -> DepartmentPolicyResponse  (SA any, DA own)
+ *   DELETE /admin/policy/departments/:id/:category            -> DepartmentPolicyResponse  (SA any, DA own; back to org value)
  *   GET    /admin/rules                                       -> CustomRuleListResponse    (SA all, DA applicable)
- *   POST   /admin/rules                                       -> 201 CustomRuleResponse    (SA)
- *   PUT    /admin/rules/:id                                   -> CustomRuleResponse        (SA, full edit incl. enabled)
+ *   POST   /admin/rules                                       -> 201 CustomRuleResponse    (SA; DA: own department only)
+ *   PUT    /admin/rules/:id                                   -> CustomRuleResponse        (SA; DA: rules of own department only)
  *
  * Every write bumps the single global policy version in the same transaction.
  */
@@ -41,6 +42,19 @@ export const DEFAULT_ACTION_BY_RISK: Record<'HIGH' | 'MEDIUM' | 'LOW' | 'NONE', 
   LOW: 'ALLOW',
   NONE: 'ALLOW',
 };
+
+/**
+ * Categories whose built-in default differs from the one their risk level gives.
+ * PERSONAL_IDENTITY also covers person names (the extension reports every name
+ * under it), so blocking it by default would block any message that mentions a person.
+ */
+export const DEFAULT_ACTION_OVERRIDES: Partial<Record<CategoryCode, 'ALLOW' | 'WARN' | 'BLOCK'>> = {
+  PERSONAL_IDENTITY: 'WARN',
+};
+
+export function defaultActionFor(code: CategoryCode, risk: keyof typeof DEFAULT_ACTION_BY_RISK): 'ALLOW' | 'WARN' | 'BLOCK' {
+  return DEFAULT_ACTION_OVERRIDES[code] ?? DEFAULT_ACTION_BY_RISK[risk];
+}
 
 export const CategoryPolicyEntrySchema = z.object({
   category_code: CategoryCodeSchema,
@@ -145,6 +159,8 @@ export const CustomRuleResponseSchema = z.object({
   scope: RuleScopeSchema,
   department_ids: z.array(z.string().uuid()),
   enabled: z.boolean(),
+  /** Whether the caller may edit this rule (a Department Admin: only rules that apply to their department alone). */
+  editable: z.boolean(),
 });
 export type CustomRuleResponse = z.infer<typeof CustomRuleResponseSchema>;
 

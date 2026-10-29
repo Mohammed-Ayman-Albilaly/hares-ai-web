@@ -35,6 +35,8 @@ export const PolicyEntrySchema = z.object({
   category_code: CategoryCodeSchema,
   action: PolicyActionSchema,
   enabled: z.boolean(),
+  /** Fixed per category on the server (never per department); the extension reads it instead of hardcoding tiers. */
+  risk_level: RiskLevelSchema,
 });
 export type PolicyEntry = z.infer<typeof PolicyEntrySchema>;
 

@@ -517,12 +517,22 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "risk_level": {
+            "type": "string",
+            "enum": [
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "NONE"
+            ]
           }
         },
         "required": [
           "category_code",
           "action",
-          "enabled"
+          "enabled",
+          "risk_level"
         ]
       },
       "ResolvedPolicy": {
@@ -569,12 +579,22 @@
             },
             "enabled": {
               "type": "boolean"
+            },
+            "risk_level": {
+              "type": "string",
+              "enum": [
+                "HIGH",
+                "MEDIUM",
+                "LOW",
+                "NONE"
+              ]
             }
           },
           "required": [
             "category_code",
             "action",
-            "enabled"
+            "enabled",
+            "risk_level"
           ]
         }
       },
@@ -681,12 +701,22 @@
                 },
                 "enabled": {
                   "type": "boolean"
+                },
+                "risk_level": {
+                  "type": "string",
+                  "enum": [
+                    "HIGH",
+                    "MEDIUM",
+                    "LOW",
+                    "NONE"
+                  ]
                 }
               },
               "required": [
                 "category_code",
                 "action",
-                "enabled"
+                "enabled",
+                "risk_level"
               ]
             }
           },
@@ -900,6 +930,7 @@
           "RULES_MANAGE",
           "POLICY_VIEW",
           "POLICY_MANAGE",
+          "ORG_POLICY_MANAGE",
           "AUDIT_VIEW"
         ]
       },
@@ -2971,6 +3002,9 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "editable": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -2982,7 +3016,8 @@
           "action",
           "scope",
           "department_ids",
-          "enabled"
+          "enabled",
+          "editable"
         ]
       },
       "CustomRuleListResponse": {
@@ -3048,6 +3083,9 @@
                 },
                 "enabled": {
                   "type": "boolean"
+                },
+                "editable": {
+                  "type": "boolean"
                 }
               },
               "required": [
@@ -3059,7 +3097,8 @@
                 "action",
                 "scope",
                 "department_ids",
-                "enabled"
+                "enabled",
+                "editable"
               ]
             }
           }
@@ -5417,12 +5456,22 @@
                           },
                           "enabled": {
                             "type": "boolean"
+                          },
+                          "risk_level": {
+                            "type": "string",
+                            "enum": [
+                              "HIGH",
+                              "MEDIUM",
+                              "LOW",
+                              "NONE"
+                            ]
                           }
                         },
                         "required": [
                           "category_code",
                           "action",
-                          "enabled"
+                          "enabled",
+                          "risk_level"
                         ]
                       }
                     },
@@ -14667,6 +14716,9 @@
                           },
                           "enabled": {
                             "type": "boolean"
+                          },
+                          "editable": {
+                            "type": "boolean"
                           }
                         },
                         "required": [
@@ -14678,7 +14730,8 @@
                           "action",
                           "scope",
                           "department_ids",
-                          "enabled"
+                          "enabled",
+                          "editable"
                         ]
                       }
                     }
@@ -14948,6 +15001,9 @@
                     },
                     "enabled": {
                       "type": "boolean"
+                    },
+                    "editable": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -14959,7 +15015,8 @@
                     "action",
                     "scope",
                     "department_ids",
-                    "enabled"
+                    "enabled",
+                    "editable"
                   ]
                 }
               }
@@ -15347,6 +15404,9 @@
                     },
                     "enabled": {
                       "type": "boolean"
+                    },
+                    "editable": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -15358,7 +15418,8 @@
                     "action",
                     "scope",
                     "department_ids",
-                    "enabled"
+                    "enabled",
+                    "editable"
                   ]
                 }
               }

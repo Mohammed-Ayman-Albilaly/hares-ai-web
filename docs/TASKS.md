@@ -23,3 +23,6 @@ One unchecked line per batch. Tick a line when the `verify` command passes.
 - [x] **B13** — Department Admin screens — `pnpm --filter web dev` (manual dept-admin check)
 - [x] **B14** — System Admin screens + audit page — `pnpm --filter web e2e`
 - [x] **B15** — E2E + hardening + production containerization — `pnpm -w e2e && docker compose -f docker-compose.prod.yml build && up`
+- [x] **B16** — Delegated policy administration, backend (Department Admin edits own department policy and rules, `risk_level` in the bundle, PERSONAL_IDENTITY default WARN, extension refresh grace window) — `pnpm --filter api test`
+- [ ] **B17** — Policy matrix screen (departments x categories), copy policy between departments, Department Admin editing screens, TOPIC "not enforced by the extension yet" notice, KEYWORD matching hint, names hint on PERSONAL_IDENTITY — `pnpm --filter web test`
+- [ ] **B18** — Rule name in log list/detail for rule-only events, KEYWORD whole-word rule documented, extension-flow e2e tests when the developer sends real events — `pnpm e2e`

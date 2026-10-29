@@ -337,6 +337,8 @@ model RefreshToken {
   familyId     String    @db.Uuid @map("family_id")
   clientType   ClientType @map("client_type")
   used         Boolean   @default(false) @map("used")
+  usedAt       DateTime? @db.Timestamptz @map("used_at")
+  graceUsed    Boolean   @default(false) @map("grace_used")
   tokenVersion Int       @map("token_version")
   expiresAt    DateTime  @db.Timestamptz @map("expires_at")
   revokedAt    DateTime? @db.Timestamptz @map("revoked_at")

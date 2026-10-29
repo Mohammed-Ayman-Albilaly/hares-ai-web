@@ -25,9 +25,10 @@ export const CAPABILITIES = [
   'SYSTEM_ADMIN_GRANT', // grant / revoke SYSTEM_ADMIN
   'DEPARTMENTS_MANAGE', // list, create, rename, deactivate departments
   'RULES_VIEW', // view custom detection rules
-  'RULES_MANAGE', // create / edit custom detection rules
+  'RULES_MANAGE', // create / edit custom detection rules (Department Admin: own department only)
   'POLICY_VIEW', // view org / department policy
-  'POLICY_MANAGE', // edit org policy and department overrides
+  'POLICY_MANAGE', // edit a department's policy (Department Admin: own department)
+  'ORG_POLICY_MANAGE', // edit the organisation-wide policy
   'AUDIT_VIEW', // view the admin audit trail
 ] as const;
 export const CapabilitySchema = z.enum(CAPABILITIES);
@@ -61,9 +62,10 @@ export const CAPABILITY_MATRIX: Record<Capability, Row> = {
   SYSTEM_ADMIN_GRANT: row('DENY', 'DENY', 'ALLOW'),
   DEPARTMENTS_MANAGE: row('DENY', 'DENY', 'ALLOW'),
   RULES_VIEW: row('DENY', 'SCOPED', 'ALLOW'),
-  RULES_MANAGE: row('DENY', 'DENY', 'ALLOW'),
+  RULES_MANAGE: row('DENY', 'SCOPED', 'ALLOW'),
   POLICY_VIEW: row('DENY', 'SCOPED', 'ALLOW'),
-  POLICY_MANAGE: row('DENY', 'DENY', 'ALLOW'),
+  POLICY_MANAGE: row('DENY', 'SCOPED', 'ALLOW'),
+  ORG_POLICY_MANAGE: row('DENY', 'DENY', 'ALLOW'),
   AUDIT_VIEW: row('DENY', 'DENY', 'ALLOW'),
 };
 

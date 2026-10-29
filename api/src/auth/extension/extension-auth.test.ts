@@ -153,6 +153,8 @@ describe.skipIf(!dbEnabled)('extension auth (B4b)', () => {
     expect(r2.status).toBe(200);
     const third = r2.body.refresh_token as string;
 
+    // Replayed after the grace window: a theft signal, the whole family dies.
+    await fx.owner.query(`UPDATE "RefreshToken" SET used_at = now() - interval '31 seconds' WHERE used`);
     const replay = await extRefresh(first);
     expect(replay.status).toBe(401);
     expect(replay.body.code).toBe('REFRESH_REUSED');
@@ -160,6 +162,40 @@ describe.skipIf(!dbEnabled)('extension auth (B4b)', () => {
     const after = await extRefresh(third);
     expect(after.status).toBe(401);
     expect(after.body.code).toBe('TOKEN_REVOKED');
+  });
+
+  it('accepts a just-replaced token once more within the grace window (the answer was lost)', async () => {
+    const first = (await extLogin()).body.refresh_token as string;
+    const r1 = await extRefresh(first);
+    expect(r1.status).toBe(200);
+    // The service worker died before saving r1: it presents the old token again.
+    const retry = await extRefresh(first);
+    expect(retry.status).toBe(200);
+    expect(retry.body.refresh_token).not.toBe(r1.body.refresh_token);
+    // The grace is granted once: presenting the same old token a third time is a replay and kills the session.
+    expect((await extRefresh(first)).body.code).toBe('REFRESH_REUSED');
+    expect((await extRefresh(retry.body.refresh_token)).body.code).toBe('TOKEN_REVOKED');
+  });
+
+  it('keeps rotating normally after a grace retry', async () => {
+    const first = (await extLogin()).body.refresh_token as string;
+    await extRefresh(first);
+    const retry = await extRefresh(first);
+    expect(retry.status).toBe(200);
+    // The new token works and keeps rotating.
+    expect((await extRefresh(retry.body.refresh_token)).status).toBe(200);
+    // Past the window the same old token is a replay again.
+    await fx.owner.query(`UPDATE "RefreshToken" SET used_at = now() - interval '31 seconds' WHERE used`);
+    expect((await extRefresh(first)).body.code).toBe('REFRESH_REUSED');
+  });
+
+  it('the grace window does not apply to the web cookie', async () => {
+    const web = await t.call('POST', '/api/auth/login', { body: { email: active.email, password: TEST_PASSWORD } });
+    const cookie = web.cookies[0].split(';')[0];
+    expect((await t.call('POST', '/api/auth/refresh', { headers: { cookie } })).status).toBe(200);
+    const replay = await t.call('POST', '/api/auth/refresh', { headers: { cookie } });
+    expect(replay.status).toBe(401);
+    expect(replay.body.code).toBe('REFRESH_REUSED');
   });
 
   it('logout revokes the family (204); a second logout or refresh gets 401', async () => {

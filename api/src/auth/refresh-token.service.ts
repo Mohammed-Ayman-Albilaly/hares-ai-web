@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { REFRESH_TTL_SECONDS, type ClientKind } from './auth.constants';
+import { EXTENSION_REFRESH_GRACE_SECONDS, REFRESH_TTL_SECONDS, type ClientKind } from './auth.constants';
 import { TokenService } from './token.service';
 
 const CLIENT_TYPE = { web: 'WEB', extension: 'EXTENSION' } as const;
@@ -20,6 +20,9 @@ type Tx = Parameters<Parameters<PrismaService['$transaction']>[0]>[0];
  *    `used` and issues a successor in the same family.
  *  - Presenting a token that is already used (a replay) revokes the whole
  *    family, so both the attacker and the real user must sign in again.
+ *    Exception: an extension token replaced less than EXTENSION_REFRESH_GRACE_SECONDS
+ *    ago gets exactly one more successor (its service worker may have died before saving the first);
+ *    a second presentation is a replay.
  *  - A family also dies when the user's token_version changes (deactivate,
  *    reject, password change/reset) or the user is no longer ACTIVE.
  *  - A token is bound to its client type: a web cookie never works on the
@@ -63,11 +66,19 @@ export class RefreshTokenService {
       if (current.revokedAt) {
         return { ok: false, code: 'TOKEN_REVOKED' };
       }
-      if (current.used) {
+      const now = new Date();
+      // Grace window (extension only): the token was replaced a moment ago and the answer was probably lost.
+      const inGrace =
+        current.used &&
+        client === 'extension' &&
+        !current.graceUsed &&
+        current.usedAt !== null &&
+        now.getTime() - current.usedAt.getTime() <= EXTENSION_REFRESH_GRACE_SECONDS * 1000;
+      if (current.used && !inGrace) {
         await this.revokeFamilyIn(tx, current.familyId);
         return { ok: false, code: 'REFRESH_REUSED' };
       }
-      if (current.expiresAt <= new Date()) {
+      if (current.expiresAt <= now) {
         return { ok: false, code: 'INVALID_TOKEN' };
       }
       if (current.user.status !== 'ACTIVE' || current.user.tokenVersion !== current.tokenVersion) {
@@ -76,7 +87,10 @@ export class RefreshTokenService {
       }
 
       const next = this.tokens.newRefreshToken();
-      await tx.refreshToken.update({ where: { id: current.id }, data: { used: true } });
+      await tx.refreshToken.update({
+        where: { id: current.id },
+        data: current.used ? { graceUsed: true } : { used: true, usedAt: now },
+      });
       await tx.refreshToken.create({
         data: this.row(next, current.userId, current.tokenVersion, client, current.familyId),
       });

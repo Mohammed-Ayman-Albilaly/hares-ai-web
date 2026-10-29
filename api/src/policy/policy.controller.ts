@@ -40,7 +40,10 @@ const categoryPipe = new ZodValidationPipe(CategoryCodeSchema);
 const actionBody = new ZodValidationPipe(PolicyCategoryActionRequestSchema);
 const ruleBody = new ZodValidationPipe(CustomRuleRequestSchema);
 
-/** `/api/admin/policy`: view for both admin roles (a Department Admin: own department only), edit for the System Admin. */
+/**
+ * `/api/admin/policy`: view and edit for both admin roles (a Department Admin: own department only);
+ * the organisation-wide policy is edited by the System Admin only.
+ */
 @Controller('admin/policy')
 export class PolicyController {
   constructor(@Inject(PolicyService) private readonly policy: PolicyService) {}
@@ -51,7 +54,7 @@ export class PolicyController {
     return this.policy.orgPolicy();
   }
 
-  @RequireCapability('POLICY_MANAGE')
+  @RequireCapability('ORG_POLICY_MANAGE')
   @Put('org/:category')
   setOrg(
     @CurrentUser() actor: AuthUser,
@@ -71,6 +74,7 @@ export class PolicyController {
   }
 
   @RequireCapability('POLICY_MANAGE')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Put('departments/:id/:category')
   setDepartment(
     @CurrentUser() actor: AuthUser,
@@ -82,6 +86,7 @@ export class PolicyController {
   }
 
   @RequireCapability('POLICY_MANAGE')
+  @Throttle({ default: { ttl: 60_000, limit: 30 } })
   @Delete('departments/:id/:category')
   clearDepartment(
     @CurrentUser() actor: AuthUser,

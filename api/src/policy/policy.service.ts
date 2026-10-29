@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import {
   CATEGORY_CODES,
-  DEFAULT_ACTION_BY_RISK,
+  defaultActionFor,
   PolicyBundleResponseSchema,
   splitKeywords,
   type CategoryCode,
@@ -23,17 +23,22 @@ import { PrismaService } from '../prisma/prisma.service';
 import { checkPattern } from './regex-validation';
 
 const deptNotFound = () => new NotFoundException({ code: 'DEPARTMENT_NOT_FOUND', message: 'Department not found.' });
+const forbidden = () =>
+  new ForbiddenException({ code: 'FORBIDDEN', message: 'You do not have permission for this department.' });
 const ruleNotFound = () => new NotFoundException({ code: 'RULE_NOT_FOUND', message: 'Rule not found.' });
+
+const BUNDLE_FORMAT = 2; // 2: policy entries carry risk_level
 
 /** Weak-looking but safe: the ETag only identifies (version, department), never auth material. */
 export function bundleETag(version: number, departmentId: string | null): string {
-  const hash = createHash('sha256').update(`${version}:${departmentId ?? 'org'}`).digest('base64url').slice(0, 16);
+  // BUNDLE_FORMAT changes when the shape of the bundle changes without a policy write (a client then refetches).
+  const hash = createHash('sha256').update(`${BUNDLE_FORMAT}:${version}:${departmentId ?? 'org'}`).digest('base64url').slice(0, 16);
   return `"p${version}-${hash}"`;
 }
 
 type RuleRow = Prisma.CustomRuleGetPayload<{ include: { customRuleDepartments: { select: { departmentId: true } } } }>;
 
-function toRuleResponse(r: RuleRow): CustomRuleResponse {
+function toRuleResponse(r: RuleRow, editable = true): CustomRuleResponse {
   return {
     id: r.id,
     name: r.name,
@@ -44,7 +49,21 @@ function toRuleResponse(r: RuleRow): CustomRuleResponse {
     scope: r.scope,
     department_ids: r.customRuleDepartments.map((d) => d.departmentId).sort(),
     enabled: r.enabled,
+    editable,
   };
+}
+
+/**
+ * A Department Admin edits a rule only when it applies to their department alone, and, for a TOPIC rule, only
+ * when they wrote it themselves (the description of a TOPIC rule written by a System Admin stays confidential, decision 30).
+ */
+function deptAdminMayEdit(row: RuleRow, res: CustomRuleResponse, actor: AuthUser): boolean {
+  return onlyDepartment(res, actor.departmentId) && (row.kind !== 'TOPIC' || row.createdBy === actor.id);
+}
+
+/** A rule that applies to exactly one department. */
+function onlyDepartment(r: { scope: string; department_ids: string[] }, departmentId: string | null): boolean {
+  return r.scope === 'DEPARTMENTS' && r.department_ids.length === 1 && r.department_ids[0] === departmentId;
 }
 
 /**
@@ -87,9 +106,7 @@ export class PolicyService {
 
   /** A System Admin may read any department; a Department Admin only their own (WEB-FR-069). */
   async departmentPolicy(actor: AuthUser, departmentId: string): Promise<DepartmentPolicyResponse> {
-    if (actor.role === 'DEPARTMENT_ADMIN' && actor.departmentId !== departmentId) {
-      throw new ForbiddenException({ code: 'FORBIDDEN', message: 'You do not have permission for this department.' });
-    }
+    this.requireOwnDepartment(actor, departmentId);
     const [version, items] = await this.prisma.$transaction(
       async (tx) => {
         await this.requireDepartment(tx, departmentId);
@@ -111,12 +128,14 @@ export class PolicyService {
     category: CategoryCode,
     req: PolicyCategoryActionRequest,
   ): Promise<DepartmentPolicyResponse> {
+    this.requireOwnDepartment(actor, departmentId);
     await this.writeCategory(actor, departmentId, category, req);
     return this.departmentPolicy(actor, departmentId);
   }
 
   /** Remove a department override: the category falls back to the organisation value. */
   async clearDepartment(actor: AuthUser, departmentId: string, category: CategoryCode): Promise<DepartmentPolicyResponse> {
+    this.requireOwnDepartment(actor, departmentId);
     await this.prisma.$transaction(async (tx) => {
       await this.requireDepartment(tx, departmentId);
       const removed = await tx.policyCategoryAction.deleteMany({ where: { departmentId, categoryCode: category } });
@@ -206,10 +225,13 @@ export class PolicyService {
     const items = rows.map((r) => {
       const res = toRuleResponse(r);
       if (!isDeptAdmin) return res;
-      // Read-only view: only their own department, and a TOPIC description (decision 30) is not sent at all.
+      // A Department Admin edits only rules that apply to their department alone. Every other rule is
+      // read-only: only their own department is listed, and a TOPIC description (decision 30) is not sent.
+      const editable = deptAdminMayEdit(r, res, actor);
       return {
         ...res,
-        definition: res.kind === 'TOPIC' ? '' : res.definition,
+        editable,
+        definition: res.kind === 'TOPIC' && !editable ? '' : res.definition,
         department_ids: res.department_ids.filter((d) => d === actor.departmentId),
       };
     });
@@ -217,6 +239,7 @@ export class PolicyService {
   }
 
   async createRule(actor: AuthUser, req: CustomRuleRequest): Promise<CustomRuleResponse> {
+    this.requireOwnDepartmentRule(actor, req);
     const input = await this.normalizeRule(req);
     const id = randomUUID();
     await this.prisma.$transaction(async (tx) => {
@@ -249,6 +272,7 @@ export class PolicyService {
 
   /** Full edit, including enable / disable (WEB-FR-038). Identical content is a quiet no-op. */
   async updateRule(actor: AuthUser, id: string, req: CustomRuleRequest): Promise<CustomRuleResponse> {
+    this.requireOwnDepartmentRule(actor, req);
     const input = await this.normalizeRule(req);
     await this.prisma.$transaction(async (tx) => {
       const locked = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM "CustomRule" WHERE id = ${id}::uuid FOR UPDATE`;
@@ -260,6 +284,7 @@ export class PolicyService {
       await this.requireDepartments(tx, input.department_ids);
 
       const before = toRuleResponse(current);
+      if (actor.role === 'DEPARTMENT_ADMIN' && !deptAdminMayEdit(current, before, actor)) throw forbidden();
       const olds: Record<string, string | boolean> = {};
       if (before.action !== input.action) olds.old_action = before.action;
       if (before.risk_level !== input.risk_level) olds.old_risk_level = before.risk_level;
@@ -304,6 +329,12 @@ export class PolicyService {
       await this.recordRule(tx, actor, id, input, { change: 'updated', changed_fields: [...changed], version, ...olds });
     });
     return this.getRule(id);
+  }
+
+  /** A Department Admin may only write a rule that applies to their own department alone. */
+  private requireOwnDepartmentRule(actor: AuthUser, req: CustomRuleRequest): void {
+    if (actor.role !== 'DEPARTMENT_ADMIN') return;
+    if (!onlyDepartment(req, actor.departmentId)) throw forbidden();
   }
 
   private async getRule(id: string): Promise<CustomRuleResponse> {
@@ -375,6 +406,7 @@ export class PolicyService {
           category_code: e.category_code,
           action: e.action,
           enabled: e.enabled,
+          risk_level: e.default_risk_level,
         }));
         const rules = await tx.customRule.findMany({
           where: {
@@ -408,6 +440,11 @@ export class PolicyService {
 
   // ---------- helpers ----------
 
+  /** A System Admin may act on any department; a Department Admin only on their own (WEB-FR-069). */
+  private requireOwnDepartment(actor: AuthUser, departmentId: string): void {
+    if (actor.role === 'DEPARTMENT_ADMIN' && actor.departmentId !== departmentId) throw forbidden();
+  }
+
   private async versionIn(tx: AuditTx): Promise<number> {
     return (await tx.policyVersion.findUniqueOrThrow({ where: { id: 1 }, select: { version: true } })).version;
   }
@@ -432,7 +469,7 @@ export class PolicyService {
         category_code: code,
         name: c.name,
         default_risk_level: c.defaultRiskLevel,
-        action: chosen ? chosen.action : DEFAULT_ACTION_BY_RISK[c.defaultRiskLevel],
+        action: chosen ? chosen.action : defaultActionFor(code, c.defaultRiskLevel),
         enabled: chosen ? chosen.enabled : true,
         source: dept ? 'DEPARTMENT' : org ? 'ORG' : 'DEFAULT',
       };
