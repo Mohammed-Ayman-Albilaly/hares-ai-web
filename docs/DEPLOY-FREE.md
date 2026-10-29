@@ -33,19 +33,30 @@ Copy `.env.prod.example` to `.env.prod` (never commit it) and set:
 
 ```
 DATABASE_URL="postgresql://postgres.<ref>:<db-password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require"
-APP_DATABASE_URL="postgresql://hares_app.<ref>:<new-random-password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require"
+APP_DATABASE_URL="postgresql://hares_app.<ref>:<new-random-password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=verify-full"
 INITIAL_ADMIN_NAME / INITIAL_ADMIN_EMAIL / INITIAL_ADMIN_PASSWORD
 ```
 
+- `APP_DATABASE_URL` ends in `sslmode=verify-full`: only Node reads it, and this keeps full certificate verification
+  when node-postgres 9 gives `require` the weaker libpq meaning.
 - `APP_DATABASE_URL` uses the **same pooler host** with the user `hares_app.<ref>`: the init script creates the role
   `hares_app` (the part before the dot) with that password.
 - Passwords with special characters must be URL-encoded (`@` → `%40`, `#` → `%23`, `/` → `%2F`).
 
-> **Open item: TLS certificate of Supabase.** node-postgres (used by the seed and by the API) reads
-> `sslmode=require` as full verification, and the Supabase certificate is signed by Supabase's own CA, which Node does
-> not trust: the connection fails with `self-signed certificate in certificate chain`. The secure fix is to verify
-> against the Supabase CA certificate (Database settings → SSL configuration → download), to be wired in and tested
-> against a real project before this guide is followed end to end.
+Also add this line to `.env.prod`:
+
+```
+NODE_EXTRA_CA_CERTS="/usr/local/share/ca-certificates/supabase-root-2021-ca.crt"
+```
+
+**Why: the TLS certificate of Supabase.** Supabase signs its server certificates with its own CA ("Supabase Root
+2021 CA"), which Node does not trust. node-postgres (the seed and the API) verifies the certificate fully, so without
+that CA it stops with `self-signed certificate in certificate chain`. The public root certificate is kept in
+`ops/certs/supabase-root-2021-ca.crt` (downloaded from Database settings → SSL configuration; its SHA-256 fingerprint
+`80:70:25:AD:50:D4:ED:21:9D:2C:9C:7D:29:9C:00:4F:82:4E:B0:0C:F7:F6:5A:FE:F6:07:D0:7B:72:E6:CA:FA` matched the root
+the pooler presents) and copied into both images at the path above. `NODE_EXTRA_CA_CERTS` adds it to the CAs Node
+trusts, so the connection stays encrypted **and** verified (the pooler certificate is issued for
+`*.pooler.supabase.com`). psql and the Prisma migration engine encrypt with `sslmode=require` as before.
 
 Then, from the repository root:
 
@@ -72,6 +83,7 @@ Environment variables (**not** `DATABASE_URL` nor the `INITIAL_ADMIN_*` values: 
 | Key | Value |
 |---|---|
 | `APP_DATABASE_URL` | the same value as in `.env.prod` |
+| `NODE_EXTRA_CA_CERTS` | `/usr/local/share/ca-certificates/supabase-root-2021-ca.crt` |
 | `JWT_ACCESS_SECRET` | 32+ random characters (`openssl rand -base64 48`) |
 | `WEB_BASE_URL` | `https://<project>.vercel.app` |
 | `CORS_ORIGIN` | `https://<project>.vercel.app` |
