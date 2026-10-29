@@ -2,7 +2,8 @@
 # One-shot database setup for a deployment, in the required order
 # (api/db/roles.sql and ops/revoke-audit-privileges.sql explain why):
 #   1. migrations           2. application role + grants
-#   3. audit trail lock     4. seed (categories, policy, bootstrap admin)
+#   3. audit trail lock     4. Supabase Data API roles revoked (no-op elsewhere)
+#   5. seed (categories, policy, bootstrap admin)
 # Safe to run on every deploy: each step is idempotent.
 #
 # CAUTION: a PostgreSQL role is shared by the whole cluster, and db/roles.sql sets its password on
@@ -41,8 +42,8 @@ echo "[init] migrations"
 
 # One transaction: the grants of roles.sql re-open UPDATE/DELETE on the audit table, and the revoke
 # closes them again; no other session can ever see the table writable in between.
-echo "[init] application role, grants and audit trail lock"
-psql "$DATABASE_URL" -1 -v ON_ERROR_STOP=1 -v app_role="$APP_ROLE" -v app_password="$APP_PASSWORD" -f db/roles.sql -f ../ops/revoke-audit-privileges.sql >/dev/null
+echo "[init] application role, grants, audit trail lock and Supabase API roles"
+psql "$DATABASE_URL" -1 -v ON_ERROR_STOP=1 -v app_role="$APP_ROLE" -v app_password="$APP_PASSWORD" -f db/roles.sql -f ../ops/revoke-audit-privileges.sql -f ../ops/supabase-revoke-api-roles.sql >/dev/null
 
 echo "[init] seed"
 ./node_modules/.bin/prisma db seed
