@@ -23,6 +23,7 @@ export const ar = {
     mainNavigation: 'التنقل الرئيسي',
     breadcrumb: 'مسار التنقل',
     home: 'الرئيسية',
+    filters: 'عوامل التصفية',
     notFoundTitle: 'الصفحة غير موجودة',
     notFoundBody: 'الرابط الذي فتحته غير صحيح أو انتقلت الصفحة.',
     goHome: 'العودة إلى الرئيسية',

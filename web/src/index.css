@@ -88,6 +88,15 @@
   color-scheme: light;
 }
 
+/* Phone: a card keeps 16px of air around its content, and sections sit closer together.
+   Declared before the density presets so an explicit density still wins. */
+@media (max-width: 899px) {
+  :root {
+    --card-p: 16px;
+    --section-gap: 24px;
+  }
+}
+
 [data-density='compact'] {
   --row-py: 10px;
   --card-p: 18px;
@@ -443,6 +452,24 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
+    /* A card in a grid or a flex row shrinks with its column instead of widening the page. */
+    min-width: 0;
+  }
+  /* Filter bar: one field per line on a phone, so no field is squeezed below a usable width. */
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 14px;
+  }
+  .filter-bar > .field {
+    min-width: 0;
+  }
+  @media (max-width: 639px) {
+    .filter-bar > .field {
+      flex: 1 1 100%;
+    }
   }
   .overflow-x-auto,
   .overflow-auto {

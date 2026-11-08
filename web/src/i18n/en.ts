@@ -23,6 +23,7 @@ export const en: Widen<typeof ar> = {
     mainNavigation: 'Main navigation',
     breadcrumb: 'Breadcrumb',
     home: 'Home',
+    filters: 'Filters',
     notFoundTitle: 'Page not found',
     notFoundBody: 'The link is wrong or the page has moved.',
     goHome: 'Back to home',

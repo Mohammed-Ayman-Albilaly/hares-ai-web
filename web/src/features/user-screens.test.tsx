@@ -236,6 +236,13 @@ describe('activity and blocked pages', () => {
     expect(screen.queryByLabelText('الإجراء')).toBeNull();
   });
 
+  it('the filter bar is a named search landmark', async () => {
+    mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1)], next_cursor: null }) });
+    renderRoute('/activity');
+    await screen.findByText('ChatGPT', { selector: 'td' });
+    expect(within(screen.getByRole('search', { name: 'عوامل التصفية' })).getByLabelText('مستوى الخطر')).toBeTruthy();
+  });
+
   it('is accessible (axe) with data on screen', async () => {
     mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1), item(2)], next_cursor: null }) });
     const { container } = renderRoute('/activity');
