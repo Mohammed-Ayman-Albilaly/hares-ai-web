@@ -21,6 +21,8 @@ export const ar = {
     switchTo: 'English',
     menu: 'القائمة',
     mainNavigation: 'التنقل الرئيسي',
+    breadcrumb: 'مسار التنقل',
+    home: 'الرئيسية',
     notFoundTitle: 'الصفحة غير موجودة',
     notFoundBody: 'الرابط الذي فتحته غير صحيح أو انتقلت الصفحة.',
     goHome: 'العودة إلى الرئيسية',

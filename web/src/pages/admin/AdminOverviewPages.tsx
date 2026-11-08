@@ -14,7 +14,7 @@ import { api } from '@/lib/api';
 export function AdminDashboardPage() {
   const { t } = useTranslation();
   return (
-    <Page title={t('nav.adminDashboard')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminDashboard')} group="organization">
       <DashboardView base="/dashboard/org" emptyTitle={t('dash.noOrgActivityTitle')} emptyBody={t('dash.noOrgActivityBody')}>
         {(_days, summary) => (summary?.departments && summary.departments.length > 0 ? <DepartmentRisk departments={summary.departments} /> : null)}
       </DashboardView>
@@ -34,7 +34,7 @@ export function AdminLogsPage() {
       api.get<UserListResponse>(`/admin/users?page_size=100${departmentId ? `&department_id=${departmentId}` : ''}`, { signal }),
   });
   return (
-    <Page title={t('nav.adminLogs')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminLogs')} group="organization">
       <LogsView
         base="/admin/logs"
         exportPath="/admin/logs/export"

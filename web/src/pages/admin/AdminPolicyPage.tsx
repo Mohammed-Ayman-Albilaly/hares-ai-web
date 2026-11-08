@@ -46,7 +46,7 @@ export function AdminPolicyPage() {
   };
 
   return (
-    <Page title={t('nav.adminPolicy')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminPolicy')} group="organization">
       <Section title={t('policy.orgTitle')} sub={org.data ? t('policy.version', { version: org.data.version }) : undefined}>
         <DataState isLoading={org.isLoading} isError={org.isError} error={org.error} refetch={() => void org.refetch()} isEmpty={org.data?.items.length === 0} empty={<EmptyState title={t('policy.emptyTitle')} body={t('policy.emptyBody')} />} skeleton={<TableSkeleton rows={10} />}>
           {org.data && <PolicyEditor items={org.data.items} save={saveOrg} />}

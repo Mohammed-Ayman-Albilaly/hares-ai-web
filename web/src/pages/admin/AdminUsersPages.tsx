@@ -11,7 +11,7 @@ import { UsersView } from '@/features/users/UsersView';
 export function AdminPendingPage() {
   const { t } = useTranslation();
   return (
-    <Page title={t('nav.adminPending')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminPending')} group="organization">
       <PendingApprovals />
     </Page>
   );
@@ -22,7 +22,7 @@ export function AdminUsersPage() {
   const { t } = useTranslation();
   const [managing, setManaging] = useState<AdminUserResponse | null>(null);
   return (
-    <Page title={t('nav.adminUsers')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminUsers')} group="organization">
       <UsersView
         showDepartment
         renderActions={(u) => (

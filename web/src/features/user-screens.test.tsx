@@ -244,6 +244,31 @@ describe('activity and blocked pages', () => {
   });
 });
 
+describe('page header', () => {
+  it('the breadcrumb links to the section, and the page name is the h1 only', async () => {
+    mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1)], next_cursor: null }) });
+    renderRoute('/activity');
+    await screen.findByText('ChatGPT', { selector: 'td' });
+    const crumb = screen.getByRole('navigation', { name: 'مسار التنقل' });
+    expect(within(crumb).getByRole('link', { name: 'شخصي' }).getAttribute('href')).toBe('/dashboard');
+    // The screen already open is never a link back to itself.
+    expect(within(crumb).queryByRole('link', { name: 'سجل النشاط' })).toBeNull();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('سجل النشاط');
+  });
+
+  it('no breadcrumb on the section landing screen: nothing is above it', async () => {
+    mockFetch({
+      ...refresh,
+      'GET /api/dashboard/mine/summary': () => json(summary),
+      'GET /api/dashboard/mine/timeseries': () => json(series),
+      'GET /api/logs/mine': () => json({ items: [], next_cursor: null }),
+    });
+    renderRoute('/dashboard');
+    await screen.findByText('53');
+    expect(screen.queryByRole('navigation', { name: 'مسار التنقل' })).toBeNull();
+  });
+});
+
 describe('role access', () => {
   it('a department admin cannot open the user-only activity page', async () => {
     mockFetch({ 'POST /api/auth/refresh': () => json(loginResponse('DEPARTMENT_ADMIN')) });

@@ -90,7 +90,7 @@ export function AdminAuditPage() {
   const clear = () => setF({ action_type: '', target_type: '', fromDay: '', toDay: '' });
 
   return (
-    <Page title={t('nav.adminAudit')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminAudit')} group="organization">
       <FilterBar>
         <SelectField label={t('audit.action')} value={f.action_type} onChange={set('action_type')}>
           <option value="">{t('logs.all')}</option>

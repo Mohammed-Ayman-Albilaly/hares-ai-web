@@ -19,6 +19,9 @@ export type IconName =
   | 'Check'
   | 'Edit';
 
+/** Sidebar group (i18n key under `navGroup.`). */
+export type NavGroup = 'personal' | 'department' | 'organization' | 'account';
+
 export interface NavItem {
   to: string;
   /** i18n key under `nav.` */
@@ -26,8 +29,7 @@ export interface NavItem {
   icon: IconName;
   /** Roles that see this item. */
   roles: readonly Role[];
-  /** Sidebar group (i18n key under `navGroup.`). */
-  group: 'personal' | 'department' | 'organization' | 'account';
+  group: NavGroup;
 }
 
 /**
@@ -55,3 +57,12 @@ export const NAV: readonly NavItem[] = [
 ];
 
 export const navFor = (role: Role | null): NavItem[] => NAV.filter((i) => role && i.roles.includes(role));
+
+/**
+ * Landing route of a sidebar group for a role: the first screen of the group the
+ * role can open. The page breadcrumb links there, so the trail always points at a
+ * screen the reader is allowed to see (the API enforces access either way).
+ */
+export function sectionHomeFor(group: NavGroup, role: Role | null): string | undefined {
+  return NAV.find((i) => i.group === group && role && i.roles.includes(role))?.to;
+}

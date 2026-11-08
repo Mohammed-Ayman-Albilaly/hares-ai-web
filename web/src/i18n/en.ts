@@ -21,6 +21,8 @@ export const en: Widen<typeof ar> = {
     switchTo: 'العربية',
     menu: 'Menu',
     mainNavigation: 'Main navigation',
+    breadcrumb: 'Breadcrumb',
+    home: 'Home',
     notFoundTitle: 'Page not found',
     notFoundBody: 'The link is wrong or the page has moved.',
     goHome: 'Back to home',

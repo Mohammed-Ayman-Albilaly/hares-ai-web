@@ -96,7 +96,7 @@ export function AdminDepartmentsPage() {
   return (
     <Page
       title={t('nav.adminDepartments')}
-      crumb={t('navGroup.organization')}
+      group="organization"
       actions={
         <Button variant="primary" onClick={() => setEditing('new')}>
           <I.Plus size={14} /> {t('departments.create')}

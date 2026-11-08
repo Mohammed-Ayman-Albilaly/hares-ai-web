@@ -6,7 +6,7 @@ import { LogsView } from '@/features/logs/LogsView';
 export function BlockedPage() {
   const { t } = useTranslation();
   return (
-    <Page title={t('nav.blocked')} crumb={t('navGroup.personal')}>
+    <Page title={t('nav.blocked')} group="personal">
       <LogsView
         base="/logs/mine"
         fixed={{ action: 'BLOCKED' }}

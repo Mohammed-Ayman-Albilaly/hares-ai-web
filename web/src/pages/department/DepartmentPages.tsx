@@ -30,7 +30,7 @@ import { api } from '@/lib/api';
 export function DepartmentDashboardPage() {
   const { t } = useTranslation();
   return (
-    <Page title={t('nav.deptDashboard')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptDashboard')} group="department">
       <DashboardView base="/dashboard/department" emptyTitle={t('dash.noDeptActivityTitle')} emptyBody={t('dash.noDeptActivityBody')}>
         {(days) => <TopRiskyUsers days={days} />}
       </DashboardView>
@@ -47,7 +47,7 @@ export function DepartmentLogsPage() {
     queryFn: ({ signal }) => api.get<UserListResponse>('/admin/users?page_size=100', { signal }),
   });
   return (
-    <Page title={t('nav.deptLogs')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptLogs')} group="department">
       <LogsView
         base="/admin/logs"
         exportPath="/admin/logs/export"
@@ -81,7 +81,7 @@ export function DepartmentUsersPage() {
   const me = auth.user?.id;
   const canDeactivate = (u: AdminUserResponse) => u.status === 'ACTIVE' && u.role === 'USER' && u.id !== me;
   return (
-    <Page title={t('nav.deptUsers')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptUsers')} group="department">
       <UsersView
         renderActions={(u) => (canDeactivate(u) ? <DeactivateButton user={u} /> : null)}
         emptyTitle={t('users.deptEmptyTitle')}
@@ -111,7 +111,7 @@ export function DepartmentPolicyPage() {
     queryFn: ({ signal }) => api.get<DepartmentPolicyResponse>(`/admin/policy/departments/${deptId}`, { signal }),
   });
   return (
-    <Page title={t('nav.deptPolicy')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptPolicy')} group="department">
       <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
         <I.Shield size={16} />
         <span>{t('policy.deptEditNote')}</span>
@@ -146,7 +146,7 @@ export function DepartmentRulesPage() {
   return (
     <Page
       title={t('nav.deptRules')}
-      crumb={t('navGroup.department')}
+      group="department"
       actions={
         deptId ? (
           <Button variant="primary" onClick={() => setEditing('new')}>

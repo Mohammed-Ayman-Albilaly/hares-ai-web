@@ -57,7 +57,7 @@ export function ProfilePage() {
 
   const p = profile.data;
   return (
-    <Page title={t('profile.title')} narrow>
+    <Page title={t('profile.title')} group="account" narrow>
       <DataState
         isLoading={profile.isLoading}
         isError={profile.isError}

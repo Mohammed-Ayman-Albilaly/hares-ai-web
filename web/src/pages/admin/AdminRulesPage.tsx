@@ -27,7 +27,7 @@ export function AdminRulesPage() {
   return (
     <Page
       title={t('nav.adminRules')}
-      crumb={t('navGroup.organization')}
+      group="organization"
       actions={
         <Button variant="primary" onClick={() => setEditing('new')}>
           <I.Plus size={14} /> {t('rules.create')}
