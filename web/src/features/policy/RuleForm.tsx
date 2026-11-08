@@ -13,8 +13,10 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { SelectField } from '@/components/ui/SelectField';
 import { TextField } from '@/components/ui/TextField';
+import { Textarea } from '@/components/ui/Textarea';
 import { Toggle } from '@/components/ui/Toggle';
 import { invalidateAdmin } from '@/features/common/invalidate';
 import { useDepartments } from '@/features/common/useDepartments';
@@ -114,28 +116,16 @@ export function RuleForm({
           ))}
         </SelectField>
 
-        <div className="field">
-          <label htmlFor="rule-def">{t(`rules.definitionLabel.${kind}`)}</label>
-          <textarea
-            id="rule-def"
-            rows={kind === 'PATTERN' ? 3 : 5}
-            dir={kind === 'PATTERN' ? 'ltr' : undefined}
-            style={kind === 'PATTERN' ? { fontFamily: 'var(--font-mono)' } : undefined}
-            aria-invalid={defErr ? true : undefined}
-            aria-describedby={defErr ? 'rule-def-err' : 'rule-def-hint'}
-            {...register('definition')}
-          />
-          {!defErr && (
-            <div id="rule-def-hint" className="hint">
-              {t(`rules.definitionHint.${kind}`)}
-            </div>
-          )}
-          {defErr && (
-            <div id="rule-def-err" className="err" role="alert">
-              {defErr}
-            </div>
-          )}
-        </div>
+        <Textarea
+          id="rule-def"
+          label={t(`rules.definitionLabel.${kind}`)}
+          rows={kind === 'PATTERN' ? 3 : 5}
+          dir={kind === 'PATTERN' ? 'ltr' : undefined}
+          style={kind === 'PATTERN' ? { fontFamily: 'var(--font-mono)' } : undefined}
+          error={defErr}
+          hint={t(`rules.definitionHint.${kind}`)}
+          {...register('definition')}
+        />
         {kind === 'TOPIC' && (
           <div className="card px-3.5 py-3 text-[13px]" role="note" style={{ background: 'var(--risk-med-soft)', color: 'var(--risk-med)' }}>
             {t('rules.topicWarning')} {t('rules.topicNotEnforced')}
@@ -181,11 +171,17 @@ export function RuleForm({
             <legend className="mb-1.5 p-0 text-[12.5px] font-medium text-ink-2">{t('rules.departmentsLabel')}</legend>
             <div className="flex max-h-40 flex-col gap-1.5 overflow-auto rounded-lg border border-line p-3">
               {(departments.data?.items ?? []).map((d) => (
-                <label key={d.id} className="flex items-center gap-2 text-[13.5px]">
-                  <input type="checkbox" checked={selected.includes(d.id)} onChange={(e) => toggleDepartment(d.id, e.target.checked)} />
-                  {d.name}
-                  {!d.active && <span className="text-ink-4">({t('status.DEACTIVATED')})</span>}
-                </label>
+                <Checkbox
+                  key={d.id}
+                  label={
+                    <>
+                      {d.name}
+                      {!d.active && <span className="text-ink-4"> ({t('status.DEACTIVATED')})</span>}
+                    </>
+                  }
+                  checked={selected.includes(d.id)}
+                  onChange={(e) => toggleDepartment(d.id, e.target.checked)}
+                />
               ))}
             </div>
             {depErr && (

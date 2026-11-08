@@ -19,12 +19,47 @@ const dayStart = (day: string, plusDays = 0) => {
 
 /** Short, non-sensitive facts of one entry (ids, enum values, old/new names), as small tags. */
 function Detail({ detail }: { detail: AuditEntryResponse['detail'] }) {
+  const { t } = useTranslation();
+  const lang = useLang();
+  const list = new Intl.ListFormat(lang, { style: 'narrow', type: 'conjunction' });
+
+  /** Enum values and field names are translated; names and ids are shown as they are. */
+  const value = (key: string, raw: unknown): string => {
+    if (raw === null || raw === undefined) return '—';
+    if (Array.isArray(raw)) return list.format(raw.map((item) => value(key, item)));
+    if (typeof raw === 'boolean') return t(raw ? 'policy.on' : 'policy.off');
+    if (typeof raw !== 'string') return String(raw);
+    switch (key) {
+      case 'role':
+      case 'old_role':
+      case 'new_role':
+        return t(`roles.${raw}`, { defaultValue: raw });
+      case 'risk_level':
+        return t(`risk.${raw}`, { defaultValue: raw });
+      case 'action':
+      case 'old_action':
+        return t(`policyAction.${raw}`, { defaultValue: raw });
+      case 'kind':
+        return t(`rules.kinds.${raw}`, { defaultValue: raw });
+      case 'scope':
+        return t(`rules.scopes.${raw}`, { defaultValue: raw });
+      case 'category_code':
+        return t(`category.${raw}`, { defaultValue: raw });
+      case 'change':
+        return t(`audit.changes.${raw}`, { defaultValue: raw });
+      default:
+        return raw;
+    }
+  };
+
   if (!detail || Object.keys(detail).length === 0) return <span className="text-ink-4">—</span>;
   return (
-    <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0" dir="ltr">
+    <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
       {Object.entries(detail).map(([k, v]) => (
-        <li key={k} className="h-pill role-user" style={{ fontSize: 11 }}>
-          {k}: {Array.isArray(v) ? v.join(', ') : String(v)}
+        <li key={k} dir="auto" className="h-pill role-user" style={{ fontSize: 11 }}>
+          <span className="font-medium">{t(`audit.fields.${k}`, { defaultValue: k })}</span>
+          {': '}
+          <bdi>{value(k, v)}</bdi>
         </li>
       ))}
     </ul>

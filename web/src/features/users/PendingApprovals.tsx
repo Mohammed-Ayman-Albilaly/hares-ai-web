@@ -113,7 +113,7 @@ export function PendingApprovals() {
   const items = q.data?.items ?? [];
   // The last request of the last page was decided: go back instead of showing an empty page.
   useEffect(() => {
-    if (q.data && q.data.items.length === 0 && page > 1) setPage(1);
+    if (q.data && q.data.items.length === 0 && page > 1) setPage((p) => Math.max(1, p - 1));
   }, [q.data, page]);
 
   return (

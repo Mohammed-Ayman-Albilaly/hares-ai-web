@@ -70,7 +70,7 @@ export function LandingPage() {
             <div className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1.5 text-xs font-medium" style={{ color: 'var(--accent-2)' }}>
               <I.Shield size={13} /> {t('landing.badge')}
             </div>
-            <h1 className="serif my-5 text-[44px] leading-[1.08] sm:text-[56px] lg:text-[64px]" style={{ letterSpacing: '-0.025em' }}>
+            <h1 className="serif my-5 text-[44px] leading-[1.08] sm:text-[56px] lg:text-[64px]">
               {t('landing.titleA')} <em className="not-italic text-accent" style={lang === 'en' ? { fontStyle: 'italic' } : undefined}>{t('landing.titleEm')}</em>{' '}
               {t('landing.titleB')}
             </h1>

@@ -121,6 +121,8 @@ export function DepartmentPolicyPage() {
         isError={q.isError}
         error={q.error}
         refetch={() => void q.refetch()}
+        isEmpty={Boolean(deptId) && q.data?.items.length === 0}
+        empty={<EmptyState title={t('policy.emptyTitle')} body={t('policy.emptyBody')} />}
         skeleton={<TableSkeleton rows={10} />}
       >
         {q.data && <PolicyEditor key={deptId} items={q.data.items} save={save} reset={reset} />}

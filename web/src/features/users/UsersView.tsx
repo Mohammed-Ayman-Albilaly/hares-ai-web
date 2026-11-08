@@ -48,7 +48,7 @@ export function UsersView({ showDepartment, renderActions, emptyTitle, emptyBody
   const items = query.data?.items ?? [];
   // The last row of the last page was removed (e.g. deactivated under a status filter): go back.
   useEffect(() => {
-    if (query.data && query.data.items.length === 0 && page > 1) setPage(1);
+    if (query.data && query.data.items.length === 0 && page > 1) setPage((p) => Math.max(1, p - 1));
   }, [query.data, page]);
   const filtered = Boolean(search || status);
 

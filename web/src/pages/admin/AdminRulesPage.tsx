@@ -10,16 +10,19 @@ import { Card } from '@/components/ui/layout';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { useDepartments } from '@/features/common/useDepartments';
 import { RuleForm } from '@/features/policy/RuleForm';
+import { useLang } from '@/i18n/useLang';
 import { api } from '@/lib/api';
 
 /** Detection rules: create and edit PATTERN, KEYWORD and TOPIC rules (WEB-FR-042..044). Not deleted, only disabled. */
 export function AdminRulesPage() {
   const { t } = useTranslation();
   const departments = useDepartments();
+  const lang = useLang();
   const q = useQuery({ queryKey: ['rules'], queryFn: ({ signal }) => api.get<CustomRuleListResponse>('/admin/rules', { signal }) });
   const [editing, setEditing] = useState<CustomRuleResponse | 'new' | null>(null);
   const items = q.data?.items ?? [];
   const deptName = new Map((departments.data?.items ?? []).map((d) => [d.id, d.name]));
+  const list = new Intl.ListFormat(lang, { style: 'narrow', type: 'conjunction' });
 
   return (
     <Page
@@ -69,7 +72,9 @@ export function AdminRulesPage() {
                       <PolicyActionBadge action={r.action} />
                     </td>
                     <td style={{ color: 'var(--ink-3)' }}>
-                      {r.scope === 'ORG_WIDE' ? t('rules.scopes.ORG_WIDE') : r.department_ids.map((id) => deptName.get(id) ?? '…').join('، ')}
+                      {r.scope === 'ORG_WIDE'
+                        ? t('rules.scopes.ORG_WIDE')
+                        : list.format(r.department_ids.map((id) => deptName.get(id) ?? '…'))}
                     </td>
                     <td>{r.enabled ? t('policy.on') : t('policy.off')}</td>
                     <td>

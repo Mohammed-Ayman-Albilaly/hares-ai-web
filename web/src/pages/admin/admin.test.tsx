@@ -455,7 +455,10 @@ describe('audit', () => {
     renderRoute('/admin/audit');
     expect(await screen.findByText('Demo Admin')).toBeTruthy();
     expect(screen.getByText('تغيير دور', { selector: 'td' })).toBeTruthy();
-    expect(screen.getByText('new_role: DEPARTMENT_ADMIN')).toBeTruthy();
+    const newRole = screen.getByText('الدور الجديد').closest('li');
+    expect(newRole?.textContent).toContain('مدير إدارة');
+    const oldRole = screen.getByText('الدور السابق').closest('li');
+    expect(oldRole?.textContent).toContain('مستخدم');
   });
 
   it('filters by action and never asks for an inverted date range', async () => {

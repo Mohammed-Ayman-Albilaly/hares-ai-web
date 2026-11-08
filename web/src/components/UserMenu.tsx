@@ -16,7 +16,7 @@ export function UserMenu({ user }: { user: UserPublic }) {
   return (
     <Menu.Root>
       <Menu.Trigger
-        className="flex items-center gap-2 rounded-full border border-line bg-transparent py-1 pe-2.5 ps-1 hover:bg-surface-2"
+        className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-transparent py-1 pe-2.5 ps-1 hover:bg-surface-2"
       >
         <Avatar name={user.full_name} size={26} />
         {/* The accessible name is the full name; the first name shown on wide screens is part of it. */}

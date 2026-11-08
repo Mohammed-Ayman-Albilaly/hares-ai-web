@@ -48,7 +48,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
           // sits at the end of the line of the page's direction.
           style={{
             ...(type === 'email' || type === 'password' ? { textAlign: rtl ? 'right' : 'left' } : {}),
-            ...(isPassword ? (rtl ? { paddingLeft: 42 } : { paddingRight: 42 }) : {}),
+            ...(isPassword ? (rtl ? { paddingLeft: 48 } : { paddingRight: 48 }) : {}),
           }}
           {...rest}
         />
@@ -58,7 +58,7 @@ export const TextField = forwardRef<HTMLInputElement, Props>(function TextField(
             onClick={() => setShown((s) => !s)}
             aria-label={shown ? t('auth.hidePassword') : t('auth.showPassword')}
             aria-pressed={shown}
-            className={`absolute ${rtl ? 'left-1.5' : 'right-1.5'} top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md border-0 bg-transparent text-ink-4 hover:text-ink`}
+            className={`absolute ${rtl ? 'left-1' : 'right-1'} top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-md border-0 bg-transparent text-ink-4 hover:text-ink`}
           >
             {shown ? <I.EyeOff size={16} /> : <I.Eye size={16} />}
           </button>
