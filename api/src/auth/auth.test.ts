@@ -2,10 +2,11 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import 'dotenv/config';
 import { randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
 import { SignJWT } from 'jose';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { LoginResponseSchema, REFRESH_COOKIE_NAME, UserPublicSchema } from '@hares/contract';
+import { testPool } from '../test/global-setup';
 import { bootTestApp, clearThrottle, type HttpResult, type TestApp } from '../test/http-test-app';
 import { RefreshTokenService } from './refresh-token.service';
 import { TokenService } from './token.service';
@@ -52,7 +53,7 @@ describe.skipIf(!enabled)('web auth (B4a)', () => {
   const login = (e = email('active')) => call('POST', '/api/auth/login', { body: { email: e, password: PASSWORD } });
 
   beforeAll(async () => {
-    owner = new Pool({ connectionString: ownerUrl });
+    owner = testPool({ connectionString: ownerUrl });
     const hash = await bcrypt.hash(PASSWORD, 12);
     await owner.query('INSERT INTO "Department" (id, name, active) VALUES ($1, $2, true)', [departmentId, `Auth Dept ${SALT}`]);
     await owner.query(
