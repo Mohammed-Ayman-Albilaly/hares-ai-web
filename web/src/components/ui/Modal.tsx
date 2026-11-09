@@ -2,7 +2,7 @@ import * as Dialog from '@radix-ui/react-dialog';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { I } from './icons';
-
+import { IconButton } from './IconButton';
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -38,24 +38,23 @@ export function Modal({ open, onClose, title, description, children, width = 460
           }}
         >
           <div className="relative p-7">
-            <Dialog.Close
-              aria-label={t('app.close')}
-              className="btn btn-ghost absolute end-3 top-3 !p-1.5"
-            >
-              <I.X size={16} />
+            <Dialog.Close asChild>
+              <IconButton label={t('app.close')} className="absolute end-3 top-3">
+                <I.X size={16} />
+              </IconButton>
             </Dialog.Close>
             {icon && (
               <div
                 className="mb-3.5 grid size-11 place-items-center rounded-xl"
                 style={{
-                  background: tone === 'danger' ? 'var(--risk-high-soft)' : 'var(--accent-soft)',
-                  color: tone === 'danger' ? 'var(--risk-high)' : 'var(--accent)',
+                  background: tone === 'danger' ? 'var(--risk-high-soft)' : 'var(--surface-3)',
+                  color: tone === 'danger' ? 'var(--risk-high)' : 'var(--ink-3)',
                 }}
               >
                 {icon}
               </div>
             )}
-            <Dialog.Title className="mb-1.5 text-lg font-semibold">{title}</Dialog.Title>
+            <Dialog.Title className="mb-1.5 pe-9 text-lg font-semibold">{title}</Dialog.Title>
             {description ? (
               <Dialog.Description className="mb-4 text-[13.5px] leading-relaxed text-ink-3">{description}</Dialog.Description>
             ) : (
