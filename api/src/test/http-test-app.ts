@@ -2,13 +2,14 @@ import 'dotenv/config';
 import * as http from 'node:http';
 import { randomUUID } from 'node:crypto';
 import * as bcrypt from 'bcrypt';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
 import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { Type } from '@nestjs/common';
 import { AppModule } from '../app.module';
 import { configureApp } from '../app.setup';
 import { throttleKeys } from '../auth/login-failure-store';
+import { testPool } from './global-setup';
 
 // ---------------------------------------------------------------------------
 // Shared helpers for HTTP integration suites. The app connects as hares_app
@@ -138,7 +139,7 @@ export class Fixtures {
 
   constructor() {
     assertTestDatabase();
-    this.owner = new Pool({ connectionString: ownerUrl });
+    this.owner = testPool({ connectionString: ownerUrl });
   }
   private readonly departments: string[] = [];
   readonly emails: string[] = [];

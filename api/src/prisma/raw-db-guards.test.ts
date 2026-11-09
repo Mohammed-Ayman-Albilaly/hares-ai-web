@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import 'dotenv/config';
 import { randomUUID } from 'node:crypto';
-import { Pool, type PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
+import { testPool } from '../test/global-setup';
 
 // ---------------------------------------------------------------------------
 // Database-level guard rails. These exercise the RAW SQL objects that Prisma
@@ -16,7 +17,7 @@ import { Pool, type PoolClient } from 'pg';
 // previous run may have left behind.
 // ---------------------------------------------------------------------------
 
-const pool = new Pool({
+const pool = testPool({
   connectionString:
     process.env.DATABASE_URL ?? 'postgresql://hares:hares@localhost:5432/hares',
 });

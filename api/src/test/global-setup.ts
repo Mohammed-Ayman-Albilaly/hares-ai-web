@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Pool } from 'pg';
+import { Pool, type PoolConfig } from 'pg';
 
 // ---------------------------------------------------------------------------
 // Vitest global setup: every test run gets its own throwaway database.
@@ -40,6 +40,45 @@ function withDatabase(url: string, db: string): string {
 }
 
 /**
+ * A pg Pool for the suites. The server closes a session with "terminating
+ * connection due to administrator command" (57P01) when its database is dropped
+ * WITH (FORCE); pg surfaces that on an idle client as an `error` event on the
+ * pool, which crashes the worker when nothing listens. Teardown is the only time
+ * this can happen (see dropTestDatabase), so log it instead.
+ */
+export function testPool(config: PoolConfig): Pool {
+  const pool = new Pool(config);
+  pool.on('error', (e) => console.warn(`[test-db] idle connection closed by the server: ${e.message}`));
+  return pool;
+}
+
+/**
+ * Drop a throwaway database once nothing is connected to it.
+ *
+ * `Pool.end()` resolves when the Terminate messages are queued, not when the
+ * server has closed the backends, and Vitest runs this teardown while the
+ * workers are still alive. A DROP ... WITH (FORCE) issued straight after the
+ * suites' `end()` calls therefore races the server: it can kill a backend that
+ * is still shutting down, and the client receives 57P01 as an unhandled error.
+ * Waiting for pg_stat_activity to drain (a few ms in practice) removes the
+ * race; FORCE is kept only for sessions a killed worker never closed. This is
+ * simpler than pg_terminate_backend, which would kill those same sessions and
+ * produce the very error we are avoiding.
+ */
+export async function dropTestDatabase(control: Pool, db: string): Promise<void> {
+  const deadline = Date.now() + 5000;
+  for (;;) {
+    const open = await control.query(
+      'SELECT 1 FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid() LIMIT 1',
+      [db],
+    );
+    if (open.rowCount === 0 || Date.now() > deadline) break;
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  await control.query(`DROP DATABASE IF EXISTS "${db}" WITH (FORCE)`);
+}
+
+/**
  * Turn a psql script into plain SQL for one database: drop psql meta-commands
  * and the role-creation query (fed to \gexec), substitute the app role name.
  */
@@ -72,7 +111,7 @@ export default async function setup(): Promise<(() => Promise<void>) | void> {
   const appUrl = process.env.APP_DATABASE_URL;
   if (!ownerUrl || !appUrl) return disableDbSuites('DATABASE_URL / APP_DATABASE_URL not set');
 
-  const control = new Pool({ connectionString: ownerUrl, connectionTimeoutMillis: 5000 });
+  const control = testPool({ connectionString: ownerUrl, connectionTimeoutMillis: 5000 });
   try {
     await control.query('SELECT 1');
   } catch {
@@ -113,7 +152,7 @@ export default async function setup(): Promise<(() => Promise<void>) | void> {
     const env = { ...process.env, DATABASE_URL: testOwnerUrl };
     run([path.join(API_DIR, 'node_modules', 'prisma', 'build', 'index.js'), 'migrate', 'deploy'], env);
 
-    const owner = new Pool({ connectionString: testOwnerUrl });
+    const owner = testPool({ connectionString: testOwnerUrl });
     try {
       await owner.query(psqlScriptToSql(path.join(API_DIR, 'db', 'roles.sql'), appRole));
       await owner.query(psqlScriptToSql(path.join(REPO_DIR, 'ops', 'revoke-audit-privileges.sql'), appRole));
@@ -129,7 +168,7 @@ export default async function setup(): Promise<(() => Promise<void>) | void> {
     });
   } catch (e) {
     try {
-      await control.query(`DROP DATABASE IF EXISTS "${db}" WITH (FORCE)`);
+      await dropTestDatabase(control, db);
     } finally {
       await control.end().catch(() => {});
     }
@@ -143,7 +182,7 @@ export default async function setup(): Promise<(() => Promise<void>) | void> {
 
   return async () => {
     try {
-      await control.query(`DROP DATABASE IF EXISTS "${db}" WITH (FORCE)`);
+      await dropTestDatabase(control, db);
     } finally {
       await control.end().catch(() => {});
     }
