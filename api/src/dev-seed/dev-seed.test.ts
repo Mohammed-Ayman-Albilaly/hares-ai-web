@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { LogEventSchema } from '@hares/contract';
 import { PrismaClient } from '../prisma/generated/client';
+import { testPool } from '../test/global-setup';
 import { dbEnabled, ownerUrl } from '../test/http-test-app';
 import { makeEvent, rng, seedDevData } from './dev-seed';
 
@@ -40,7 +41,7 @@ describe.skipIf(!dbEnabled)('dev seed (B11)', () => {
 
   beforeAll(() => {
     prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: ownerUrl }) });
-    owner = new Pool({ connectionString: ownerUrl });
+    owner = testPool({ connectionString: ownerUrl });
   });
 
   afterAll(async () => {

@@ -1,7 +1,8 @@
 import { describe, it, expect, afterAll } from 'vitest';
 import 'dotenv/config';
 import { randomUUID } from 'node:crypto';
-import { Pool, type PoolClient } from 'pg';
+import { type Pool, type PoolClient } from 'pg';
+import { testPool } from '../test/global-setup';
 
 // ---------------------------------------------------------------------------
 // Application-role privilege suite.
@@ -30,7 +31,7 @@ if (!appUrl) {
   );
 }
 
-const pool = appUrl ? new Pool({ connectionString: appUrl }) : null;
+const pool: Pool | null = appUrl ? testPool({ connectionString: appUrl }) : null;
 
 const RUN_SALT = randomUUID().replace(/-/g, '').slice(0, 12);
 function id(): string {

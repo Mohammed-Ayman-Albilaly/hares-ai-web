@@ -4,7 +4,8 @@ import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Pool } from 'pg';
+import type { Pool } from 'pg';
+import { dropTestDatabase, testPool } from '../test/global-setup';
 
 // ---------------------------------------------------------------------------
 // Tests for prisma/seed.ts.
@@ -12,6 +13,11 @@ import { Pool } from 'pg';
 // SAFETY: the seed runs against a throwaway database created fresh for this
 // suite and dropped afterwards, so the developer database (DATABASE_URL) is
 // never touched. Each scenario seeds from a clean slate.
+//
+// The drop waits for adminPool's session to be gone first (dropTestDatabase):
+// `Pool.end()` returns before the server has closed the socket, and dropping
+// WITH (FORCE) in that window killed the session and crashed the worker with
+// "terminating connection due to administrator command" after all tests passed.
 // ---------------------------------------------------------------------------
 
 const API_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -25,7 +31,7 @@ const DEV_URL = process.env.DATABASE_URL;
 // and skip the whole suite with a clear message instead of failing the run.
 let dbReachable = false;
 if (DEV_URL) {
-  const probe = new Pool({ connectionString: DEV_URL, connectionTimeoutMillis: 3000 });
+  const probe = testPool({ connectionString: DEV_URL, connectionTimeoutMillis: 3000 });
   try {
     await probe.query('select 1');
     dbReachable = true;
@@ -109,7 +115,7 @@ async function resetUsers(): Promise<void> {
 
 beforeAll(async () => {
   if (skipSuite) return;
-  controlPool = new Pool({ connectionString: DEV_URL });
+  controlPool = testPool({ connectionString: DEV_URL });
   await controlPool.query(`drop database if exists "${TEST_DB}"`);
   await controlPool.query(`create database "${TEST_DB}"`);
 
@@ -124,16 +130,14 @@ beforeAll(async () => {
     );
   }
 
-  adminPool = new Pool({ connectionString: TEST_URL });
+  adminPool = testPool({ connectionString: TEST_URL });
 });
 
 afterAll(async () => {
   if (skipSuite) return;
   await adminPool?.end().catch(() => {});
   if (controlPool) {
-    await controlPool
-      .query(`drop database if exists "${TEST_DB}" with (force)`)
-      .catch(() => {});
+    await dropTestDatabase(controlPool, TEST_DB).catch(() => {});
     await controlPool.end().catch(() => {});
   }
 });
