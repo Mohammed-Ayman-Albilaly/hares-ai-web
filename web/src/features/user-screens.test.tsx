@@ -113,7 +113,7 @@ describe('user dashboard', () => {
     });
     renderRoute('/dashboard');
     const alert = await screen.findByRole('alert');
-    expect(alert).toBeTruthy();
+    expect(within(alert).getByText('تعذّر تحميل البيانات')).toBeTruthy();
     fail = false;
     await userEvent.click(within(alert).getByRole('button', { name: 'إعادة المحاولة' }));
     expect(await screen.findByText('53')).toBeTruthy();
@@ -181,6 +181,18 @@ describe('activity and blocked pages', () => {
     expect(await screen.findByText('ChatGPT', { selector: 'td' })).toBeTruthy();
     const logCalls = m.fn.mock.calls.map((c) => String(c[0])).filter((u) => u.includes('/logs/mine'));
     expect(logCalls[logCalls.length - 1]).not.toContain('cursor=');
+  });
+
+  it('one page bar per list: its position is announced and previous is off on page 1', async () => {
+    mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1)], next_cursor: 'c2' }) });
+    renderRoute('/activity');
+    await screen.findByText('ChatGPT', { selector: 'td' });
+    // Two bars (one from the table, one from a nested view) would confuse a screen-reader user.
+    const navs = screen.getAllByRole('navigation', { name: 'التنقل بين الصفحات' });
+    expect(navs).toHaveLength(1);
+    expect(within(navs[0]!).getByText(/الصفحة ١|الصفحة 1/)).toBeTruthy();
+    expect((within(navs[0]!).getByRole('button', { name: 'السابق' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((within(navs[0]!).getByRole('button', { name: 'التالي' }) as HTMLButtonElement).disabled).toBe(false);
   });
 
   it('a filter change goes back to page 1, also when an earlier filter comes back', async () => {

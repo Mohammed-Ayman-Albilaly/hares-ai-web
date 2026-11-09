@@ -2,12 +2,12 @@ import { AUDIT_ACTIONS, AUDIT_TARGET_TYPES, type AuditEntryResponse, type AuditQ
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Page } from '@/components/Page';
-import { formatNumber } from '@/components/charts/direction';
 import { Button } from '@/components/ui/Button';
 import { I } from '@/components/ui/icons';
 import { Card, FilterBar } from '@/components/ui/layout';
 import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
+import { CursorNav } from '@/components/ui/PageNav';
 import { useKeysetList } from '@/features/logs/hooks';
 import { useDateTime } from '@/features/logs/LogTable';
 import { useLang } from '@/i18n/useLang';
@@ -69,7 +69,6 @@ function Detail({ detail }: { detail: AuditEntryResponse['detail'] }) {
 /** Read-only trail of administrator actions, newest first (WEB-FR-031, 066). Never edited or deleted. */
 export function AdminAuditPage() {
   const { t } = useTranslation();
-  const lang = useLang();
   const when = useDateTime();
   const [f, setF] = useState({ action_type: '', target_type: '', fromDay: '', toDay: '' });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
@@ -143,7 +142,16 @@ export function AdminAuditPage() {
           }
         >
           <Card padded={false}>
-            <div className="overflow-x-auto" style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}>
+            {/* Focusable scroll area: on a narrow screen the table scrolls sideways, and a keyboard user
+                needs a stop to scroll it (the rows hold no controls of their own). */}
+            <div
+              className="overflow-x-auto"
+              style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}
+              role="group"
+              aria-label={t('audit.tableCaption')}
+              aria-busy={query.isPlaceholderData || undefined}
+              tabIndex={0}
+            >
               <table className="h-table">
                 <caption className="sr-only">{t('audit.tableCaption')}</caption>
                 <thead>
@@ -175,17 +183,7 @@ export function AdminAuditPage() {
                 </tbody>
               </table>
             </div>
-            <nav className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-[12.5px] text-ink-4" aria-label={t('logs.pagination')}>
-              <div aria-live="polite">{t('logs.pageInfo', { page: formatNumber(page, lang), count: formatNumber(items.length, lang) })}</div>
-              <div className="flex gap-2">
-                <Button small variant="ghost" onClick={goPrev} disabled={!hasPrev}>
-                  {t('logs.prev')}
-                </Button>
-                <Button small variant="ghost" onClick={goNext} disabled={!hasNext}>
-                  {t('logs.next')}
-                </Button>
-              </div>
-            </nav>
+            <CursorNav page={page} count={items.length} hasPrev={hasPrev} hasNext={hasNext} onPrev={goPrev} onNext={goNext} />
           </Card>
         </DataState>
       )}

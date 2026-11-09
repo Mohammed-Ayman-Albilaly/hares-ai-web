@@ -31,6 +31,7 @@ export const en: Widen<typeof ar> = {
     forbiddenBody: 'Your current role cannot open this page. Ask a system administrator if you need it.',
     pageOf: 'Page {{page}} of {{pages}} · {{total}} results',
     errorTitle: 'This page could not be shown',
+    loadErrorTitle: 'The data could not be loaded',
     errorBody: 'The app may have been updated while it was open. Reload the page to continue.',
     reload: 'Reload the page',
     comingSoon: 'This screen is being prepared.',
