@@ -6,7 +6,7 @@ import { Page } from '@/components/Page';
 import { PolicyActionBadge, RiskBadge } from '@/components/ui/badges';
 import { Button } from '@/components/ui/Button';
 import { I } from '@/components/ui/icons';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { useDepartments } from '@/features/common/useDepartments';
 import { RuleForm } from '@/features/policy/RuleForm';
@@ -44,7 +44,7 @@ export function AdminRulesPage() {
         empty={<EmptyState title={t('rules.adminEmptyTitle')} body={t('rules.adminEmptyBody')} icon={<I.Settings size={20} />} />}
       >
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <TableScroller label={t('rules.tableCaption')}>
             <table className="h-table">
               <caption className="sr-only">{t('rules.tableCaption')}</caption>
               <thead>
@@ -86,7 +86,7 @@ export function AdminRulesPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroller>
         </Card>
       </DataState>
       {editing && <RuleForm key={editing === 'new' ? 'new' : editing.id} rule={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}

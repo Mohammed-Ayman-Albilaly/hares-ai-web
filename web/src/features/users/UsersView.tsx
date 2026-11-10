@@ -2,7 +2,7 @@ import { USER_STATUSES, type AdminUserResponse, type UserListResponse } from '@h
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Avatar, Card, FilterBar } from '@/components/ui/layout';
+import { Avatar, Card, FilterBar, TableScroller } from '@/components/ui/layout';
 import { PageNav } from '@/components/ui/PageNav';
 import { RoleBadge, StatusBadge } from '@/components/ui/badges';
 import { SelectField } from '@/components/ui/SelectField';
@@ -90,7 +90,7 @@ export function UsersView({ showDepartment, renderActions, emptyTitle, emptyBody
         empty={filtered ? <EmptyState title={t('logs.noResults')} body={t('logs.noResultsBody')} /> : <EmptyState title={emptyTitle} body={emptyBody} />}
       >
         <Card padded={false}>
-          <div className="overflow-x-auto" style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}>
+          <TableScroller label={t('users.tableCaption')} busy={query.isPlaceholderData} style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}>
             <table className="h-table">
               <caption className="sr-only">{t('users.tableCaption')}</caption>
               <thead>
@@ -134,7 +134,7 @@ export function UsersView({ showDepartment, renderActions, emptyTitle, emptyBody
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroller>
           {query.data && <PageNav page={query.data.page} pageSize={query.data.page_size} total={query.data.total} onPage={setPage} />}
         </Card>
       </DataState>

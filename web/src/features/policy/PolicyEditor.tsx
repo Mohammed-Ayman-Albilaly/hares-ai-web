@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RiskBadge } from '@/components/ui/badges';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 import { Toggle } from '@/components/ui/Toggle';
 import { apiErrorMessage } from '@/lib/errors';
 
@@ -39,7 +39,7 @@ export function PolicyEditor({ items, save, reset }: Props) {
 
   return (
     <Card padded={false}>
-      <div className="overflow-x-auto">
+      <TableScroller label={t('policy.tableCaption')}>
         <table className="h-table">
           <caption className="sr-only">{t('policy.tableCaption')}</caption>
           <thead>
@@ -116,7 +116,7 @@ export function PolicyEditor({ items, save, reset }: Props) {
             })}
           </tbody>
         </table>
-      </div>
+      </TableScroller>
     </Card>
   );
 }

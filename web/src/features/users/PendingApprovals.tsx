@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Modal } from '@/components/ui/Modal';
 import { I } from '@/components/ui/icons';
-import { Avatar, Card } from '@/components/ui/layout';
+import { Avatar, Card, TableScroller } from '@/components/ui/layout';
 import { PageNav } from '@/components/ui/PageNav';
 import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
@@ -128,7 +128,7 @@ export function PendingApprovals() {
         empty={<EmptyState title={t('pending.emptyTitle')} body={t('pending.emptyBody')} icon={<I.Check size={20} />} />}
       >
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <TableScroller label={t('pending.tableCaption')}>
             <table className="h-table">
               <caption className="sr-only">{t('pending.tableCaption')}</caption>
               <thead>
@@ -169,7 +169,7 @@ export function PendingApprovals() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroller>
           {q.data && <PageNav page={q.data.page} pageSize={q.data.page_size} total={q.data.total} onPage={setPage} />}
         </Card>
       </DataState>

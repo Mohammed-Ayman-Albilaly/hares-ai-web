@@ -11,7 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { TextField } from '@/components/ui/TextField';
 import { I } from '@/components/ui/icons';
 import { formatNumber } from '@/components/charts/direction';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { invalidateAdmin } from '@/features/common/invalidate';
 import { useDepartments } from '@/features/common/useDepartments';
@@ -113,7 +113,7 @@ export function AdminDepartmentsPage() {
         empty={<EmptyState title={t('departments.emptyTitle')} body={t('departments.emptyBody')} icon={<I.Departments size={20} />} />}
       >
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <TableScroller label={t('departments.tableCaption')}>
             <table className="h-table">
               <caption className="sr-only">{t('departments.tableCaption')}</caption>
               <thead>
@@ -153,7 +153,7 @@ export function AdminDepartmentsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroller>
         </Card>
       </DataState>
       {editing && <NameDialog key={editing === 'new' ? 'new' : editing.id} department={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}

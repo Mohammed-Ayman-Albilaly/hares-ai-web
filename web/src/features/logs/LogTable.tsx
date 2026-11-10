@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActionBadge, DecisionBadge, RiskBadge } from '@/components/ui/badges';
 import { I } from '@/components/ui/icons';
+import { TableScroller } from '@/components/ui/layout';
 import { useLang } from '@/i18n/useLang';
 
 export function useDateTime() {
@@ -35,7 +36,7 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
   const cols = 6 + (showUser ? 2 : 0) + (compact ? 0 : 1);
 
   return (
-    <div className="overflow-x-auto" style={{ opacity: busy ? 0.6 : 1 }} aria-busy={busy || undefined}>
+    <TableScroller label={t('logs.tableCaption')} busy={busy} style={{ opacity: busy ? 0.6 : 1 }}>
       <table className="h-table">
         <caption className="sr-only">{t('logs.tableCaption')}</caption>
         <thead>
@@ -158,6 +159,6 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
           })}
         </tbody>
       </table>
-    </div>
+    </TableScroller>
   );
 }

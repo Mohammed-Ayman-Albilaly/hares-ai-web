@@ -2,7 +2,7 @@ import { CATEGORY_CODES, type CategoryPolicyEntry, type DepartmentPolicyResponse
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { PolicyActionBadge } from '@/components/ui/badges';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 import { DataState, TableSkeleton } from '@/components/ui/states';
 import { useDepartments } from '@/features/common/useDepartments';
 import { api } from '@/lib/api';
@@ -58,7 +58,7 @@ export function PolicyMatrix() {
       skeleton={<TableSkeleton rows={8} />}
     >
       <Card padded={false}>
-        <div className="overflow-x-auto">
+        <TableScroller label={t('policy.matrixCaption')}>
           <table className="h-table">
             <caption className="sr-only">{t('policy.matrixCaption')}</caption>
             <thead>
@@ -84,7 +84,7 @@ export function PolicyMatrix() {
               ))}
             </tbody>
           </table>
-        </div>
+        </TableScroller>
       </Card>
     </DataState>
   );

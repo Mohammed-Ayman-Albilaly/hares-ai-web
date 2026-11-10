@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { IconComponent } from './icons';
 import { formatNumber } from '@/components/charts/direction';
@@ -111,5 +111,43 @@ export function Avatar({ name, size = 28 }: { name: string; size?: number }) {
   return (
     // The initials are drawn by CSS from data-initials: decoration, not page text.
     <div className="avatar" aria-hidden="true" data-initials={initials} style={{ width: size, height: size, fontSize: size * 0.4 }} />
+  );
+}
+
+/**
+ * The scroll box around a wide table. On a narrow screen the table scrolls
+ * sideways, so the box needs a keyboard stop to be scrolled and a name to be
+ * announced (axe: `scrollable-region-focusable`). `label` is the table's
+ * caption text, so the region and the table carry the same name.
+ *
+ * The focus ring is the app's single `:focus-visible` rule in index.css (3px
+ * `--accent` outline), the same one every control uses.
+ */
+export function TableScroller({
+  label,
+  busy,
+  style,
+  className = '',
+  children,
+}: {
+  /** The table's caption text. */
+  label: string;
+  /** Dims the rows while the next page loads; also announced as busy. */
+  busy?: boolean;
+  style?: CSSProperties;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={`overflow-x-auto ${className}`}
+      style={style}
+      role="group"
+      aria-label={label}
+      aria-busy={busy || undefined}
+      tabIndex={0}
+    >
+      {children}
+    </div>
   );
 }

@@ -2,7 +2,7 @@ import type { TopRiskyUsersResponse } from '@hares/contract';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/components/charts/direction';
-import { Avatar, Card, Section } from '@/components/ui/layout';
+import { Avatar, Card, Section, TableScroller } from '@/components/ui/layout';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { useLang } from '@/i18n/useLang';
 import { api } from '@/lib/api';
@@ -31,7 +31,7 @@ export function TopRiskyUsers({ days, extra = {} }: { days: number; extra?: Reco
         empty={<EmptyState title={t('dash.noRiskyUsers')} body={t('dash.noRiskyUsersBody')} />}
       >
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <TableScroller label={t('dash.topUsers')}>
             <table className="h-table">
               <caption className="sr-only">{t('dash.topUsers')}</caption>
               <thead>
@@ -60,7 +60,7 @@ export function TopRiskyUsers({ days, extra = {} }: { days: number; extra?: Reco
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroller>
         </Card>
       </DataState>
     </Section>

@@ -2,7 +2,7 @@ import type { CustomRuleResponse } from '@hares/contract';
 import { useTranslation } from 'react-i18next';
 import { PolicyActionBadge, RiskBadge } from '@/components/ui/badges';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 
 /**
  * Detection rules; with `onEdit`, editable rows get an Edit button. The text of a TOPIC rule is never shown here: it
@@ -12,7 +12,7 @@ export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onE
   const { t } = useTranslation();
   return (
     <Card padded={false}>
-      <div className="overflow-x-auto">
+      <TableScroller label={t('rules.tableCaption')}>
         <table className="h-table">
           <caption className="sr-only">{t('rules.tableCaption')}</caption>
           <thead>
@@ -68,7 +68,7 @@ export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onE
             ))}
           </tbody>
         </table>
-      </div>
+      </TableScroller>
     </Card>
   );
 }

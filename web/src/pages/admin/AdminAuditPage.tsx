@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Page } from '@/components/Page';
 import { Button } from '@/components/ui/Button';
 import { I } from '@/components/ui/icons';
-import { Card, FilterBar } from '@/components/ui/layout';
+import { Card, FilterBar, TableScroller } from '@/components/ui/layout';
 import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { CursorNav } from '@/components/ui/PageNav';
@@ -144,14 +144,7 @@ export function AdminAuditPage() {
           <Card padded={false}>
             {/* Focusable scroll area: on a narrow screen the table scrolls sideways, and a keyboard user
                 needs a stop to scroll it (the rows hold no controls of their own). */}
-            <div
-              className="overflow-x-auto"
-              style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}
-              role="group"
-              aria-label={t('audit.tableCaption')}
-              aria-busy={query.isPlaceholderData || undefined}
-              tabIndex={0}
-            >
+            <TableScroller label={t('audit.tableCaption')} busy={query.isPlaceholderData} style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}>
               <table className="h-table">
                 <caption className="sr-only">{t('audit.tableCaption')}</caption>
                 <thead>
@@ -182,7 +175,7 @@ export function AdminAuditPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </TableScroller>
             <CursorNav page={page} count={items.length} hasPrev={hasPrev} hasNext={hasNext} onPrev={goPrev} onNext={goNext} />
           </Card>
         </DataState>
