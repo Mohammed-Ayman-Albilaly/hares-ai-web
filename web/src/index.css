@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
-/* Latin text and numbers: Inter Tight (text and display), JetBrains Mono (patterns).
-   Arabic text falls back, glyph by glyph, to IBM Plex Sans Arabic. */
+/* Body: Inter Tight for Latin, IBM Plex Sans Arabic for Arabic glyphs.
+   Headings and display numbers: IBM Plex Sans Arabic alone (it carries Latin too). */
 @import '@fontsource/inter-tight/latin-400.css';
 @import '@fontsource/inter-tight/latin-500.css';
 @import '@fontsource/inter-tight/latin-600.css';
@@ -10,8 +10,8 @@
 @import '@fontsource/jetbrains-mono/latin-500.css';
 @import '@fontsource/ibm-plex-sans-arabic/arabic-400.css';
 @import '@fontsource/ibm-plex-sans-arabic/arabic-500.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-600.css';
-@import '@fontsource/ibm-plex-sans-arabic/arabic-700.css';
+@import '@fontsource/ibm-plex-sans-arabic/600.css';
+@import '@fontsource/ibm-plex-sans-arabic/700.css';
 
 /*
  * Design tokens. Source: the Hares AI front-end prototype (docs/design/prototype),
@@ -82,7 +82,7 @@
   --focus-ring: 0 0 0 3px var(--accent-soft);
 
   --font-sans: 'Inter Tight', 'IBM Plex Sans Arabic', -apple-system, 'Segoe UI', Tahoma, system-ui, sans-serif;
-  --font-display: 'Inter Tight', 'IBM Plex Sans Arabic', sans-serif;
+  --font-display: 'IBM Plex Sans Arabic', 'IBM Plex Sans', -apple-system, 'Segoe UI', Tahoma, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   color-scheme: light;
@@ -236,18 +236,14 @@
 }
 
 @layer components {
-  .serif {
+  /* Headings: sans, weight 600, no serif anywhere. */
+  .display {
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.02em;
   }
-  .mono {
-    font-family: var(--font-mono);
-  }
-  /* Arabic headlines in the display slot use the sans weight instead of a serif look. */
-  :lang(ar) .serif {
-    font-family: var(--font-sans);
-    font-weight: 600;
+  /* Arabic letters join: no tracking in the heading slot either. */
+  :lang(ar) .display {
     letter-spacing: 0;
   }
   /* Large numbers keep the display face in both languages (Western digits). */
