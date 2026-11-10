@@ -11,7 +11,7 @@ import { TextField } from '@/components/ui/TextField';
 import { api, ApiError } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@/lib/form';
-import { AuthHeading, AuthShell, FormAlert } from './AuthShell';
+import { AuthHeading, AuthMark, AuthShell, FormAlert } from './AuthShell';
 
 /** The contract's rules plus a "type it twice" check that exists only in the form. */
 const FormSchema = z
@@ -53,9 +53,9 @@ export function RegisterPage() {
       <AuthShell
         title={t('auth.pendingTitle')}
         icon={
-          <div className="grid size-12 place-items-center rounded-xl" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
+          <AuthMark>
             <I.Check size={22} />
-          </div>
+          </AuthMark>
         }
       >
         <AuthHeading title={t('auth.pendingTitle')} />
@@ -73,7 +73,10 @@ export function RegisterPage() {
       <AuthHeading title={t('auth.createAccount')} subtitle={t('auth.registerSubtitle')} />
       {formError && <FormAlert>{formError}</FormAlert>}
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-        <div className="text-[11.5px] font-medium text-ink-4">{t('auth.sectionIdentity')}</div>
+        <div className="mt-1 flex items-center gap-2">
+          <span className="text-[11.5px] font-semibold text-ink-3">{t('auth.sectionIdentity')}</span>
+          <span className="h-px flex-1 bg-line" aria-hidden="true" />
+        </div>
         <TextField label={t('auth.fullName')} autoComplete="name" error={errors.full_name?.message} {...register('full_name')} />
         <TextField
           label={t('auth.email')}
@@ -83,7 +86,10 @@ export function RegisterPage() {
           error={errors.email?.message}
           {...register('email')}
         />
-        <div className="mt-2 text-[11.5px] font-medium text-ink-4">{t('auth.sectionSecurity')}</div>
+        <div className="mt-2 flex items-center gap-2">
+          <span className="text-[11.5px] font-semibold text-ink-3">{t('auth.sectionSecurity')}</span>
+          <span className="h-px flex-1 bg-line" aria-hidden="true" />
+        </div>
         <div>
           <TextField label={t('auth.password')} type="password" autoComplete="new-password" error={errors.password?.message} {...register('password')} />
           <PasswordStrength password={password} />

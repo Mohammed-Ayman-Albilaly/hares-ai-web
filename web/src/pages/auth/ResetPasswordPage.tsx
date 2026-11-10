@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { PasswordStrength } from '@/components/ui/PasswordStrength';
 import { TextField } from '@/components/ui/TextField';
+import { I } from '@/components/ui/icons';
 import { api } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@/lib/form';
@@ -91,9 +92,13 @@ export function ResetPasswordPage() {
           {t('auth.resetSubmit')}
         </Button>
       </form>
-      <p className="m-0 mt-[22px] text-center text-[13px] text-ink-3">
-        <Link to="/login" className="text-ink-3 no-underline hover:underline">
-          ← {t('auth.backToLogin')}
+      <p className="m-0 mt-3 text-center text-[13px]">
+        <Link
+          to="/login"
+          className="inline-flex min-h-[44px] items-center gap-1.5 text-ink-3 no-underline hover:text-ink hover:underline"
+        >
+          <I.ChevronEnd size={14} className="rotate-180 rtl:rotate-0" />
+          {t('auth.backToLogin')}
         </Link>
       </p>
     </AuthShell>

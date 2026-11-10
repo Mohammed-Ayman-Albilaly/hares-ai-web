@@ -9,7 +9,7 @@ import { TextField } from '@/components/ui/TextField';
 import { api } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@/lib/form';
-import { AuthHeading, AuthShell, FormAlert } from './AuthShell';
+import { AuthHeading, AuthMark, AuthShell, FormAlert } from './AuthShell';
 
 /**
  * WEB-FR-007. The answer is the same for a registered and an unknown email
@@ -38,11 +38,7 @@ export function ForgotPasswordPage() {
   return (
     <AuthShell
       title={t('auth.forgotTitle')}
-      icon={
-        <div className="grid size-12 place-items-center rounded-xl" style={{ background: 'var(--accent-soft)', color: 'var(--accent)' }}>
-          {sent ? <I.Check size={22} /> : <I.Mail size={22} />}
-        </div>
-      }
+      icon={<AuthMark>{sent ? <I.Check size={22} /> : <I.Mail size={22} />}</AuthMark>}
     >
       {sent ? (
         <>
@@ -73,9 +69,13 @@ export function ForgotPasswordPage() {
           </form>
         </>
       )}
-      <p className="m-0 mt-[22px] text-center text-[13px] text-ink-3">
-        <Link to="/login" className="text-ink-3 no-underline hover:underline">
-          ← {t('auth.backToLogin')}
+      <p className="m-0 mt-3 text-center text-[13px]">
+        <Link
+          to="/login"
+          className="inline-flex min-h-[44px] items-center gap-1.5 text-ink-3 no-underline hover:text-ink hover:underline"
+        >
+          <I.ChevronEnd size={14} className="rotate-180 rtl:rotate-0" />
+          {t('auth.backToLogin')}
         </Link>
       </p>
     </AuthShell>
