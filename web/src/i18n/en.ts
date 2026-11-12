@@ -163,6 +163,7 @@ export const en: Widen<typeof ar> = {
   },
   profile: {
     title: 'My profile',
+    details: 'Account details',
     name: 'Name',
     email: 'Email',
     department: 'Department',

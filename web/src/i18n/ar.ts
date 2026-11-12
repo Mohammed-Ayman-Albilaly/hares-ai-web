@@ -163,6 +163,7 @@ export const ar = {
   },
   profile: {
     title: 'ملفي الشخصي',
+    details: 'بيانات الحساب',
     name: 'الاسم',
     email: 'البريد الإلكتروني',
     department: 'الإدارة',
