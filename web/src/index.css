@@ -371,7 +371,8 @@
     color: var(--ink-4);
     background: var(--surface-3);
   }
-  .field .hint {
+  /* A hint under a field or under a cell value: one step down from body text, not a status. */
+  .hint {
     font-size: 12px;
     color: var(--ink-4);
   }

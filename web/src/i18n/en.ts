@@ -305,6 +305,7 @@ export const en: Widen<typeof ar> = {
     blockedEmptyTitle: 'No blocked messages',
     blockedEmptyBody: 'None of your messages were blocked. Messages Hares stops will appear here.',
     firstUsersOnly: 'Only the first {{count}} users are listed',
+    userListError: 'The user list could not be loaded. The filter is unavailable until it loads.',
     orgEmptyTitle: 'No organisation activity yet',
     orgEmptyBody: 'Messages Hares scans for all staff will appear here.',
     deptEmptyTitle: 'No department activity yet',

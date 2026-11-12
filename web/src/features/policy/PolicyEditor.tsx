@@ -63,7 +63,7 @@ export function PolicyEditor({ items, save, reset }: Props) {
               // One save at a time: a second row cannot overwrite the first row's state.
               const locked = busy !== null;
               return (
-                <tr key={p.category_code}>
+                <tr key={p.category_code} aria-busy={rowBusy || undefined}>
                   <td className="font-medium text-ink">
                     {name}
                     {p.category_code === 'PERSONAL_IDENTITY' && <div className="hint">{t('policy.personalIdentityHint')}</div>}
@@ -79,7 +79,7 @@ export function PolicyEditor({ items, save, reset }: Props) {
                   <td>
                     <select
                       className="control"
-                      style={{ minWidth: 110, padding: '6px 10px' }}
+                      style={{ minWidth: 110 }}
                       aria-label={t('policy.actionFor', { name })}
                       value={p.action}
                       disabled={locked}
@@ -101,9 +101,11 @@ export function PolicyEditor({ items, save, reset }: Props) {
                       onChange={(enabled) => void run(p.category_code, () => save(p.category_code, { action: p.action, enabled }))}
                     />
                   </td>
-                  <td style={{ color: 'var(--ink-3)' }}>{rowBusy ? t('policy.saving') : t(`policy.sources.${p.source}`)}</td>
+                  <td className="cell-muted" aria-live="polite">
+                    {rowBusy ? t('policy.saving') : t(`policy.sources.${p.source}`)}
+                  </td>
                   {reset && (
-                    <td>
+                    <td className="cell-actions">
                       {p.source === 'DEPARTMENT' && (
                         <Button small variant="ghost" disabled={locked} onClick={() => void run(p.category_code, () => reset(p.category_code))} aria-label={t('policy.resetFor', { name })}>
                           {t('policy.reset')}

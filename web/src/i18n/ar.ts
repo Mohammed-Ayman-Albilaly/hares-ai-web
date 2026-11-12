@@ -305,6 +305,7 @@ export const ar = {
     blockedEmptyTitle: 'لا توجد رسائل محظورة',
     blockedEmptyBody: 'لم يُحظر لك أي رسالة. ستظهر هنا الرسائل التي يمنعها حارس.',
     firstUsersOnly: 'تظهر أول {{count}} مستخدماً فقط',
+    userListError: 'تعذّر تحميل قائمة المستخدمين. الفلتر غير متاح حتى تُحمّل.',
     orgEmptyTitle: 'لا يوجد نشاط في المؤسسة بعد',
     orgEmptyBody: 'ستظهر هنا رسائل جميع الموظفين التي يفحصها حارس.',
     deptEmptyTitle: 'لا يوجد نشاط في الإدارة بعد',

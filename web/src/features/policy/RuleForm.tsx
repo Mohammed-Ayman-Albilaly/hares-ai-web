@@ -127,7 +127,7 @@ export function RuleForm({
           {...register('definition')}
         />
         {kind === 'TOPIC' && (
-          <div className="card px-3.5 py-3 text-[13px]" role="note" style={{ background: 'var(--risk-med-soft)', color: 'var(--risk-med)' }}>
+          <div className="card px-3.5 py-3 text-[13px]" role="note" style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }}>
             {t('rules.topicWarning')} {t('rules.topicNotEnforced')}
           </div>
         )}

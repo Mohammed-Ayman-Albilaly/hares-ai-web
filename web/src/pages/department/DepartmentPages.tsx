@@ -55,17 +55,30 @@ export function DepartmentLogsPage() {
         onClearExtra={() => setUserId('')}
         extraValues={userId ? { user_id: userId } : {}}
         extraFilters={
-          <SelectField label={t('logs.user')} value={userId} onChange={(e) => setUserId(e.target.value)} disabled={users.isLoading} aria-invalid={users.isError || undefined}>
-            <option value="">{t('logs.all')}</option>
-            {(users.data?.items ?? []).map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.full_name}
-              </option>
-            ))}
-            {users.data && users.data.total > users.data.items.length && (
-              <option disabled>{t('logs.firstUsersOnly', { count: users.data.items.length })}</option>
+          <>
+            <SelectField
+              label={t('logs.user')}
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              disabled={users.isLoading}
+              aria-describedby={users.isError ? 'f-user-err' : undefined}
+            >
+              <option value="">{t('logs.all')}</option>
+              {(users.data?.items ?? []).map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.full_name}
+                </option>
+              ))}
+              {users.data && users.data.total > users.data.items.length && (
+                <option disabled>{t('logs.firstUsersOnly', { count: users.data.items.length })}</option>
+              )}
+            </SelectField>
+            {users.isError && (
+              <div id="f-user-err" className="err w-full" role="alert">
+                {t('logs.userListError')}
+              </div>
             )}
-          </SelectField>
+          </>
         }
         emptyTitle={t('logs.deptEmptyTitle')}
         emptyBody={t('logs.deptEmptyBody')}
@@ -113,7 +126,7 @@ export function DepartmentPolicyPage() {
   return (
     <Page title={t('nav.deptPolicy')} group="department">
       <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
-        <I.Shield size={16} />
+        <I.Shield size={16} className="shrink-0" />
         <span>{t('policy.deptEditNote')}</span>
       </div>
       <DataState
@@ -156,7 +169,7 @@ export function DepartmentRulesPage() {
       }
     >
       <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
-        <I.Lock size={16} />
+        <I.Lock size={16} className="shrink-0" />
         <span>{t('rules.deptRulesNote')}</span>
       </div>
       <DataState

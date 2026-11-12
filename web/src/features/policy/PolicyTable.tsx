@@ -31,7 +31,7 @@ export function PolicyTable({ items }: { items: CategoryPolicyEntry[] }) {
                   <PolicyActionBadge action={p.action} />
                 </td>
                 <td>{p.enabled ? t('policy.on') : t('policy.off')}</td>
-                <td style={{ color: 'var(--ink-3)' }}>{t(`policy.sources.${p.source}`)}</td>
+                <td className="cell-muted">{t(`policy.sources.${p.source}`)}</td>
               </tr>
             ))}
           </tbody>

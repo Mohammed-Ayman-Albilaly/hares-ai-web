@@ -37,10 +37,18 @@ export function TopRiskyUsers({ days, extra = {} }: { days: number; extra?: Reco
               <thead>
                 <tr>
                   <th scope="col">{t('users.user')}</th>
-                  <th scope="col">{t('dash.highEvents')}</th>
-                  <th scope="col">{t('dash.blocked')}</th>
-                  <th scope="col">{t('dash.warned')}</th>
-                  <th scope="col">{t('dash.totalEvents')}</th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.highEvents')}
+                  </th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.blocked')}
+                  </th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.warned')}
+                  </th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.totalEvents')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -52,10 +60,10 @@ export function TopRiskyUsers({ days, extra = {} }: { days: number; extra?: Reco
                         <span className="font-medium text-ink">{u.user_name}</span>
                       </div>
                     </td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.high, lang)}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.blocked, lang)}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.warned, lang)}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.total, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.high, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.blocked, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.warned, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.total, lang)}</td>
                   </tr>
                 ))}
               </tbody>
