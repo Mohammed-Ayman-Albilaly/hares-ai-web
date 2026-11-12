@@ -254,6 +254,7 @@ export const en: Widen<typeof ar> = {
     day: 'Day',
     showTable: 'Show as table',
     showChart: 'Show as chart',
+    noChartData: 'No data in this period',
     recent: 'Recent activity',
     recentSub: 'Your last 6 scanned messages',
     viewAll: 'View the full log',

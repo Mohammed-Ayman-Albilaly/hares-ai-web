@@ -120,6 +120,9 @@ export function Avatar({ name, size = 28 }: { name: string; size?: number }) {
  * announced (axe: `scrollable-region-focusable`). `label` is the table's
  * caption text, so the region and the table carry the same name.
  *
+ * A box that also scrolls down (a chart's table view, held to the chart's
+ * height) passes `className="max-h-[…] overflow-y-auto"`.
+ *
  * The focus ring is the app's single `:focus-visible` rule in index.css (3px
  * `--accent` outline), the same one every control uses.
  */

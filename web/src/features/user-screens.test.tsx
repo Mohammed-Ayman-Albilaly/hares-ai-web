@@ -103,6 +103,21 @@ describe('user dashboard', () => {
     expect(await screen.findByText('لا يوجد نشاط في هذه الفترة')).toBeTruthy();
   });
 
+  it('a chart with no rows says so and offers no empty table', async () => {
+    mockFetch({
+      ...refresh,
+      'GET /api/dashboard/mine/summary': () => json({ ...summary, platforms: [], top_categories: [] }),
+      'GET /api/dashboard/mine/timeseries': () => json(series),
+      'GET /api/logs/mine': () => json({ items: [], next_cursor: null }),
+    });
+    renderRoute('/dashboard');
+    expect(await screen.findAllByText('لا توجد بيانات في هذه الفترة')).toHaveLength(2);
+    // The two charts that do have rows keep their table switch; the empty ones cannot be switched.
+    const toggles = screen.getAllByRole('button', { name: 'عرض كجدول' });
+    expect(toggles).toHaveLength(4);
+    expect(toggles.filter((b) => (b as HTMLButtonElement).disabled)).toHaveLength(2);
+  });
+
   it('error: shows a message and retry loads it again', async () => {
     let fail = true;
     mockFetch({

@@ -69,12 +69,19 @@ Implemented in `web/src/index.css`.
 ## What was checked automatically
 
 - `pnpm --filter @hares/web typecheck` — TypeScript, no errors.
-- `pnpm --filter @hares/web test` — Vitest, **93 tests in 7 files pass** after
+- `pnpm --filter @hares/web test` — Vitest, **99 tests in 8 files pass** after
   every phase step. This includes `jest-axe` checks on the login, landing,
   department users, activity and audit screens.
 - `i18n.test.ts` — Arabic/English key parity and no Arabic-Indic digits.
 - The contrast ratios above were calculated from the hex values (WCAG relative
   luminance); they have not yet been re-measured in a browser.
+- Charts (DGA phase 3, group 3): every chart colour, the tooltip box, the
+  gridlines and the axis text come from the tokens, so a chart follows the
+  light/dark theme; counts take the Saudi-green accent and only risk levels use
+  the risk colours; the risk pie carries four decal patterns so it is readable
+  without colour. Measured in the browser in both themes and in Arabic RTL
+  (computed fills, decal ink, tooltip surface, legend order, no page overflow
+  at 360px).
 
 ## What still needs manual validation
 
@@ -94,11 +101,8 @@ Implemented in `web/src/index.css`.
    `prefers-reduced-motion` on the drawer and dialogs.
 7. **Official DGA review.** No certification has been requested or received.
 
-## Known gaps after Phase 1
+## Known gaps after Phase 2
 
-- The `ConfirmModal` warning icon is still shown for non-destructive actions.
-- The chart "show as table" button changes both its label and `aria-pressed`.
-- Breadcrumbs are a plain text line (`Page` `crumb`), not a linked navigation.
 - No toast component; success is shown inline.
 - The full-suite Vitest run showed two route-guard timeouts once under parallel
   load; both passed in isolation and in later full runs. Treat as flaky, not fixed.

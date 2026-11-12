@@ -254,6 +254,7 @@ export const ar = {
     day: 'اليوم',
     showTable: 'عرض كجدول',
     showChart: 'عرض كرسم',
+    noChartData: 'لا توجد بيانات في هذه الفترة',
     recent: 'آخر النشاط',
     recentSub: 'آخر 6 رسائل تم فحصها',
     viewAll: 'عرض السجل كاملاً',
