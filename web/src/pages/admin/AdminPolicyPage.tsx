@@ -46,9 +46,9 @@ export function AdminPolicyPage() {
   };
 
   return (
-    <Page title={t('nav.adminPolicy')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminPolicy')} group="organization">
       <Section title={t('policy.orgTitle')} sub={org.data ? t('policy.version', { version: org.data.version }) : undefined}>
-        <DataState isLoading={org.isLoading} isError={org.isError} error={org.error} refetch={() => void org.refetch()} skeleton={<TableSkeleton rows={10} />}>
+        <DataState isLoading={org.isLoading} isError={org.isError} error={org.error} refetch={() => void org.refetch()} isEmpty={org.data?.items.length === 0} empty={<EmptyState title={t('policy.emptyTitle')} body={t('policy.emptyBody')} />} skeleton={<TableSkeleton rows={10} />}>
           {org.data && <PolicyEditor items={org.data.items} save={saveOrg} />}
         </DataState>
       </Section>
@@ -67,7 +67,7 @@ export function AdminPolicyPage() {
         {!departmentId ? (
           <EmptyState title={t('policy.pickDepartmentTitle')} body={t('policy.pickDepartmentBody')} />
         ) : (
-          <DataState isLoading={dept.isLoading} isError={dept.isError} error={dept.error} refetch={() => void dept.refetch()} skeleton={<TableSkeleton rows={10} />}>
+          <DataState isLoading={dept.isLoading} isError={dept.isError} error={dept.error} refetch={() => void dept.refetch()} isEmpty={dept.data?.items.length === 0} empty={<EmptyState title={t('policy.emptyTitle')} body={t('policy.emptyBody')} />} skeleton={<TableSkeleton rows={10} />}>
             {dept.data && <PolicyEditor key={departmentId} items={dept.data.items} save={saveDept} reset={resetDept} />}
           </DataState>
         )}

@@ -2,12 +2,12 @@ import { AUDIT_ACTIONS, AUDIT_TARGET_TYPES, type AuditEntryResponse, type AuditQ
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Page } from '@/components/Page';
-import { formatNumber } from '@/components/charts/direction';
 import { Button } from '@/components/ui/Button';
 import { I } from '@/components/ui/icons';
-import { Card, FilterBar } from '@/components/ui/layout';
+import { Card, FilterBar, TableScroller } from '@/components/ui/layout';
 import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
+import { CursorNav } from '@/components/ui/PageNav';
 import { useKeysetList } from '@/features/logs/hooks';
 import { useDateTime } from '@/features/logs/LogTable';
 import { useLang } from '@/i18n/useLang';
@@ -19,12 +19,47 @@ const dayStart = (day: string, plusDays = 0) => {
 
 /** Short, non-sensitive facts of one entry (ids, enum values, old/new names), as small tags. */
 function Detail({ detail }: { detail: AuditEntryResponse['detail'] }) {
+  const { t } = useTranslation();
+  const lang = useLang();
+  const list = new Intl.ListFormat(lang, { style: 'narrow', type: 'conjunction' });
+
+  /** Enum values and field names are translated; names and ids are shown as they are. */
+  const value = (key: string, raw: unknown): string => {
+    if (raw === null || raw === undefined) return '—';
+    if (Array.isArray(raw)) return list.format(raw.map((item) => value(key, item)));
+    if (typeof raw === 'boolean') return t(raw ? 'policy.on' : 'policy.off');
+    if (typeof raw !== 'string') return String(raw);
+    switch (key) {
+      case 'role':
+      case 'old_role':
+      case 'new_role':
+        return t(`roles.${raw}`, { defaultValue: raw });
+      case 'risk_level':
+        return t(`risk.${raw}`, { defaultValue: raw });
+      case 'action':
+      case 'old_action':
+        return t(`policyAction.${raw}`, { defaultValue: raw });
+      case 'kind':
+        return t(`rules.kinds.${raw}`, { defaultValue: raw });
+      case 'scope':
+        return t(`rules.scopes.${raw}`, { defaultValue: raw });
+      case 'category_code':
+        return t(`category.${raw}`, { defaultValue: raw });
+      case 'change':
+        return t(`audit.changes.${raw}`, { defaultValue: raw });
+      default:
+        return raw;
+    }
+  };
+
   if (!detail || Object.keys(detail).length === 0) return <span className="text-ink-4">—</span>;
   return (
-    <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0" dir="ltr">
+    <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
       {Object.entries(detail).map(([k, v]) => (
-        <li key={k} className="h-pill role-user" style={{ fontSize: 11 }}>
-          {k}: {Array.isArray(v) ? v.join(', ') : String(v)}
+        <li key={k} dir="auto" className="h-pill role-user" style={{ fontSize: 11 }}>
+          <span className="font-medium">{t(`audit.fields.${k}`, { defaultValue: k })}</span>
+          {': '}
+          <bdi>{value(k, v)}</bdi>
         </li>
       ))}
     </ul>
@@ -34,7 +69,6 @@ function Detail({ detail }: { detail: AuditEntryResponse['detail'] }) {
 /** Read-only trail of administrator actions, newest first (WEB-FR-031, 066). Never edited or deleted. */
 export function AdminAuditPage() {
   const { t } = useTranslation();
-  const lang = useLang();
   const when = useDateTime();
   const [f, setF] = useState({ action_type: '', target_type: '', fromDay: '', toDay: '' });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
@@ -55,7 +89,7 @@ export function AdminAuditPage() {
   const clear = () => setF({ action_type: '', target_type: '', fromDay: '', toDay: '' });
 
   return (
-    <Page title={t('nav.adminAudit')} crumb={t('navGroup.organization')}>
+    <Page title={t('nav.adminAudit')} group="organization">
       <FilterBar>
         <SelectField label={t('audit.action')} value={f.action_type} onChange={set('action_type')}>
           <option value="">{t('logs.all')}</option>
@@ -108,7 +142,9 @@ export function AdminAuditPage() {
           }
         >
           <Card padded={false}>
-            <div className="overflow-x-auto" style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}>
+            {/* Focusable scroll area: on a narrow screen the table scrolls sideways, and a keyboard user
+                needs a stop to scroll it (the rows hold no controls of their own). */}
+            <TableScroller label={t('audit.tableCaption')} busy={query.isPlaceholderData} style={{ opacity: query.isPlaceholderData ? 0.6 : 1 }}>
               <table className="h-table">
                 <caption className="sr-only">{t('audit.tableCaption')}</caption>
                 <thead>
@@ -139,18 +175,8 @@ export function AdminAuditPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
-            <nav className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-[12.5px] text-ink-4" aria-label={t('logs.pagination')}>
-              <div aria-live="polite">{t('logs.pageInfo', { page: formatNumber(page, lang), count: formatNumber(items.length, lang) })}</div>
-              <div className="flex gap-2">
-                <Button small variant="ghost" onClick={goPrev} disabled={!hasPrev}>
-                  {t('logs.prev')}
-                </Button>
-                <Button small variant="ghost" onClick={goNext} disabled={!hasNext}>
-                  {t('logs.next')}
-                </Button>
-              </div>
-            </nav>
+            </TableScroller>
+            <CursorNav page={page} count={items.length} hasPrev={hasPrev} hasNext={hasNext} onPrev={goPrev} onNext={goNext} />
           </Card>
         </DataState>
       )}

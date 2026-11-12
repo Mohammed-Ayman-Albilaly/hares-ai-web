@@ -2,7 +2,7 @@ import type { CustomRuleResponse } from '@hares/contract';
 import { useTranslation } from 'react-i18next';
 import { PolicyActionBadge, RiskBadge } from '@/components/ui/badges';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 
 /**
  * Detection rules; with `onEdit`, editable rows get an Edit button. The text of a TOPIC rule is never shown here: it
@@ -12,7 +12,7 @@ export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onE
   const { t } = useTranslation();
   return (
     <Card padded={false}>
-      <div className="overflow-x-auto">
+      <TableScroller label={t('rules.tableCaption')}>
         <table className="h-table">
           <caption className="sr-only">{t('rules.tableCaption')}</caption>
           <thead>
@@ -40,9 +40,12 @@ export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onE
                   {r.kind === 'TOPIC' ? (
                     <span className="text-ink-4">{t('rules.hidden')}</span>
                   ) : (
-                    <code className="block truncate text-xs" dir="ltr" style={{ textAlign: 'start' }} title={r.definition}>
-                      {r.definition}
-                    </code>
+                    // The wrapper takes the cell's alignment, so the value starts at the column edge in Arabic
+                    // and in English; the code itself keeps its own direction (a pattern is always LTR, a keyword
+                    // may be Arabic).
+                    <div className="truncate text-xs" title={r.definition}>
+                      <code dir={r.kind === 'PATTERN' ? 'ltr' : 'auto'}>{r.definition}</code>
+                    </div>
                   )}
                 </td>
                 <td>
@@ -51,10 +54,10 @@ export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onE
                 <td>
                   <PolicyActionBadge action={r.action} />
                 </td>
-                <td style={{ color: 'var(--ink-3)' }}>{t(`rules.scopes.${r.scope}`)}</td>
+                <td className="cell-muted">{t(`rules.scopes.${r.scope}`)}</td>
                 <td>{r.enabled ? t('policy.on') : t('policy.off')}</td>
                 {onEdit && (
-                  <td>
+                  <td className="cell-actions">
                     {r.editable ? (
                       <Button small variant="secondary" onClick={() => onEdit(r)} aria-label={t('rules.editNamed', { name: r.name })}>
                         {t('rules.edit')}
@@ -68,7 +71,7 @@ export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onE
             ))}
           </tbody>
         </table>
-      </div>
+      </TableScroller>
     </Card>
   );
 }

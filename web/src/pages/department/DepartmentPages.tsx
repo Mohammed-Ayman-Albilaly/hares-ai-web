@@ -30,7 +30,7 @@ import { api } from '@/lib/api';
 export function DepartmentDashboardPage() {
   const { t } = useTranslation();
   return (
-    <Page title={t('nav.deptDashboard')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptDashboard')} group="department">
       <DashboardView base="/dashboard/department" emptyTitle={t('dash.noDeptActivityTitle')} emptyBody={t('dash.noDeptActivityBody')}>
         {(days) => <TopRiskyUsers days={days} />}
       </DashboardView>
@@ -47,7 +47,7 @@ export function DepartmentLogsPage() {
     queryFn: ({ signal }) => api.get<UserListResponse>('/admin/users?page_size=100', { signal }),
   });
   return (
-    <Page title={t('nav.deptLogs')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptLogs')} group="department">
       <LogsView
         base="/admin/logs"
         exportPath="/admin/logs/export"
@@ -55,17 +55,30 @@ export function DepartmentLogsPage() {
         onClearExtra={() => setUserId('')}
         extraValues={userId ? { user_id: userId } : {}}
         extraFilters={
-          <SelectField label={t('logs.user')} value={userId} onChange={(e) => setUserId(e.target.value)} disabled={users.isLoading} aria-invalid={users.isError || undefined}>
-            <option value="">{t('logs.all')}</option>
-            {(users.data?.items ?? []).map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.full_name}
-              </option>
-            ))}
-            {users.data && users.data.total > users.data.items.length && (
-              <option disabled>{t('logs.firstUsersOnly', { count: users.data.items.length })}</option>
+          <>
+            <SelectField
+              label={t('logs.user')}
+              value={userId}
+              onChange={(e) => setUserId(e.target.value)}
+              disabled={users.isLoading}
+              aria-describedby={users.isError ? 'f-user-err' : undefined}
+            >
+              <option value="">{t('logs.all')}</option>
+              {(users.data?.items ?? []).map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.full_name}
+                </option>
+              ))}
+              {users.data && users.data.total > users.data.items.length && (
+                <option disabled>{t('logs.firstUsersOnly', { count: users.data.items.length })}</option>
+              )}
+            </SelectField>
+            {users.isError && (
+              <div id="f-user-err" className="err w-full" role="alert">
+                {t('logs.userListError')}
+              </div>
             )}
-          </SelectField>
+          </>
         }
         emptyTitle={t('logs.deptEmptyTitle')}
         emptyBody={t('logs.deptEmptyBody')}
@@ -81,7 +94,7 @@ export function DepartmentUsersPage() {
   const me = auth.user?.id;
   const canDeactivate = (u: AdminUserResponse) => u.status === 'ACTIVE' && u.role === 'USER' && u.id !== me;
   return (
-    <Page title={t('nav.deptUsers')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptUsers')} group="department">
       <UsersView
         renderActions={(u) => (canDeactivate(u) ? <DeactivateButton user={u} /> : null)}
         emptyTitle={t('users.deptEmptyTitle')}
@@ -111,9 +124,9 @@ export function DepartmentPolicyPage() {
     queryFn: ({ signal }) => api.get<DepartmentPolicyResponse>(`/admin/policy/departments/${deptId}`, { signal }),
   });
   return (
-    <Page title={t('nav.deptPolicy')} crumb={t('navGroup.department')}>
+    <Page title={t('nav.deptPolicy')} group="department">
       <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
-        <I.Shield size={16} />
+        <I.Shield size={16} className="shrink-0" />
         <span>{t('policy.deptEditNote')}</span>
       </div>
       <DataState
@@ -121,6 +134,8 @@ export function DepartmentPolicyPage() {
         isError={q.isError}
         error={q.error}
         refetch={() => void q.refetch()}
+        isEmpty={Boolean(deptId) && q.data?.items.length === 0}
+        empty={<EmptyState title={t('policy.emptyTitle')} body={t('policy.emptyBody')} />}
         skeleton={<TableSkeleton rows={10} />}
       >
         {q.data && <PolicyEditor key={deptId} items={q.data.items} save={save} reset={reset} />}
@@ -144,7 +159,7 @@ export function DepartmentRulesPage() {
   return (
     <Page
       title={t('nav.deptRules')}
-      crumb={t('navGroup.department')}
+      group="department"
       actions={
         deptId ? (
           <Button variant="primary" onClick={() => setEditing('new')}>
@@ -154,7 +169,7 @@ export function DepartmentRulesPage() {
       }
     >
       <div className="card flex items-start gap-3 px-4 py-3 text-[13px] text-ink-3" role="note">
-        <I.Lock size={16} />
+        <I.Lock size={16} className="shrink-0" />
         <span>{t('rules.deptRulesNote')}</span>
       </div>
       <DataState

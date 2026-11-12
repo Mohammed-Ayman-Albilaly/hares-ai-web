@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActionBadge, DecisionBadge, RiskBadge } from '@/components/ui/badges';
 import { I } from '@/components/ui/icons';
+import { TableScroller } from '@/components/ui/layout';
 import { useLang } from '@/i18n/useLang';
 
 export function useDateTime() {
@@ -35,7 +36,7 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
   const cols = 6 + (showUser ? 2 : 0) + (compact ? 0 : 1);
 
   return (
-    <div className="overflow-x-auto" style={{ opacity: busy ? 0.6 : 1 }} aria-busy={busy || undefined}>
+    <TableScroller label={t('logs.tableCaption')} busy={busy} style={{ opacity: busy ? 0.6 : 1 }}>
       <table className="h-table">
         <caption className="sr-only">{t('logs.tableCaption')}</caption>
         <thead>
@@ -72,25 +73,23 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
             return (
               <Fragment key={r.log_id}>
                 <tr>
-                  <td style={{ color: 'var(--ink-3)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{when(r.event_time)}</td>
+                  <td className="cell-muted cell-nowrap cell-figures">{when(r.event_time)}</td>
                   {showUser && <td>{r.user_name}</td>}
-                  {showUser && <td style={{ color: 'var(--ink-3)' }}>{r.department_name ?? '—'}</td>}
+                  {showUser && <td className="cell-muted">{r.department_name ?? '—'}</td>}
                   <td>{t(`platform.${r.platform}`)}</td>
-                  <td style={{ fontSize: 12.5 }}>
+                  <td>
                     {r.categories.length === 0 && r.rule_name ? (
-                      <span className="h-pill risk-none" style={{ fontSize: 11 }}>
-                        {t('logs.ruleNamed', { name: r.rule_name })}
-                      </span>
+                      <span className="h-pill h-pill-neutral">{t('logs.ruleNamed', { name: r.rule_name })}</span>
                     ) : r.categories.length === 0 ? (
-                      <span style={{ color: 'var(--ink-4)' }}>{t('logs.noCategories')}</span>
+                      <span className="cell-muted">{t('logs.noCategories')}</span>
                     ) : (
                       <>
                         {shown.map((c) => (
-                          <span key={c} className={`h-pill risk-${r.risk_level === 'HIGH' ? 'high' : r.risk_level === 'MEDIUM' ? 'med' : 'low'}`} style={{ marginInlineEnd: 4, fontSize: 11 }}>
+                          <span key={c} className="h-pill h-pill-neutral" style={{ marginInlineEnd: 4 }}>
                             {t(`category.${c}`)}
                           </span>
                         ))}
-                        {r.categories.length > 2 && <span style={{ color: 'var(--ink-4)' }}>+{r.categories.length - 2}</span>}
+                        {r.categories.length > 2 && <span className="cell-muted">+{r.categories.length - 2}</span>}
                       </>
                     )}
                   </td>
@@ -105,10 +104,10 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
                       <DecisionBadge decision={r.user_decision} />
                     </td>
                   )}
-                  <td>
+                  <td className="cell-actions">
                     <button
                       type="button"
-                      className="btn btn-ghost !p-1.5"
+                      className="btn btn-ghost btn-icon"
                       aria-expanded={expanded}
                       aria-controls={expanded ? `log-${r.log_id}` : undefined}
                       aria-label={t(expanded ? 'logs.collapseRow' : 'logs.expandRow', { time: when(r.event_time), platform: t(`platform.${r.platform}`) })}
@@ -123,18 +122,18 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
                     <td colSpan={cols} style={{ background: 'var(--surface-2)' }}>
                       <div className="grid gap-5 p-4 sm:grid-cols-2">
                         <div>
-                          <div className="mb-2 text-[11px] font-medium text-ink-4">{t('logs.detectedCategories')}</div>
+                          <div className="mb-2 text-xs font-medium text-ink-3">{t('logs.detectedCategories')}</div>
                           {r.categories.length === 0 && !r.rule_name ? (
                             <div className="text-[13px] text-ink-4">{t('logs.nothingDetected')}</div>
                           ) : (
                             <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
                               {r.categories.map((c) => (
-                                <li key={c} className="h-pill risk-none" style={{ fontSize: 12 }}>
+                                <li key={c} className="h-pill h-pill-neutral">
                                   {t(`category.${c}`)}
                                 </li>
                               ))}
                               {r.rule_name && (
-                                <li className="h-pill risk-none" style={{ fontSize: 12 }}>
+                                <li className="h-pill h-pill-neutral">
                                   {t('logs.ruleNamed', { name: r.rule_name })}
                                 </li>
                               )}
@@ -158,6 +157,6 @@ export function LogTable({ items, showUser, busy, compact }: Props) {
           })}
         </tbody>
       </table>
-    </div>
+    </TableScroller>
   );
 }

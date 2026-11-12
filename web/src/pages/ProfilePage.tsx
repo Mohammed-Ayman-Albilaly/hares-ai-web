@@ -57,7 +57,7 @@ export function ProfilePage() {
 
   const p = profile.data;
   return (
-    <Page title={t('profile.title')} narrow>
+    <Page title={t('profile.title')} group="account" narrow>
       <DataState
         isLoading={profile.isLoading}
         isError={profile.isError}
@@ -67,7 +67,7 @@ export function ProfilePage() {
       >
         {p && (
           <Card>
-            <h2 className="m-0 mb-4 text-[14.5px] font-semibold">{t('profile.title')}</h2>
+            <h2 className="m-0 mb-4 text-[15px] font-semibold">{t('profile.details')}</h2>
             <dl className="m-0 grid gap-4 sm:grid-cols-2">
               <Item label={t('profile.name')}>{p.full_name}</Item>
               <Item label={t('profile.email')}>
@@ -86,15 +86,15 @@ export function ProfilePage() {
       </DataState>
 
       <Card>
-        <h2 className="m-0 text-[14.5px] font-semibold">{t('profile.changePassword')}</h2>
+        <h2 className="m-0 text-[15px] font-semibold">{t('profile.changePassword')}</h2>
         <p className="m-0 mb-4 mt-1 text-[12.5px] text-ink-4">{t('profile.changePasswordHint')}</p>
         {ok && (
-          <div role="status" className="mb-4 rounded-lg px-3.5 py-3 text-[13px]" style={{ background: 'var(--risk-none-soft)', color: 'var(--risk-none)' }}>
+          <div role="status" className="mb-4 rounded-lg px-3.5 py-3 text-[13px]" style={{ background: 'var(--success-soft)', color: 'var(--success)' }}>
             {t('profile.changed')}
           </div>
         )}
         {formError && (
-          <div role="alert" className="mb-4 rounded-lg px-3.5 py-3 text-[13px]" style={{ background: 'var(--risk-high-soft)', color: 'var(--risk-high)' }}>
+          <div role="alert" className="mb-4 rounded-lg px-3.5 py-3 text-[13px]" style={{ background: 'var(--danger-soft)', color: 'var(--danger)' }}>
             {formError}
           </div>
         )}

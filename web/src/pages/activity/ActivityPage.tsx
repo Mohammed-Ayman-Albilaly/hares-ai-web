@@ -6,7 +6,7 @@ import { LogsView } from '@/features/logs/LogsView';
 export function ActivityPage() {
   const { t } = useTranslation();
   return (
-    <Page title={t('nav.activity')} crumb={t('navGroup.personal')}>
+    <Page title={t('nav.activity')} group="personal">
       <LogsView base="/logs/mine" emptyTitle={t('logs.emptyTitle')} emptyBody={t('logs.emptyBody')} />
     </Page>
   );

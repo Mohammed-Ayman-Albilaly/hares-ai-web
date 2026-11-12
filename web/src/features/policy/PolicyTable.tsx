@@ -1,14 +1,14 @@
 import type { CategoryPolicyEntry } from '@hares/contract';
 import { useTranslation } from 'react-i18next';
 import { PolicyActionBadge, RiskBadge } from '@/components/ui/badges';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 
 /** Policy per data category, read-only: the effective action and where it comes from. */
 export function PolicyTable({ items }: { items: CategoryPolicyEntry[] }) {
   const { t } = useTranslation();
   return (
     <Card padded={false}>
-      <div className="overflow-x-auto">
+      <TableScroller label={t('policy.tableCaption')}>
         <table className="h-table">
           <caption className="sr-only">{t('policy.tableCaption')}</caption>
           <thead>
@@ -31,12 +31,12 @@ export function PolicyTable({ items }: { items: CategoryPolicyEntry[] }) {
                   <PolicyActionBadge action={p.action} />
                 </td>
                 <td>{p.enabled ? t('policy.on') : t('policy.off')}</td>
-                <td style={{ color: 'var(--ink-3)' }}>{t(`policy.sources.${p.source}`)}</td>
+                <td className="cell-muted">{t(`policy.sources.${p.source}`)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
+      </TableScroller>
     </Card>
   );
 }

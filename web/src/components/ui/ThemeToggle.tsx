@@ -1,20 +1,19 @@
 import { useTranslation } from 'react-i18next';
 import { setTheme, useTheme } from '@/lib/theme';
+import { IconButton } from './IconButton';
 import { I } from './icons';
 
+/** Light/dark switch: one 44x44 target with a name, never an unlabelled icon. */
 export function ThemeToggle() {
   const { t } = useTranslation();
   const theme = useTheme();
   const next = theme === 'dark' ? 'light' : 'dark';
   return (
-    <button
-      type="button"
-      className="btn btn-ghost btn-sm !px-2"
+    <IconButton
+      label={t(next === 'dark' ? 'app.themeDark' : 'app.themeLight')}
       onClick={() => setTheme(next)}
-      aria-label={t(next === 'dark' ? 'app.themeDark' : 'app.themeLight')}
-      title={t(next === 'dark' ? 'app.themeDark' : 'app.themeLight')}
     >
-      {theme === 'dark' ? <I.Sun size={15} /> : <I.Moon size={15} />}
-    </button>
+      {theme === 'dark' ? <I.Sun size={16} /> : <I.Moon size={16} />}
+    </IconButton>
   );
 }
