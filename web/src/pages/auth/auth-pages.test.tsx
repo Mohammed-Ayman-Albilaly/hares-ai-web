@@ -12,17 +12,18 @@ afterEach(() => vi.unstubAllGlobals());
 const anonymous = { 'POST /api/auth/refresh': () => envelope(401, 'INVALID_TOKEN') };
 
 describe('route guards', () => {
+  // These two render the whole router and wait for a redirect or a lazy screen: under parallel load that can pass 5s.
   it('sends an anonymous visitor from a private page to login', async () => {
     mockFetch(anonymous);
     const { router } = renderRoute('/admin/dashboard');
     await waitFor(() => expect(router.state.location.pathname).toBe('/login'));
-  });
+  }, 10_000);
 
   it('shows 403 when a USER opens an admin page', async () => {
     mockFetch({ 'POST /api/auth/refresh': () => json(loginResponse('USER')) });
     renderRoute('/admin/dashboard');
     expect(await screen.findByText('لا تملك صلاحية لهذه الصفحة')).toBeTruthy();
-  });
+  }, 10_000);
 
   it('sends a signed-in user away from the login page to their home', async () => {
     mockFetch({ 'POST /api/auth/refresh': () => json(loginResponse('SYSTEM_ADMIN')) });

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/auth/AuthProvider';
 import { homeFor } from '@/auth/routes';
@@ -5,12 +6,18 @@ import { ButtonLink } from '@/components/ui/Button';
 import { Wordmark } from '@/components/ui/Logo';
 import { Card } from '@/components/ui/layout';
 
+/** The 404 screen, outside the shell: it carries its own landmark and names itself in the tab. */
 export function NotFoundPage() {
   const { t } = useTranslation();
   const auth = useAuth();
   const home = auth.status === 'authenticated' ? homeFor(auth.user.role) : '/';
+  // The tab must name this screen rather than the one the user came from.
+  useEffect(() => {
+    document.title = `${t('app.notFoundTitle')} · ${t('app.name')}`;
+  }, [t]);
   return (
-    <div className="grid min-h-dvh place-items-center bg-bg p-4 sm:p-6">
+    // A page body needs its landmark even without the shell, and #main is the id every other screen uses.
+    <main id="main" tabIndex={-1} className="grid min-h-dvh place-items-center bg-bg p-4 outline-none sm:p-6">
       <Card className="w-full max-w-[440px]">
         <div className="flex flex-col items-center gap-3 text-center">
           <Wordmark />
@@ -22,6 +29,6 @@ export function NotFoundPage() {
           </ButtonLink>
         </div>
       </Card>
-    </div>
+    </main>
   );
 }
