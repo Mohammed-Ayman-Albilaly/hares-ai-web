@@ -6,8 +6,7 @@ import { I } from '@/components/ui/icons';
 import { Card, FilterBar } from '@/components/ui/layout';
 import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
-import { useLang } from '@/i18n/useLang';
-import { formatNumber } from '@/components/charts/direction';
+import { CursorNav } from '@/components/ui/PageNav';
 import { useLogs, type LogFilterValues } from './hooks';
 import { ExportButton } from './ExportButton';
 import { LogTable } from './LogTable';
@@ -75,7 +74,6 @@ export function LogsView({
   emptyBody,
 }: Props) {
   const { t } = useTranslation();
-  const lang = useLang();
   const [f, setF] = useState<RawFilters>(EMPTY);
   const set = (k: keyof RawFilters) => (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) =>
     setF((p) => ({ ...p, [k]: e.target.value }));
@@ -205,25 +203,7 @@ export function LogsView({
         >
           <Card padded={false}>
             <LogTable items={items} showUser={showUser} busy={query.isFetching && query.isPlaceholderData} />
-            <nav
-              className="flex items-center justify-between gap-3 border-t border-line px-4 py-3 text-[12.5px] text-ink-4"
-              aria-label={t('logs.pagination')}
-            >
-              <div aria-live="polite">
-                {t('logs.pageInfo', {
-                  page: formatNumber(page, lang),
-                  count: formatNumber(items.length, lang),
-                })}
-              </div>
-              <div className="flex gap-2">
-                <Button small variant="ghost" onClick={goPrev} disabled={!hasPrev}>
-                  {t('logs.prev')}
-                </Button>
-                <Button small variant="ghost" onClick={goNext} disabled={!hasNext}>
-                  {t('logs.next')}
-                </Button>
-              </div>
-            </nav>
+            <CursorNav page={page} count={items.length} hasPrev={hasPrev} hasNext={hasNext} onPrev={goPrev} onNext={goNext} />
           </Card>
         </DataState>
       )}

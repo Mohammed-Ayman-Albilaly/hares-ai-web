@@ -4,50 +4,65 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useSession } from '@/auth/AuthProvider';
 import { Avatar } from '@/components/ui/layout';
+import { useLang } from '@/i18n/useLang';
+import { RoleBadge } from '@/components/ui/badges';
 import { I } from '@/components/ui/icons';
 
-/** Avatar menu in the top bar: profile and sign out. */
+/** Avatar menu in the top bar: account details, profile and sign out. */
 export function UserMenu({ user }: { user: UserPublic }) {
   const { t } = useTranslation();
   const session = useSession();
   const navigate = useNavigate();
+  const lang = useLang();
   const first = user.full_name.split(/\s+/)[0];
 
   return (
-    <Menu.Root>
+    // `dir` makes the menu open towards the inside of the window in both languages.
+    <Menu.Root dir={lang === 'ar' ? 'rtl' : 'ltr'}>
       <Menu.Trigger
-        className="flex items-center gap-2 rounded-full border border-line bg-transparent py-1 pe-2.5 ps-1 hover:bg-surface-2"
+        // An explicit name. The trigger's only other content is an avatar and an icon, both hidden, plus
+        // a clipped span holding the full name, so the name depended on that one span: a record with a
+        // blank name left the control nameless, and a full name never says what the button does. The
+        // visible first name is inside this label, so speech input still matches (WCAG 2.5.3).
+        aria-label={t('nav.accountMenu', { name: user.full_name })}
+        className="flex min-h-11 items-center gap-2 rounded-full border border-line bg-transparent py-1 pe-2.5 ps-1 hover:bg-surface-2"
       >
         <Avatar name={user.full_name} size={26} />
-        {/* The accessible name is the full name; the first name shown on wide screens is part of it. */}
         <span className="hidden text-[12.5px] font-medium text-ink-2 sm:inline" aria-hidden="true">
           {first}
         </span>
-        <span className="sr-only">{user.full_name}</span>
         <I.Chevron size={14} className="text-ink-4" />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Content
           align="end"
           sideOffset={8}
-          className="card z-50 min-w-48 p-1.5"
+          className="card z-50 min-w-56 p-1.5"
           style={{ boxShadow: 'var(--shadow-md)' }}
         >
           <div className="px-2.5 pb-2 pt-1.5">
             <div className="text-[13px] font-medium text-ink">{user.full_name}</div>
-            <div className="text-[11.5px] text-ink-4" dir="ltr" style={{ textAlign: 'start' }}>
-              {user.email}
+            <div className="truncate text-[11.5px] text-ink-4">
+              {/* Latin address: its own direction, the panel's alignment. */}
+              <span dir="ltr" className="inline-block max-w-full truncate">
+                {user.email}
+              </span>
             </div>
+            {user.role && (
+              <div className="mt-1.5">
+                <RoleBadge role={user.role} />
+              </div>
+            )}
           </div>
           <Menu.Separator className="my-1 h-px bg-line" />
           <Menu.Item
-            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-[13px] text-ink-2 outline-none data-[highlighted]:bg-surface-3"
+            className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-md px-2.5 text-[13px] text-ink-2 outline-none data-[highlighted]:bg-surface-3 data-[highlighted]:text-ink"
             onSelect={() => navigate('/profile')}
           >
             <I.User size={15} /> {t('nav.profile')}
           </Menu.Item>
           <Menu.Item
-            className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-[13px] text-ink-2 outline-none data-[highlighted]:bg-surface-3"
+            className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-md px-2.5 text-[13px] text-ink-2 outline-none data-[highlighted]:bg-surface-3 data-[highlighted]:text-ink"
             onSelect={() => {
               void session.logout().then(() => navigate('/login', { replace: true }));
             }}

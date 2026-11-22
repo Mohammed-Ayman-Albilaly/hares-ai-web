@@ -34,9 +34,9 @@ export function AppLayout() {
       </a>
       <div className="app-shell">
         <Sidebar user={auth.user} />
-        <main className="min-w-0">
+        <div className="min-w-0">
           <Outlet />
-        </main>
+        </div>
       </div>
 
       <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -52,10 +52,15 @@ export function AppLayout() {
             }}
           >
             <Dialog.Title className="sr-only">{t('app.menu')}</Dialog.Title>
-            <Sidebar user={auth.user} className="!h-full w-full" onNavigate={() => {
+            <Sidebar
+              user={auth.user}
+              className="!h-full w-full"
+              onClose={() => setOpen(false)}
+              onNavigate={() => {
                 navigated.current = true;
                 setOpen(false);
-              }} />
+              }}
+            />
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>

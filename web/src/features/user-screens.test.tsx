@@ -103,6 +103,21 @@ describe('user dashboard', () => {
     expect(await screen.findByText('لا يوجد نشاط في هذه الفترة')).toBeTruthy();
   });
 
+  it('a chart with no rows says so and offers no empty table', async () => {
+    mockFetch({
+      ...refresh,
+      'GET /api/dashboard/mine/summary': () => json({ ...summary, platforms: [], top_categories: [] }),
+      'GET /api/dashboard/mine/timeseries': () => json(series),
+      'GET /api/logs/mine': () => json({ items: [], next_cursor: null }),
+    });
+    renderRoute('/dashboard');
+    expect(await screen.findAllByText('لا توجد بيانات في هذه الفترة')).toHaveLength(2);
+    // The two charts that do have rows keep their table switch; the empty ones cannot be switched.
+    const toggles = screen.getAllByRole('button', { name: 'عرض كجدول' });
+    expect(toggles).toHaveLength(4);
+    expect(toggles.filter((b) => (b as HTMLButtonElement).disabled)).toHaveLength(2);
+  });
+
   it('error: shows a message and retry loads it again', async () => {
     let fail = true;
     mockFetch({
@@ -113,7 +128,7 @@ describe('user dashboard', () => {
     });
     renderRoute('/dashboard');
     const alert = await screen.findByRole('alert');
-    expect(alert).toBeTruthy();
+    expect(within(alert).getByText('تعذّر تحميل البيانات')).toBeTruthy();
     fail = false;
     await userEvent.click(within(alert).getByRole('button', { name: 'إعادة المحاولة' }));
     expect(await screen.findByText('53')).toBeTruthy();
@@ -183,6 +198,18 @@ describe('activity and blocked pages', () => {
     expect(logCalls[logCalls.length - 1]).not.toContain('cursor=');
   });
 
+  it('one page bar per list: its position is announced and previous is off on page 1', async () => {
+    mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1)], next_cursor: 'c2' }) });
+    renderRoute('/activity');
+    await screen.findByText('ChatGPT', { selector: 'td' });
+    // Two bars (one from the table, one from a nested view) would confuse a screen-reader user.
+    const navs = screen.getAllByRole('navigation', { name: 'التنقل بين الصفحات' });
+    expect(navs).toHaveLength(1);
+    expect(within(navs[0]!).getByText(/الصفحة ١|الصفحة 1/)).toBeTruthy();
+    expect((within(navs[0]!).getByRole('button', { name: 'السابق' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((within(navs[0]!).getByRole('button', { name: 'التالي' }) as HTMLButtonElement).disabled).toBe(false);
+  });
+
   it('a filter change goes back to page 1, also when an earlier filter comes back', async () => {
     mockFetch({
       ...refresh,
@@ -236,11 +263,43 @@ describe('activity and blocked pages', () => {
     expect(screen.queryByLabelText('الإجراء')).toBeNull();
   });
 
+  it('the filter bar is a named search landmark', async () => {
+    mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1)], next_cursor: null }) });
+    renderRoute('/activity');
+    await screen.findByText('ChatGPT', { selector: 'td' });
+    expect(within(screen.getByRole('search', { name: 'عوامل التصفية' })).getByLabelText('مستوى الخطر')).toBeTruthy();
+  });
+
   it('is accessible (axe) with data on screen', async () => {
     mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1), item(2)], next_cursor: null }) });
     const { container } = renderRoute('/activity');
     await screen.findAllByText('ChatGPT', { selector: 'td' });
     expect(await axe(container)).toHaveNoViolations();
+  });
+});
+
+describe('page header', () => {
+  it('the breadcrumb links to the section, and the page name is the h1 only', async () => {
+    mockFetch({ ...refresh, 'GET /api/logs/mine': () => json({ items: [item(1)], next_cursor: null }) });
+    renderRoute('/activity');
+    await screen.findByText('ChatGPT', { selector: 'td' });
+    const crumb = screen.getByRole('navigation', { name: 'مسار التنقل' });
+    expect(within(crumb).getByRole('link', { name: 'شخصي' }).getAttribute('href')).toBe('/dashboard');
+    // The screen already open is never a link back to itself.
+    expect(within(crumb).queryByRole('link', { name: 'سجل النشاط' })).toBeNull();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('سجل النشاط');
+  });
+
+  it('no breadcrumb on the section landing screen: nothing is above it', async () => {
+    mockFetch({
+      ...refresh,
+      'GET /api/dashboard/mine/summary': () => json(summary),
+      'GET /api/dashboard/mine/timeseries': () => json(series),
+      'GET /api/logs/mine': () => json({ items: [], next_cursor: null }),
+    });
+    renderRoute('/dashboard');
+    await screen.findByText('53');
+    expect(screen.queryByRole('navigation', { name: 'مسار التنقل' })).toBeNull();
   });
 });
 

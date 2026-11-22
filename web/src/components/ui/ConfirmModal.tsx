@@ -24,7 +24,7 @@ interface Props {
 export function ConfirmModal({ open, onClose, title, description, confirmLabel, busyLabel, onConfirm, busy, error, danger = true, children }: Props) {
   const { t } = useTranslation();
   return (
-    <Modal open={open} onClose={onClose} tone={danger ? 'danger' : 'default'} icon={<I.AlertTriangle size={20} />} title={title} description={description}>
+    <Modal open={open} onClose={onClose} tone={danger ? 'danger' : 'default'} icon={danger ? <I.AlertTriangle size={20} /> : <I.Info size={20} />} title={title} description={description}>
       {children}
       {error ? (
         <div className="err mb-3" role="alert">

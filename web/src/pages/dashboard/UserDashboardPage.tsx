@@ -41,7 +41,7 @@ function RecentActivity() {
 export function UserDashboardPage() {
   const { t } = useTranslation();
   return (
-    <Page title={t('nav.dashboard')} crumb={t('navGroup.personal')}>
+    <Page title={t('nav.dashboard')} group="personal">
       <DashboardView base="/dashboard/mine" emptyTitle={t('dash.noActivityTitle')} emptyBody={t('dash.noActivityBody')}>
         <RecentActivity />
       </DashboardView>

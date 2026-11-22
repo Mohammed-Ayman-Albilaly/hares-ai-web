@@ -11,7 +11,7 @@ import { Modal } from '@/components/ui/Modal';
 import { TextField } from '@/components/ui/TextField';
 import { I } from '@/components/ui/icons';
 import { formatNumber } from '@/components/charts/direction';
-import { Card } from '@/components/ui/layout';
+import { Card, TableScroller } from '@/components/ui/layout';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { invalidateAdmin } from '@/features/common/invalidate';
 import { useDepartments } from '@/features/common/useDepartments';
@@ -96,7 +96,7 @@ export function AdminDepartmentsPage() {
   return (
     <Page
       title={t('nav.adminDepartments')}
-      crumb={t('navGroup.organization')}
+      group="organization"
       actions={
         <Button variant="primary" onClick={() => setEditing('new')}>
           <I.Plus size={14} /> {t('departments.create')}
@@ -113,13 +113,15 @@ export function AdminDepartmentsPage() {
         empty={<EmptyState title={t('departments.emptyTitle')} body={t('departments.emptyBody')} icon={<I.Departments size={20} />} />}
       >
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <TableScroller label={t('departments.tableCaption')}>
             <table className="h-table">
               <caption className="sr-only">{t('departments.tableCaption')}</caption>
               <thead>
                 <tr>
                   <th scope="col">{t('departments.name')}</th>
-                  <th scope="col">{t('departments.members')}</th>
+                  <th scope="col" className="cell-num">
+                    {t('departments.members')}
+                  </th>
                   <th scope="col">{t('users.status')}</th>
                   <th scope="col">
                     <span className="sr-only">{t('users.actions')}</span>
@@ -130,14 +132,14 @@ export function AdminDepartmentsPage() {
                 {items.map((d) => (
                   <tr key={d.id}>
                     <td className="font-medium text-ink">{d.name}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(d.member_count, lang)}</td>
+                    <td className="cell-num">{formatNumber(d.member_count, lang)}</td>
                     <td>
                       <span className={`h-pill ${d.active ? 'status-active' : 'status-inactive'}`}>
                         <span className="dot" aria-hidden="true" />
                         {d.active ? t('status.ACTIVE') : t('status.DEACTIVATED')}
                       </span>
                     </td>
-                    <td>
+                    <td className="cell-actions">
                       <div className="flex gap-2">
                         <Button small variant="secondary" onClick={() => setEditing(d)} aria-label={t('departments.renameNamed', { name: d.name })}>
                           {t('departments.rename')}
@@ -153,7 +155,7 @@ export function AdminDepartmentsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroller>
         </Card>
       </DataState>
       {editing && <NameDialog key={editing === 'new' ? 'new' : editing.id} department={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}

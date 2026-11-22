@@ -2,7 +2,7 @@ import type { TopRiskyUsersResponse } from '@hares/contract';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/components/charts/direction';
-import { Avatar, Card, Section } from '@/components/ui/layout';
+import { Avatar, Card, Section, TableScroller } from '@/components/ui/layout';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { useLang } from '@/i18n/useLang';
 import { api } from '@/lib/api';
@@ -31,16 +31,24 @@ export function TopRiskyUsers({ days, extra = {} }: { days: number; extra?: Reco
         empty={<EmptyState title={t('dash.noRiskyUsers')} body={t('dash.noRiskyUsersBody')} />}
       >
         <Card padded={false}>
-          <div className="overflow-x-auto">
+          <TableScroller label={t('dash.topUsers')}>
             <table className="h-table">
               <caption className="sr-only">{t('dash.topUsers')}</caption>
               <thead>
                 <tr>
                   <th scope="col">{t('users.user')}</th>
-                  <th scope="col">{t('dash.highEvents')}</th>
-                  <th scope="col">{t('dash.blocked')}</th>
-                  <th scope="col">{t('dash.warned')}</th>
-                  <th scope="col">{t('dash.totalEvents')}</th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.highEvents')}
+                  </th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.blocked')}
+                  </th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.warned')}
+                  </th>
+                  <th scope="col" className="cell-num">
+                    {t('dash.totalEvents')}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -52,15 +60,15 @@ export function TopRiskyUsers({ days, extra = {} }: { days: number; extra?: Reco
                         <span className="font-medium text-ink">{u.user_name}</span>
                       </div>
                     </td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.high, lang)}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.blocked, lang)}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.warned, lang)}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(u.total, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.high, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.blocked, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.warned, lang)}</td>
+                    <td className="cell-num">{formatNumber(u.total, lang)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
+          </TableScroller>
         </Card>
       </DataState>
     </Section>

@@ -1,6 +1,7 @@
 import { createBrowserRouter, createMemoryRouter, type RouteObject } from 'react-router';
 import { FullPageLoading } from '@/components/FullPageLoading';
 import { AppLayout } from '@/layouts/AppLayout';
+import { RootLayout } from '@/layouts/RootLayout';
 import { LandingPage } from '@/pages/LandingPage';
 import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -22,66 +23,71 @@ const screen = <M extends Record<string, unknown>>(load: () => Promise<M>, name:
 /**
  * Route map (ARCHITECTURE "Route map (per role)"). Public pages first, then the
  * authenticated shell; the guards decide what each role may open and the API
- * enforces the same rules independently.
+ * enforces the same rules independently. RootLayout announces route changes.
  */
 export const routes: RouteObject[] = [
-  { path: '/', element: <LandingPage /> },
   {
-    element: <GuestOnly />,
+    element: <RootLayout />,
     children: [
-      { path: '/login', element: <LoginPage /> },
-      { path: '/register', element: <RegisterPage /> },
-    ],
-  },
-  { path: '/forgot-password', element: <ForgotPasswordPage /> },
-  { path: '/reset-password', element: <ResetPasswordPage /> },
-  {
-    element: <RequireAuth />,
-    HydrateFallback: FullPageLoading,
-    ErrorBoundary: RouteError,
-    children: [
+      { path: '/', element: <LandingPage /> },
       {
-        element: <AppLayout />,
+        element: <GuestOnly />,
         children: [
-          { path: '/profile', ...screen(() => import('@/pages/ProfilePage'), 'ProfilePage') },
+          { path: '/login', element: <LoginPage /> },
+          { path: '/register', element: <RegisterPage /> },
+        ],
+      },
+      { path: '/forgot-password', element: <ForgotPasswordPage /> },
+      { path: '/reset-password', element: <ResetPasswordPage /> },
+      {
+        element: <RequireAuth />,
+        HydrateFallback: FullPageLoading,
+        ErrorBoundary: RouteError,
+        children: [
           {
-            element: <RequireRole roles={['USER', 'DEPARTMENT_ADMIN']} />,
-            children: [{ path: '/dashboard', ...screen(() => import('@/pages/dashboard/DashboardRoute'), 'DashboardRoute') }],
-          },
-          {
-            element: <RequireRole roles={['DEPARTMENT_ADMIN']} />,
+            element: <AppLayout />,
             children: [
-              { path: '/department/logs', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentLogsPage') },
-              { path: '/department/users', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentUsersPage') },
-              { path: '/department/policy', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentPolicyPage') },
-              { path: '/department/rules', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentRulesPage') },
-            ],
-          },
-          {
-            element: <RequireRole roles={['USER']} />,
-            children: [
-              { path: '/activity', ...screen(() => import('@/pages/activity/ActivityPage'), 'ActivityPage') },
-              { path: '/blocked', ...screen(() => import('@/pages/blocked/BlockedPage'), 'BlockedPage') },
-            ],
-          },
-          {
-            element: <RequireRole roles={['SYSTEM_ADMIN']} />,
-            children: [
-              { path: '/admin/dashboard', ...screen(() => import('@/pages/admin/AdminOverviewPages'), 'AdminDashboardPage') },
-              { path: '/admin/logs', ...screen(() => import('@/pages/admin/AdminOverviewPages'), 'AdminLogsPage') },
-              { path: '/admin/pending', ...screen(() => import('@/pages/admin/AdminUsersPages'), 'AdminPendingPage') },
-              { path: '/admin/users', ...screen(() => import('@/pages/admin/AdminUsersPages'), 'AdminUsersPage') },
-              { path: '/admin/departments', ...screen(() => import('@/pages/admin/AdminDepartmentsPage'), 'AdminDepartmentsPage') },
-              { path: '/admin/policy', ...screen(() => import('@/pages/admin/AdminPolicyPage'), 'AdminPolicyPage') },
-              { path: '/admin/rules', ...screen(() => import('@/pages/admin/AdminRulesPage'), 'AdminRulesPage') },
-              { path: '/admin/audit', ...screen(() => import('@/pages/admin/AdminAuditPage'), 'AdminAuditPage') },
+              { path: '/profile', ...screen(() => import('@/pages/ProfilePage'), 'ProfilePage') },
+              {
+                element: <RequireRole roles={['USER', 'DEPARTMENT_ADMIN']} />,
+                children: [{ path: '/dashboard', ...screen(() => import('@/pages/dashboard/DashboardRoute'), 'DashboardRoute') }],
+              },
+              {
+                element: <RequireRole roles={['DEPARTMENT_ADMIN']} />,
+                children: [
+                  { path: '/department/logs', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentLogsPage') },
+                  { path: '/department/users', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentUsersPage') },
+                  { path: '/department/policy', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentPolicyPage') },
+                  { path: '/department/rules', ...screen(() => import('@/pages/department/DepartmentPages'), 'DepartmentRulesPage') },
+                ],
+              },
+              {
+                element: <RequireRole roles={['USER']} />,
+                children: [
+                  { path: '/activity', ...screen(() => import('@/pages/activity/ActivityPage'), 'ActivityPage') },
+                  { path: '/blocked', ...screen(() => import('@/pages/blocked/BlockedPage'), 'BlockedPage') },
+                ],
+              },
+              {
+                element: <RequireRole roles={['SYSTEM_ADMIN']} />,
+                children: [
+                  { path: '/admin/dashboard', ...screen(() => import('@/pages/admin/AdminOverviewPages'), 'AdminDashboardPage') },
+                  { path: '/admin/logs', ...screen(() => import('@/pages/admin/AdminOverviewPages'), 'AdminLogsPage') },
+                  { path: '/admin/pending', ...screen(() => import('@/pages/admin/AdminUsersPages'), 'AdminPendingPage') },
+                  { path: '/admin/users', ...screen(() => import('@/pages/admin/AdminUsersPages'), 'AdminUsersPage') },
+                  { path: '/admin/departments', ...screen(() => import('@/pages/admin/AdminDepartmentsPage'), 'AdminDepartmentsPage') },
+                  { path: '/admin/policy', ...screen(() => import('@/pages/admin/AdminPolicyPage'), 'AdminPolicyPage') },
+                  { path: '/admin/rules', ...screen(() => import('@/pages/admin/AdminRulesPage'), 'AdminRulesPage') },
+                  { path: '/admin/audit', ...screen(() => import('@/pages/admin/AdminAuditPage'), 'AdminAuditPage') },
+                ],
+              },
             ],
           },
         ],
       },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
-  { path: '*', element: <NotFoundPage /> },
 ];
 
 export const createAppRouter = () => createBrowserRouter(routes);

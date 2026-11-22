@@ -7,8 +7,8 @@ import { RoleBadge, StatusBadge } from '@/components/ui/badges';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { SelectField } from '@/components/ui/SelectField';
+import { DepartmentSelect } from '@/features/common/DepartmentSelect';
 import { invalidateAdmin } from '@/features/common/invalidate';
-import { useDepartments } from '@/features/common/useDepartments';
 import { api } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 
@@ -24,14 +24,12 @@ export function ManageUserModal({ user, onClose }: { user: AdminUserResponse; on
   const { t } = useTranslation();
   const auth = useAuth();
   const qc = useQueryClient();
-  const departments = useDepartments();
   const [mode, setMode] = useState<Mode>('menu');
   const [role, setRole] = useState<'USER' | 'DEPARTMENT_ADMIN'>(user.role === 'DEPARTMENT_ADMIN' ? 'DEPARTMENT_ADMIN' : 'USER');
   // Never preselected: the select only offers ACTIVE departments, and a hidden current id must not be sent.
   const [departmentId, setDepartmentId] = useState('');
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const active = (departments.data?.items ?? []).filter((d) => d.active);
   const isSelf = auth.user?.id === user.id;
 
   const m = useMutation({
@@ -94,15 +92,13 @@ export function ManageUserModal({ user, onClose }: { user: AdminUserResponse; on
     </SelectField>
   );
   const departmentSelect = (required: boolean) => (
-    <SelectField label={t('logs.department')} value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} disabled={departments.isLoading}>
-      {!required && <option value="">{t('manage.keepDepartment')}</option>}
-      {required && <option value="">{t('manage.chooseDepartment')}</option>}
-      {active.map((d) => (
-        <option key={d.id} value={d.id}>
-          {d.name}
-        </option>
-      ))}
-    </SelectField>
+    <DepartmentSelect
+      label={t('logs.department')}
+      value={departmentId}
+      activeOnly
+      placeholder={required ? t('manage.chooseDepartment') : t('manage.keepDepartment')}
+      onChange={setDepartmentId}
+    />
   );
 
   const needsDepartment = mode === 'department' || mode === 'revoke';

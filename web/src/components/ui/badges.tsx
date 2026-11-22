@@ -26,20 +26,37 @@ const ACTION_CLASS: Record<LogAction, string> = { BLOCKED: 'risk-high', WARNED: 
 
 export function ActionBadge({ action }: { action: LogAction }) {
   const { t } = useTranslation();
-  return <span className={`h-pill ${ACTION_CLASS[action]}`}>{t(`action.${action}`)}</span>;
+  return (
+    <span className={`h-pill ${ACTION_CLASS[action]}`}>
+      <span className="dot" aria-hidden="true" />
+      {t(`action.${action}`)}
+    </span>
+  );
 }
+
 
 const POLICY_CLASS: Record<PolicyAction, string> = { BLOCK: 'risk-high', WARN: 'risk-med', ALLOW: 'risk-none' };
 
 export function PolicyActionBadge({ action }: { action: PolicyAction }) {
   const { t } = useTranslation();
-  return <span className={`h-pill ${POLICY_CLASS[action]}`}>{t(`policyAction.${action}`)}</span>;
+  return (
+    <span className={`h-pill ${POLICY_CLASS[action]}`}>
+      <span className="dot" aria-hidden="true" />
+      {t(`policyAction.${action}`)}
+    </span>
+  );
 }
+
 
 export function DecisionBadge({ decision }: { decision: UserDecision }) {
   const { t } = useTranslation();
   const cls = decision === 'SUBMITTED_ANYWAY' ? 'risk-med' : decision === 'NONE' ? 'role-user' : 'risk-low';
-  return <span className={`h-pill ${cls}`}>{t(`decision.${decision}`)}</span>;
+  return (
+    <span className={`h-pill ${cls}`}>
+      <span className="dot" aria-hidden="true" />
+      {t(`decision.${decision}`)}
+    </span>
+  );
 }
 
 const ROLE_CLASS: Record<Role, string> = {
@@ -51,7 +68,12 @@ const ROLE_CLASS: Record<Role, string> = {
 export function RoleBadge({ role }: { role: Role | null }) {
   const { t } = useTranslation();
   if (!role) return <span className="text-ink-4">—</span>;
-  return <span className={`h-pill ${ROLE_CLASS[role]}`}>{t(`roles.${role}`)}</span>;
+  return (
+    <span className={`h-pill ${ROLE_CLASS[role]}`}>
+      <span className="dot" aria-hidden="true" />
+      {t(`roles.${role}`)}
+    </span>
+  );
 }
 
 const STATUS_CLASS: Record<UserStatus, string> = {
