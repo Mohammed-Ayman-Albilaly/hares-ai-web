@@ -81,8 +81,11 @@ export function Sidebar({
         <Avatar name={user.full_name} size={30} />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[13px] font-medium text-ink">{user.full_name}</div>
-          <div className="truncate text-[11.5px] text-ink-4" dir="ltr" style={{ textAlign: 'start' }}>
-            {user.email}
+          <div className="truncate text-[11.5px] text-ink-4">
+            {/* The address is Latin and stays left to right; the wrapper keeps the block's alignment. */}
+            <span dir="ltr" className="inline-block max-w-full truncate">
+              {user.email}
+            </span>
           </div>
           {user.role && (
             <div className="mt-1.5">
