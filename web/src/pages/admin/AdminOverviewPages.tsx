@@ -6,7 +6,7 @@ import { Page } from '@/components/Page';
 import { SelectField } from '@/components/ui/SelectField';
 import { DepartmentRisk } from '@/features/analytics/charts';
 import { DashboardView } from '@/features/analytics/DashboardView';
-import { useDepartments } from '@/features/common/useDepartments';
+import { DepartmentSelect } from '@/features/common/DepartmentSelect';
 import { LogsView } from '@/features/logs/LogsView';
 import { api } from '@/lib/api';
 
@@ -27,7 +27,6 @@ export function AdminLogsPage() {
   const { t } = useTranslation();
   const [departmentId, setDepartmentId] = useState('');
   const [userId, setUserId] = useState('');
-  const departments = useDepartments();
   const users = useQuery({
     queryKey: ['users', 'picker', departmentId],
     queryFn: ({ signal }) =>
@@ -46,23 +45,22 @@ export function AdminLogsPage() {
         extraValues={{ ...(departmentId ? { department_id: departmentId } : {}), ...(userId ? { user_id: userId } : {}) }}
         extraFilters={
           <>
-            <SelectField
+            <DepartmentSelect
               label={t('logs.department')}
               value={departmentId}
-              disabled={departments.isLoading}
-              onChange={(e) => {
-                setDepartmentId(e.target.value);
+              placeholder={t('logs.all')}
+              onChange={(v) => {
+                setDepartmentId(v);
                 setUserId('');
               }}
+            />
+            <SelectField
+              label={t('logs.user')}
+              value={userId}
+              disabled={users.isLoading}
+              onChange={(e) => setUserId(e.target.value)}
+              aria-describedby={users.isError ? 'a-user-err' : undefined}
             >
-              <option value="">{t('logs.all')}</option>
-              {(departments.data?.items ?? []).map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </SelectField>
-            <SelectField label={t('logs.user')} value={userId} disabled={users.isLoading} onChange={(e) => setUserId(e.target.value)}>
               <option value="">{t('logs.all')}</option>
               {(users.data?.items ?? []).map((u) => (
                 <option key={u.id} value={u.id}>
@@ -73,6 +71,11 @@ export function AdminLogsPage() {
                 <option disabled>{t('logs.firstUsersOnly', { count: users.data.items.length })}</option>
               )}
             </SelectField>
+            {users.isError && (
+              <div id="a-user-err" className="err w-full" role="alert">
+                {t('logs.userListError')}
+              </div>
+            )}
           </>
         }
         emptyTitle={t('logs.orgEmptyTitle')}

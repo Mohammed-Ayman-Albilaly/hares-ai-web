@@ -4,10 +4,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Page } from '@/components/Page';
 import { Section } from '@/components/ui/layout';
-import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
+import { DepartmentSelect } from '@/features/common/DepartmentSelect';
 import { invalidateAdmin } from '@/features/common/invalidate';
-import { useDepartments } from '@/features/common/useDepartments';
 import { CopyPolicy } from '@/features/policy/CopyPolicy';
 import { PolicyEditor } from '@/features/policy/PolicyEditor';
 import { PolicyMatrix } from '@/features/policy/PolicyMatrix';
@@ -21,7 +20,6 @@ import { api } from '@/lib/api';
 export function AdminPolicyPage() {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const departments = useDepartments();
   const [departmentId, setDepartmentId] = useState('');
 
   const org = useQuery({ queryKey: ['policy', 'org'], queryFn: ({ signal }) => api.get<OrgPolicyResponse>('/admin/policy/org', { signal }) });
@@ -55,14 +53,12 @@ export function AdminPolicyPage() {
 
       <Section title={t('policy.deptTitle')} sub={t('policy.deptSub')}>
         <div className="max-w-sm">
-          <SelectField label={t('logs.department')} value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} disabled={departments.isLoading}>
-            <option value="">{t('manage.chooseDepartment')}</option>
-            {(departments.data?.items ?? []).map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </SelectField>
+          <DepartmentSelect
+            label={t('logs.department')}
+            value={departmentId}
+            placeholder={t('manage.chooseDepartment')}
+            onChange={setDepartmentId}
+          />
         </div>
         {!departmentId ? (
           <EmptyState title={t('policy.pickDepartmentTitle')} body={t('policy.pickDepartmentBody')} />

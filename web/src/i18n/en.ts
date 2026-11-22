@@ -57,6 +57,7 @@ export const en: Widen<typeof ar> = {
     adminAudit: 'Audit trail',
     login: 'Sign in',
     register: 'Create account',
+    accountMenu: 'Account menu: {{name}}',
   },
   navGroup: { personal: 'Personal', department: 'Department', organization: 'Organisation', account: 'Account' },
   roles: {
@@ -464,6 +465,7 @@ export const en: Widen<typeof ar> = {
     deactivateBody: 'Logging stops for the department’s staff. Its logs stay visible to admins until the retention period ends.',
     emptyTitle: 'No departments',
     emptyBody: 'Add a department so you can approve staff.',
+    listError: 'The department list could not be loaded. This picker is unavailable until it loads.',
   },
   audit: {
     tableCaption: 'Administrator action log',

@@ -57,6 +57,7 @@ export const ar = {
     adminAudit: 'سجل التدقيق',
     login: 'تسجيل الدخول',
     register: 'إنشاء حساب',
+    accountMenu: 'قائمة الحساب: {{name}}',
   },
   navGroup: { personal: 'شخصي', department: 'الإدارة', organization: 'المؤسسة', account: 'الحساب' },
   roles: {
@@ -464,6 +465,7 @@ export const ar = {
     deactivateBody: 'يتوقف تسجيل رسائل موظفي هذه الإدارة. تبقى سجلاتها ظاهرة للمدراء حتى انتهاء مدة الاحتفاظ.',
     emptyTitle: 'لا توجد إدارات',
     emptyBody: 'أضف إدارة لتتمكن من الموافقة على الموظفين.',
+    listError: 'تعذّر تحميل قائمة الإدارات. هذا الحقل غير متاح حتى تُحمّل.',
   },
   audit: {
     tableCaption: 'سجل إجراءات المدراء',

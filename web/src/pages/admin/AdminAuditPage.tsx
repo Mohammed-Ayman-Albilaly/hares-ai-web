@@ -56,7 +56,7 @@ function Detail({ detail }: { detail: AuditEntryResponse['detail'] }) {
   return (
     <ul className="m-0 flex list-none flex-wrap gap-1.5 p-0">
       {Object.entries(detail).map(([k, v]) => (
-        <li key={k} dir="auto" className="h-pill role-user" style={{ fontSize: 11 }}>
+        <li key={k} dir="auto" className="h-pill role-user">
           <span className="font-medium">{t(`audit.fields.${k}`, { defaultValue: k })}</span>
           {': '}
           <bdi>{value(k, v)}</bdi>
@@ -113,13 +113,13 @@ export function AdminAuditPage() {
         </div>
         <div className="field">
           <label htmlFor="a-to">{t('logs.to')}</label>
-          <input id="a-to" type="date" value={f.toDay} min={f.fromDay || undefined} aria-invalid={rangeInvalid || undefined} onChange={set('toDay')} />
+          <input id="a-to" type="date" value={f.toDay} min={f.fromDay || undefined} aria-invalid={rangeInvalid || undefined} aria-describedby={rangeInvalid ? 'a-range-err' : undefined} onChange={set('toDay')} />
         </div>
-        <Button variant="ghost" className="self-end" onClick={clear} disabled={!filtered && !f.fromDay}>
+        <Button variant="ghost" onClick={clear} disabled={!filtered}>
           <I.X size={14} /> {t('logs.clear')}
         </Button>
         {rangeInvalid && (
-          <div className="err w-full" role="alert">
+          <div id="a-range-err" className="err w-full" role="alert">
             {t('logs.rangeInvalid')}
           </div>
         )}
@@ -161,7 +161,7 @@ export function AdminAuditPage() {
                 <tbody>
                   {items.map((e) => (
                     <tr key={e.id}>
-                      <td style={{ color: 'var(--ink-3)', whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>{when(e.created_at)}</td>
+                      <td className="cell-muted cell-nowrap cell-figures">{when(e.created_at)}</td>
                       <td className="font-medium text-ink">{e.acting_admin_name}</td>
                       <td>{t(`audit.actions.${e.action_type}`)}</td>
                       <td>

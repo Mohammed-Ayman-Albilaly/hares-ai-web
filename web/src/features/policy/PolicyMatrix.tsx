@@ -74,7 +74,7 @@ export function PolicyMatrix() {
             <tbody>
               {CATEGORY_CODES.map((code) => (
                 <tr key={code}>
-                  <th scope="row" className="font-medium text-ink" style={{ textAlign: 'start' }}>
+                  <th scope="row" className="font-medium text-ink">
                     {t(`category.${code}`)}
                   </th>
                   {columns.map((c) => (

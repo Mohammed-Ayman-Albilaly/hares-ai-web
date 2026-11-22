@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { SelectField } from '@/components/ui/SelectField';
+import { DepartmentSelect } from '@/features/common/DepartmentSelect';
 import { invalidateAdmin } from '@/features/common/invalidate';
 import { useDepartments } from '@/features/common/useDepartments';
 import { api } from '@/lib/api';
@@ -29,28 +29,31 @@ export function CopyPolicy() {
     },
   });
 
-  const options = (
-    <>
-      <option value="">{t('manage.chooseDepartment')}</option>
-      {items.map((d) => (
-        <option key={d.id} value={d.id}>
-          {d.name}
-        </option>
-      ))}
-    </>
-  );
-
   return (
     <div className="flex flex-wrap items-end gap-3">
       <div className="min-w-[200px] flex-1">
-        <SelectField label={t('policy.copyFrom')} value={from} onChange={(e) => { setFrom(e.target.value); setDone(false); }}>
-          {options}
-        </SelectField>
+        <DepartmentSelect
+          label={t('policy.copyFrom')}
+          value={from}
+          activeOnly
+          placeholder={t('manage.chooseDepartment')}
+          onChange={(v) => {
+            setFrom(v);
+            setDone(false);
+          }}
+        />
       </div>
       <div className="min-w-[200px] flex-1">
-        <SelectField label={t('policy.copyTo')} value={to} onChange={(e) => { setTo(e.target.value); setDone(false); }}>
-          {options}
-        </SelectField>
+        <DepartmentSelect
+          label={t('policy.copyTo')}
+          value={to}
+          hideError
+          placeholder={t('manage.chooseDepartment')}
+          onChange={(v) => {
+            setTo(v);
+            setDone(false);
+          }}
+        />
       </div>
       <Button variant="secondary" disabled={!from || !to || from === to} onClick={() => { copy.reset(); setConfirming(true); }}>
         {t('policy.copyAction')}

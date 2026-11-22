@@ -115,8 +115,11 @@ export function UsersView({ showDepartment, renderActions, emptyTitle, emptyBody
                         <Avatar name={u.full_name} />
                         <div className="min-w-0">
                           <div className="truncate font-medium text-ink">{u.full_name}</div>
-                          <div className="truncate text-xs text-ink-4" dir="ltr" style={{ textAlign: 'start' }}>
-                            {u.email}
+                          <div className="truncate text-xs text-ink-4">
+                            {/* The address is Latin and stays left to right; the wrapper keeps the cell's alignment. */}
+                            <span dir="ltr" className="inline-block max-w-full truncate">
+                              {u.email}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -124,12 +127,12 @@ export function UsersView({ showDepartment, renderActions, emptyTitle, emptyBody
                     <td>
                       <RoleBadge role={u.role} />
                     </td>
-                    {showDepartment && <td style={{ color: 'var(--ink-3)' }}>{u.department_name ?? '—'}</td>}
+                    {showDepartment && <td className="cell-muted">{u.department_name ?? '—'}</td>}
                     <td>
                       <StatusBadge status={u.status} />
                     </td>
-                    <td style={{ color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>{when(u.registered_at)}</td>
-                    {renderActions && <td>{renderActions(u)}</td>}
+                    <td className="cell-muted cell-nowrap">{when(u.registered_at)}</td>
+                    {renderActions && <td className="cell-actions">{renderActions(u)}</td>}
                   </tr>
                 ))}
               </tbody>

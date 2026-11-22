@@ -119,7 +119,9 @@ export function AdminDepartmentsPage() {
               <thead>
                 <tr>
                   <th scope="col">{t('departments.name')}</th>
-                  <th scope="col">{t('departments.members')}</th>
+                  <th scope="col" className="cell-num">
+                    {t('departments.members')}
+                  </th>
                   <th scope="col">{t('users.status')}</th>
                   <th scope="col">
                     <span className="sr-only">{t('users.actions')}</span>
@@ -130,14 +132,14 @@ export function AdminDepartmentsPage() {
                 {items.map((d) => (
                   <tr key={d.id}>
                     <td className="font-medium text-ink">{d.name}</td>
-                    <td style={{ fontVariantNumeric: 'tabular-nums' }}>{formatNumber(d.member_count, lang)}</td>
+                    <td className="cell-num">{formatNumber(d.member_count, lang)}</td>
                     <td>
                       <span className={`h-pill ${d.active ? 'status-active' : 'status-inactive'}`}>
                         <span className="dot" aria-hidden="true" />
                         {d.active ? t('status.ACTIVE') : t('status.DEACTIVATED')}
                       </span>
                     </td>
-                    <td>
+                    <td className="cell-actions">
                       <div className="flex gap-2">
                         <Button small variant="secondary" onClick={() => setEditing(d)} aria-label={t('departments.renameNamed', { name: d.name })}>
                           {t('departments.rename')}

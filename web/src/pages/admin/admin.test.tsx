@@ -325,6 +325,17 @@ describe('policy', () => {
     expect(within(row).getAllByText('تنبيه').length).toBe(2);
   });
 
+  it('a department list that cannot be loaded explains itself instead of an empty picker', async () => {
+    mockFetch({
+      ...refresh,
+      'GET /api/admin/departments': () => envelope(500, 'INTERNAL_ERROR'),
+      'GET /api/admin/policy/org': () => json({ version: 1, items: [entry('CONTACT_INFO')] }),
+    });
+    renderRoute('/admin/policy');
+    const messages = await screen.findAllByText('تعذّر تحميل قائمة الإدارات. هذا الحقل غير متاح حتى تُحمّل.');
+    expect(messages.length).toBeGreaterThan(0);
+  });
+
   it('copying one department\'s policy to another asks first, then sends one request', async () => {
     const url = `POST /api/admin/policy/departments/${DEPT_B}/copy-from/${DEPT_A}`;
     const m = mockFetch({ ...refresh, ...deptRoute, ...matrixRoutes, 'GET /api/admin/policy/org': () => json({ version: 2, items: [entry('CONTACT_INFO')] }), [url]: () => json({ version: 3, department_id: DEPT_B, items: [] }) });

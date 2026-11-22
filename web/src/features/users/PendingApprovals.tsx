@@ -10,20 +10,18 @@ import { Avatar, Card, TableScroller } from '@/components/ui/layout';
 import { PageNav } from '@/components/ui/PageNav';
 import { SelectField } from '@/components/ui/SelectField';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
+import { DepartmentSelect } from '@/features/common/DepartmentSelect';
 import { invalidateAdmin } from '@/features/common/invalidate';
-import { useDepartments } from '@/features/common/useDepartments';
 import { useDateTime } from '@/features/logs/LogTable';
 import { api } from '@/lib/api';
 import { apiErrorMessage } from '@/lib/errors';
 
 const PAGE_SIZE = 25;
 
-
 /** Approve: the admin picks the department (active ones) and the role, as the account has neither yet (WEB-FR-056). */
 function ApproveDialog({ user, onClose }: { user: AdminUserResponse; onClose: () => void }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
-  const departments = useDepartments();
   const [departmentId, setDepartmentId] = useState('');
   const [role, setRole] = useState<'USER' | 'DEPARTMENT_ADMIN'>('USER');
   const m = useMutation({
@@ -33,7 +31,6 @@ function ApproveDialog({ user, onClose }: { user: AdminUserResponse; onClose: ()
       onClose();
     },
   });
-  const active = (departments.data?.items ?? []).filter((d) => d.active);
   return (
     <Modal open onClose={onClose} title={t('pending.approveTitle', { name: user.full_name })} description={user.email}>
       <form
@@ -43,14 +40,13 @@ function ApproveDialog({ user, onClose }: { user: AdminUserResponse; onClose: ()
           if (departmentId) m.mutate();
         }}
       >
-        <SelectField label={t('logs.department')} value={departmentId} onChange={(e) => setDepartmentId(e.target.value)} disabled={departments.isLoading}>
-          <option value="">{t('manage.chooseDepartment')}</option>
-          {active.map((d) => (
-            <option key={d.id} value={d.id}>
-              {d.name}
-            </option>
-          ))}
-        </SelectField>
+        <DepartmentSelect
+          label={t('logs.department')}
+          value={departmentId}
+          activeOnly
+          placeholder={t('manage.chooseDepartment')}
+          onChange={setDepartmentId}
+        />
         <SelectField label={t('users.role')} value={role} onChange={(e) => setRole(e.target.value as typeof role)}>
           <option value="USER">{t('roles.USER')}</option>
           <option value="DEPARTMENT_ADMIN">{t('roles.DEPARTMENT_ADMIN')}</option>
@@ -128,7 +124,7 @@ export function PendingApprovals() {
         empty={<EmptyState title={t('pending.emptyTitle')} body={t('pending.emptyBody')} icon={<I.Check size={20} />} />}
       >
         <Card padded={false}>
-          <TableScroller label={t('pending.tableCaption')}>
+          <TableScroller label={t('pending.tableCaption')} busy={q.isPlaceholderData} style={{ opacity: q.isPlaceholderData ? 0.6 : 1 }}>
             <table className="h-table">
               <caption className="sr-only">{t('pending.tableCaption')}</caption>
               <thead>
@@ -147,15 +143,18 @@ export function PendingApprovals() {
                       <div className="flex items-center gap-2.5">
                         <Avatar name={u.full_name} />
                         <div className="min-w-0">
-                          <div className="font-medium text-ink">{u.full_name}</div>
-                          <div className="text-xs text-ink-4" dir="ltr" style={{ textAlign: 'start' }}>
-                            {u.email}
+                          <div className="truncate font-medium text-ink">{u.full_name}</div>
+                          <div className="text-xs text-ink-4">
+                            {/* The address is Latin and stays left to right; the wrapper keeps the cell's alignment. */}
+                            <span dir="ltr" className="inline-block max-w-full truncate">
+                              {u.email}
+                            </span>
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td style={{ color: 'var(--ink-3)', whiteSpace: 'nowrap' }}>{when(u.registered_at)}</td>
-                    <td>
+                    <td className="cell-muted cell-nowrap">{when(u.registered_at)}</td>
+                    <td className="cell-actions">
                       <div className="flex gap-2">
                         <Button small variant="primary" onClick={() => setApproving(u)} aria-label={t('pending.approveNamed', { name: u.full_name })}>
                           {t('pending.approve')}

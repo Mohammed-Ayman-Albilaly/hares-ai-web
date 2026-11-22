@@ -163,7 +163,7 @@ function ChartCard({
             <thead>
               <tr>
                 {columns.map((c) => (
-                  <th key={c.header} scope="col">
+                  <th key={c.header} scope="col" className={c.numeric ? 'cell-num' : undefined}>
                     {c.header}
                   </th>
                 ))}
@@ -173,7 +173,7 @@ function ChartCard({
               {rows.map((r, i) => (
                 <tr key={i}>
                   {r.map((cell, j) => (
-                    <td key={j} style={columns[j]?.numeric ? { fontVariantNumeric: 'tabular-nums' } : undefined}>
+                    <td key={j} className={columns[j]?.numeric ? 'cell-num' : undefined}>
                       {typeof cell === 'number' ? formatNumber(cell, lang) : cell}
                     </td>
                   ))}

@@ -109,8 +109,11 @@ export function Avatar({ name, size = 28 }: { name: string; size?: number }) {
     .slice(0, 2)
     .join('');
   return (
+    // A span, not a div: the avatar also sits inside the account button in the top bar, and a button
+    // may hold phrasing content only — a block element there is invalid nesting, and a parser that
+    // normalises it closes the button before the text that names it.
     // The initials are drawn by CSS from data-initials: decoration, not page text.
-    <div className="avatar" aria-hidden="true" data-initials={initials} style={{ width: size, height: size, fontSize: size * 0.4 }} />
+    <span className="avatar" aria-hidden="true" data-initials={initials} style={{ width: size, height: size, fontSize: size * 0.4 }} />
   );
 }
 

@@ -71,13 +71,13 @@ export function AdminRulesPage() {
                     <td>
                       <PolicyActionBadge action={r.action} />
                     </td>
-                    <td style={{ color: 'var(--ink-3)' }}>
+                    <td className="cell-muted">
                       {r.scope === 'ORG_WIDE'
                         ? t('rules.scopes.ORG_WIDE')
                         : list.format(r.department_ids.map((id) => deptName.get(id) ?? '…'))}
                     </td>
                     <td>{r.enabled ? t('policy.on') : t('policy.off')}</td>
-                    <td>
+                    <td className="cell-actions">
                       <Button small variant="secondary" onClick={() => setEditing(r)} aria-label={t('rules.editNamed', { name: r.name })}>
                         {t('rules.edit')}
                       </Button>
