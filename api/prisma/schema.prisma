@@ -220,6 +220,10 @@ model CustomRule {
   action     PolicyAction @map("action")
   scope      RuleScope    @map("scope")
   enabled    Boolean      @default(true) @map("enabled")
+  /// TOPIC only (decision 66): the English description the extension's model reads; null for other kinds.
+  definitionEn String?    @map("definition_en")
+  /// TOPIC only (decision 66): match threshold 0.2..0.9; null for other kinds. CHECK constraints in raw SQL.
+  threshold    Float?     @map("threshold")
 
   createdByUser          User                    @relation("RuleCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   customRuleDepartments  CustomRuleDepartment[]  @relation("CustomRuleDept")

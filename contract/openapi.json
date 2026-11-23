@@ -619,6 +619,18 @@
           "definition": {
             "type": "string"
           },
+          "definition_en": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "threshold": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "risk_level": {
             "type": "string",
             "enum": [
@@ -642,6 +654,8 @@
           "name",
           "kind",
           "definition",
+          "definition_en",
+          "threshold",
           "risk_level",
           "action"
         ]
@@ -743,6 +757,18 @@
                 "definition": {
                   "type": "string"
                 },
+                "definition_en": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "threshold": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
                 "risk_level": {
                   "type": "string",
                   "enum": [
@@ -766,6 +792,8 @@
                 "name",
                 "kind",
                 "definition",
+                "definition_en",
+                "threshold",
                 "risk_level",
                 "action"
               ]
@@ -2956,6 +2984,19 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "definition_en": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 4000
+          },
+          "threshold": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         },
         "required": [
@@ -3024,6 +3065,18 @@
           "enabled": {
             "type": "boolean"
           },
+          "definition_en": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "threshold": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "editable": {
             "type": "boolean"
           }
@@ -3038,6 +3091,8 @@
           "scope",
           "department_ids",
           "enabled",
+          "definition_en",
+          "threshold",
           "editable"
         ]
       },
@@ -3105,6 +3160,18 @@
                 "enabled": {
                   "type": "boolean"
                 },
+                "definition_en": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "threshold": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
                 "editable": {
                   "type": "boolean"
                 }
@@ -3119,6 +3186,8 @@
                 "scope",
                 "department_ids",
                 "enabled",
+                "definition_en",
+                "threshold",
                 "editable"
               ]
             }
@@ -5519,6 +5588,18 @@
                           "definition": {
                             "type": "string"
                           },
+                          "definition_en": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "threshold": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
                           "risk_level": {
                             "type": "string",
                             "enum": [
@@ -5542,6 +5623,8 @@
                           "name",
                           "kind",
                           "definition",
+                          "definition_en",
+                          "threshold",
                           "risk_level",
                           "action"
                         ]
@@ -15098,6 +15181,18 @@
                           "enabled": {
                             "type": "boolean"
                           },
+                          "definition_en": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "threshold": {
+                            "type": [
+                              "number",
+                              "null"
+                            ]
+                          },
                           "editable": {
                             "type": "boolean"
                           }
@@ -15112,6 +15207,8 @@
                           "scope",
                           "department_ids",
                           "enabled",
+                          "definition_en",
+                          "threshold",
                           "editable"
                         ]
                       }
@@ -15307,6 +15404,19 @@
                   },
                   "enabled": {
                     "type": "boolean"
+                  },
+                  "definition_en": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "threshold": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -15383,6 +15493,18 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "definition_en": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "threshold": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
                     "editable": {
                       "type": "boolean"
                     }
@@ -15397,6 +15519,8 @@
                     "scope",
                     "department_ids",
                     "enabled",
+                    "definition_en",
+                    "threshold",
                     "editable"
                   ]
                 }
@@ -15710,6 +15834,19 @@
                   },
                   "enabled": {
                     "type": "boolean"
+                  },
+                  "definition_en": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 4000
+                  },
+                  "threshold": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
                   }
                 },
                 "required": [
@@ -15786,6 +15923,18 @@
                     "enabled": {
                       "type": "boolean"
                     },
+                    "definition_en": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "threshold": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
                     "editable": {
                       "type": "boolean"
                     }
@@ -15800,6 +15949,8 @@
                     "scope",
                     "department_ids",
                     "enabled",
+                    "definition_en",
+                    "threshold",
                     "editable"
                   ]
                 }

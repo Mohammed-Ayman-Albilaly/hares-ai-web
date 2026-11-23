@@ -229,6 +229,21 @@ describe.skipIf(!dbEnabled)('log ingestion (B7a)', () => {
     expect((await sql('SELECT count(*)::int AS n FROM "EventCounter" WHERE rule_id = $1', [ruleId]))[0].n).toBe(1);
   });
 
+  it('accepts a TOPIC match as the extension sends it: rule_id, no categories, LOCAL_AI, WARNED (decision 66)', async () => {
+    const sa = await fx.user('i-topic-sa', { role: 'SYSTEM_ADMIN' });
+    const ruleId = randomUUID();
+    // Disabled, so this rule never counts toward the TOPIC cap tested in policy.test.ts.
+    await fx.owner.query(
+      `INSERT INTO "CustomRule" (id, created_by, kind, name, definition, definition_en, threshold, risk_level, action, scope, enabled)
+       VALUES ($1, $2, 'TOPIC', 'ing topic', 'x', 'This text discusses plans to lay off employees.', 0.3, 'MEDIUM', 'WARN', 'ORG_WIDE', false)`,
+      [ruleId, sa.id],
+    );
+    const e = event({ rule_id: ruleId, categories: [], risk_level: 'MEDIUM', action: 'WARNED', classification_source: 'LOCAL_AI' });
+    expect((await post(e)).status).toBe(201);
+    const [row] = await sql('SELECT rule_id, action, classification_source FROM "ActivityLog" WHERE log_id = $1', [e.log_id]);
+    expect(row).toMatchObject({ rule_id: ruleId, action: 'WARNED', classification_source: 'LOCAL_AI' });
+  });
+
   // ---------- event_time ----------
 
   it('enforces the event_time window: +5 min future and 90 days old', async () => {

@@ -117,6 +117,26 @@ export function splitKeywords(definition: string): string[] {
 const RuleNameSchema = z.string().trim().min(1).max(100);
 
 /**
+ * TOPIC rules (decision 66). The extension scores each TOPIC rule with a small on-device model that reads
+ * `definition_en` (English works far better than Arabic for that model), and the rule matches when the score is
+ * at or above `threshold`. `definition` stays in the admin's language for display.
+ */
+export const TOPIC_DEFINITION_EN_MIN_LENGTH = 20;
+export const TOPIC_DEFINITION_EN_MAX_LENGTH = 300;
+export const TOPIC_THRESHOLD_MIN = 0.2;
+export const TOPIC_THRESHOLD_MAX = 0.9;
+export const TOPIC_THRESHOLD_DEFAULT = 0.3;
+/** The three sensitivity levels the admin screen offers, and the threshold each one stores. */
+export const TOPIC_SENSITIVITY = { HIGH: 0.3, MEDIUM: 0.4, LOW: 0.5 } as const;
+export type TopicSensitivity = keyof typeof TOPIC_SENSITIVITY;
+/** At most this many enabled TOPIC rules apply to one department (org-wide rules count for every department). */
+export const TOPIC_RULES_MAX_PER_DEPARTMENT = 10;
+/** A topic match is a likelihood, not a fact, and cannot be masked: a TOPIC rule may warn or allow, never block. */
+export const TOPIC_ACTIONS = ['WARN', 'ALLOW'] as const;
+/** Any Arabic letter: `definition_en` must be written in English. */
+const ARABIC_LETTER = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+
+/**
  * CustomRuleRequest. Per-kind shape checks run here (length, word list); the
  * regex safety checks (ReDoS) run in the API because they need the analyser.
  */
@@ -131,6 +151,10 @@ export const CustomRuleRequestSchema = z
     /** Required (non-empty) for DEPARTMENTS, must be empty or absent for ORG_WIDE. */
     department_ids: z.array(z.string().uuid()).max(200).default([]),
     enabled: z.boolean(),
+    /** TOPIC only: the description in English that the extension's model reads. Ignored (stored as null) for other kinds. */
+    definition_en: z.string().max(TEXT_DEFINITION_MAX_LENGTH).nullable().optional(),
+    /** TOPIC only: score at or above which the rule matches; null or absent means 0.3. Ignored for other kinds. */
+    threshold: z.number().finite().nullable().optional(),
   })
   .strict()
   .superRefine((r, ctx) => {
@@ -146,6 +170,21 @@ export const CustomRuleRequestSchema = z
     if (r.scope === 'DEPARTMENTS' && r.department_ids.length === 0) issue('department_ids', 'rule.departments_required');
     if (r.scope === 'ORG_WIDE' && r.department_ids.length > 0) issue('department_ids', 'rule.departments_not_allowed');
     if (new Set(r.department_ids).size !== r.department_ids.length) issue('department_ids', 'rule.departments_duplicate');
+    if (r.kind === 'TOPIC') {
+      const en = (r.definition_en ?? '').trim();
+      // Required for an enabled rule; a disabled TOPIC rule saved before decision 66 may stay without one.
+      if (en.length === 0) {
+        if (r.enabled) issue('definition_en', 'rule.definition_en_required');
+      } else if (en.length < TOPIC_DEFINITION_EN_MIN_LENGTH || en.length > TOPIC_DEFINITION_EN_MAX_LENGTH) {
+        issue('definition_en', 'rule.definition_en_length');
+      } else if (ARABIC_LETTER.test(en)) {
+        issue('definition_en', 'rule.definition_en_not_english');
+      }
+      if (r.threshold != null && (r.threshold < TOPIC_THRESHOLD_MIN || r.threshold > TOPIC_THRESHOLD_MAX)) {
+        issue('threshold', 'rule.threshold_range');
+      }
+      if (!(TOPIC_ACTIONS as readonly string[]).includes(r.action)) issue('action', 'rule.topic_block_not_allowed');
+    }
   });
 export type CustomRuleRequest = z.infer<typeof CustomRuleRequestSchema>;
 
@@ -160,6 +199,13 @@ export const CustomRuleResponseSchema = z.object({
   scope: RuleScopeSchema,
   department_ids: z.array(z.string().uuid()),
   enabled: z.boolean(),
+  /**
+   * TOPIC: the English description ('' when hidden from a Department Admin; null if never written, which the screen
+   * marks because the extension skips such a rule); null for other kinds.
+   */
+  definition_en: z.string().nullable(),
+  /** TOPIC: the stored threshold; null for other kinds. */
+  threshold: z.number().nullable(),
   /** Whether the caller may edit this rule (a Department Admin: only rules that apply to their department alone). */
   editable: z.boolean(),
 });
@@ -178,6 +224,12 @@ export const RULE_PATTERN_ERRORS = [
   'rule.pattern_unsafe', // catastrophic backtracking (ReDoS) detected
   'rule.pattern_timeout', // the execution test exceeded its time limit
 ] as const;
+
+/**
+ * Validation message key when a TOPIC rule would take a department past TOPIC_RULES_MAX_PER_DEPARTMENT
+ * enabled TOPIC rules (shown in `details.enabled`).
+ */
+export const RULE_TOPIC_LIMIT_ERROR = 'rule.topic_limit';
 
 export const POLICY_ERROR_CODES = [
   'RULE_NOT_FOUND', // 404

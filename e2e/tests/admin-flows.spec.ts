@@ -116,6 +116,9 @@ test.describe('detection rules', () => {
     await topic.getByLabel('النوع').selectOption('TOPIC');
     await expect(topic.getByRole('note')).toContainText('لا تكتب أسراراً حقيقية');
     await topic.getByLabel('وصف الموضوع').fill('confidential acquisition plans');
+    // decision 66: the English description the extension's model reads, and no BLOCK for a topic
+    await topic.getByLabel(/الوصف بالإنجليزية/).fill('This text discusses confidential acquisition plans.');
+    await expect(topic.getByLabel('الإجراء').locator('option[value="BLOCK"]')).toHaveCount(0);
     await topic.getByLabel('النطاق').selectOption('ORG_WIDE');
     await topic.getByRole('button', { name: 'حفظ' }).click();
     await expect(page.getByRole('dialog')).toBeHidden();
@@ -124,12 +127,18 @@ test.describe('detection rules', () => {
     const ext = await extensionToken(request, accounts.engUser);
     const bundle = await (await request.get('/api/policy/bundle', { headers: bearer(ext) })).json();
     expect(bundle.rules.some((r: { name: string }) => r.name === name)).toBe(true);
+    expect(bundle.rules.find((r: { name: string }) => r.name === `${name} topic`)).toMatchObject({
+      definition_en: 'This text discusses confidential acquisition plans.',
+      threshold: 0.3,
+      action: 'WARN',
+    });
 
     // a Department Admin sees it, read-only, and never the TOPIC text
     const da = await tokenOf(request, accounts.engAdmin);
     const list = await (await request.get('/api/admin/rules', { headers: bearer(da) })).json();
     expect(list.items.find((r: { name: string }) => r.name === `${name} topic`).definition).toBe('');
     expect(JSON.stringify(list)).not.toContain('confidential acquisition plans');
+    expect(JSON.stringify(list)).not.toContain('This text discusses confidential');
     // An organisation-wide rule is not theirs to write, whatever the body says.
     const orgWide = list.items.find((r: { name: string }) => r.name === name);
     expect(orgWide.editable).toBe(false);

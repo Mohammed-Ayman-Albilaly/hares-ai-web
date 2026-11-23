@@ -4,7 +4,10 @@ import {
   CATEGORY_CODES,
   defaultActionFor,
   PolicyBundleResponseSchema,
+  RULE_TOPIC_LIMIT_ERROR,
   splitKeywords,
+  TOPIC_RULES_MAX_PER_DEPARTMENT,
+  TOPIC_THRESHOLD_DEFAULT,
   type CategoryCode,
   type CategoryPolicyEntry,
   type CustomRuleListResponse,
@@ -18,7 +21,7 @@ import {
 import { AuditService, type AuditTx } from '../audit/audit.service';
 import type { AuthUser } from '../common/auth-user';
 import { ValidationException } from '../common/validation-exception';
-import type { Prisma } from '../prisma/generated/client';
+import { Prisma } from '../prisma/generated/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { checkPattern } from './regex-validation';
 
@@ -27,7 +30,7 @@ const forbidden = () =>
   new ForbiddenException({ code: 'FORBIDDEN', message: 'You do not have permission for this department.' });
 const ruleNotFound = () => new NotFoundException({ code: 'RULE_NOT_FOUND', message: 'Rule not found.' });
 
-const BUNDLE_FORMAT = 2; // 2: policy entries carry risk_level
+const BUNDLE_FORMAT = 3; // 2: policy entries carry risk_level; 3: rules carry definition_en and threshold (decision 66)
 
 /** Weak-looking but safe: the ETag only identifies (version, department), never auth material. */
 export function bundleETag(version: number, departmentId: string | null): string {
@@ -35,6 +38,9 @@ export function bundleETag(version: number, departmentId: string | null): string
   const hash = createHash('sha256').update(`${BUNDLE_FORMAT}:${version}:${departmentId ?? 'org'}`).digest('base64url').slice(0, 16);
   return `"p${version}-${hash}"`;
 }
+
+/** A rule request after normalizeRule: the TOPIC fields are always set (null for other kinds). */
+type NormalizedRule = CustomRuleRequest & { definition_en: string | null; threshold: number | null };
 
 type RuleRow = Prisma.CustomRuleGetPayload<{ include: { customRuleDepartments: { select: { departmentId: true } } } }>;
 
@@ -49,6 +55,8 @@ function toRuleResponse(r: RuleRow, editable = true): CustomRuleResponse {
     scope: r.scope,
     department_ids: r.customRuleDepartments.map((d) => d.departmentId).sort(),
     enabled: r.enabled,
+    definition_en: r.definitionEn,
+    threshold: r.threshold,
     editable,
   };
 }
@@ -284,6 +292,8 @@ export class PolicyService {
         ...res,
         editable,
         definition: res.kind === 'TOPIC' && !editable ? '' : res.definition,
+        // Hidden text is '', but a missing one stays null: the screen marks such a rule as not taking effect.
+        definition_en: res.kind === 'TOPIC' && !editable && res.definition_en !== null ? '' : res.definition_en,
         department_ids: res.department_ids.filter((d) => d === actor.departmentId),
       };
     });
@@ -309,6 +319,8 @@ export class PolicyService {
           action: input.action,
           scope: input.scope,
           enabled: input.enabled,
+          definitionEn: input.definition_en,
+          threshold: input.threshold,
         },
       });
       if (input.department_ids.length > 0) {
@@ -317,6 +329,7 @@ export class PolicyService {
         });
       }
       const version = await this.bump(tx);
+      await this.requireTopicLimit(tx, input);
       await this.recordRule(tx, actor, id, input, { change: 'created', version });
     });
     return this.getRule(id);
@@ -341,11 +354,14 @@ export class PolicyService {
       if (before.action !== input.action) olds.old_action = before.action;
       if (before.risk_level !== input.risk_level) olds.old_risk_level = before.risk_level;
       if (before.enabled !== input.enabled) olds.old_enabled = before.enabled;
+      if (before.threshold !== input.threshold && before.threshold !== null) olds.old_threshold = String(before.threshold);
       const changed = (
         [
           ['name', before.name !== input.name],
           ['kind', before.kind !== input.kind],
           ['definition', before.definition !== input.definition],
+          ['definition_en', before.definition_en !== input.definition_en],
+          ['threshold', before.threshold !== input.threshold],
           ['risk_level', before.risk_level !== input.risk_level],
           ['action', before.action !== input.action],
           ['scope', before.scope !== input.scope],
@@ -367,6 +383,8 @@ export class PolicyService {
           action: input.action,
           scope: input.scope,
           enabled: input.enabled,
+          definitionEn: input.definition_en,
+          threshold: input.threshold,
         },
       });
       if (changed.includes('departments') || changed.includes('scope')) {
@@ -378,6 +396,7 @@ export class PolicyService {
         }
       }
       const version = await this.bump(tx);
+      await this.requireTopicLimit(tx, input);
       await this.recordRule(tx, actor, id, input, { change: 'updated', changed_fields: [...changed], version, ...olds });
     });
     return this.getRule(id);
@@ -399,7 +418,7 @@ export class PolicyService {
   }
 
   /** Per-kind normalisation and the regex safety checks (WEB-FR-035, 036). */
-  private async normalizeRule(req: CustomRuleRequest): Promise<CustomRuleRequest> {
+  private async normalizeRule(req: CustomRuleRequest): Promise<NormalizedRule> {
     // A PATTERN is kept verbatim: trimming would change what the regex matches.
     let definition = req.kind === 'PATTERN' ? req.definition : req.definition.trim();
     if (req.kind === 'KEYWORD') definition = [...new Set(splitKeywords(req.definition))].join('\n');
@@ -407,14 +426,41 @@ export class PolicyService {
       const check = await checkPattern(definition);
       if (!check.ok) throw new ValidationException({ definition: [check.error] });
     }
-    return { ...req, definition, department_ids: [...req.department_ids] };
+    // definition_en and threshold belong to TOPIC rules only (decision 66); for other kinds they are dropped.
+    const topic = req.kind === 'TOPIC';
+    const en = topic ? (req.definition_en ?? '').trim() : '';
+    const threshold = topic ? Math.round((req.threshold ?? TOPIC_THRESHOLD_DEFAULT) * 100) / 100 : null;
+    return { ...req, definition, definition_en: en.length > 0 ? en : null, threshold, department_ids: [...req.department_ids] };
+  }
+
+  /**
+   * Decision 66: at most TOPIC_RULES_MAX_PER_DEPARTMENT enabled TOPIC rules apply to any one department, org-wide
+   * rules counting for every department (and alone for users without one). Runs after the write and after
+   * bump(), whose row lock serialises policy writes, so two concurrent saves cannot both pass.
+   */
+  private async requireTopicLimit(tx: AuditTx, input: NormalizedRule): Promise<void> {
+    if (input.kind !== 'TOPIC' || !input.enabled) return;
+    const deptFilter =
+      input.scope === 'DEPARTMENTS' ? Prisma.sql`AND d.department_id = ANY(${input.department_ids}::uuid[])` : Prisma.empty;
+    const rows = await tx.$queryRaw<{ org: number; dept: number }[]>`
+      SELECT
+        (SELECT count(*)::int FROM "CustomRule"
+          WHERE kind = 'TOPIC' AND enabled AND scope = 'ORG_WIDE') AS org,
+        (SELECT coalesce(max(n), 0)::int FROM (
+          SELECT count(*) AS n FROM "CustomRuleDepartment" d
+          JOIN "CustomRule" r ON r.id = d.custom_rule_id
+          WHERE r.kind = 'TOPIC' AND r.enabled AND r.scope = 'DEPARTMENTS' ${deptFilter}
+          GROUP BY d.department_id) per_department) AS dept`;
+    if (rows[0].org + rows[0].dept > TOPIC_RULES_MAX_PER_DEPARTMENT) {
+      throw new ValidationException({ enabled: [RULE_TOPIC_LIMIT_ERROR] });
+    }
   }
 
   private recordRule(
     tx: AuditTx,
     actor: AuthUser,
     id: string,
-    input: CustomRuleRequest,
+    input: NormalizedRule,
     extra: Record<string, string | number | boolean | string[]>,
   ) {
     // Never the definition (it may be a pattern or an example text): decision 19.
@@ -431,6 +477,8 @@ export class PolicyService {
         scope: input.scope,
         enabled: input.enabled,
         department_count: input.department_ids.length,
+        // The threshold is a setting, not content; definition_en is content and is never audited (decision 19).
+        ...(input.threshold !== null ? { threshold: input.threshold } : {}),
         ...extra,
       },
     });
@@ -469,7 +517,7 @@ export class PolicyService {
             ],
           },
           orderBy: [{ name: 'asc' }, { id: 'asc' }],
-          select: { id: true, name: true, kind: true, definition: true, riskLevel: true, action: true },
+          select: { id: true, name: true, kind: true, definition: true, definitionEn: true, threshold: true, riskLevel: true, action: true },
         });
         return { version, policy, rules };
       },
@@ -483,6 +531,8 @@ export class PolicyService {
         name: r.name,
         kind: r.kind,
         definition: r.definition,
+        definition_en: r.definitionEn,
+        threshold: r.threshold,
         risk_level: r.riskLevel,
         action: r.action,
       })),

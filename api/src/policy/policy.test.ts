@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   CATEGORY_CODES,
@@ -9,6 +10,8 @@ import {
 import { TokenService } from '../auth/token.service';
 import { Fixtures, TEST_PASSWORD, bootTestApp, dbEnabled, type TestApp } from '../test/http-test-app';
 import { PolicyService } from './policy.service';
+
+const TOPIC_EN = 'This text discusses confidential plans to acquire another company.';
 
 // Policy, custom rules and the versioned bundle (B6). Runs in the per-run test
 // database. SYNTHETIC DATA ONLY.
@@ -228,7 +231,7 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
   it('creates a DEPARTMENTS rule with its links in ONE transaction; scope/department mismatches are 400', async () => {
     const res = await t.call('POST', '/api/admin/rules', {
       bearer: saToken,
-      body: rule({ name: `Dept ${fx.salt}`, kind: 'TOPIC', definition: 'internal salary discussions', scope: 'DEPARTMENTS', department_ids: [deptA, deptB] }),
+      body: rule({ name: `Dept ${fx.salt}`, kind: 'TOPIC', definition: 'internal salary discussions', definition_en: TOPIC_EN, scope: 'DEPARTMENTS', department_ids: [deptA, deptB] }),
     });
     expect(res.status).toBe(201);
     expect(res.body.department_ids.sort()).toEqual([deptA, deptB].sort());
@@ -300,7 +303,7 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
   it('a Department Admin never receives the text of a TOPIC rule (confidential description), a System Admin does', async () => {
     const topic = await t.call('POST', '/api/admin/rules', {
       bearer: saToken,
-      body: rule({ name: `Topic ${fx.salt}`, kind: 'TOPIC', definition: 'confidential acquisition plans', scope: 'DEPARTMENTS', department_ids: [deptA] }),
+      body: rule({ name: `Topic ${fx.salt}`, kind: 'TOPIC', definition: 'confidential acquisition plans', definition_en: TOPIC_EN, scope: 'DEPARTMENTS', department_ids: [deptA] }),
     });
     const pattern = await t.call('POST', '/api/admin/rules', {
       bearer: saToken,
@@ -311,11 +314,14 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     expect(asDa.find((r: { id: string }) => r.id === pattern.body.id).definition).toBe('EMP-[0-9]{6}');
     // Not editable for them either: they cannot see what they would overwrite.
     expect(asDa.find((r: { id: string }) => r.id === topic.body.id).editable).toBe(false);
-    expect((await t.call('PUT', `/api/admin/rules/${topic.body.id}`, { bearer: daToken, body: rule({ kind: 'TOPIC', definition: 'x', scope: 'DEPARTMENTS', department_ids: [deptA] }) })).status).toBe(403);
+    expect((await t.call('PUT', `/api/admin/rules/${topic.body.id}`, { bearer: daToken, body: rule({ kind: 'TOPIC', definition: 'x', definition_en: TOPIC_EN, scope: 'DEPARTMENTS', department_ids: [deptA] }) })).status).toBe(403);
     const asSa = (await t.call('GET', '/api/admin/rules', { bearer: saToken })).body.items;
     expect(asSa.find((r: { id: string }) => r.id === topic.body.id).definition).toBe('confidential acquisition plans');
     // and nowhere else in the answer
     expect(JSON.stringify(asDa)).not.toContain('confidential acquisition plans');
+    expect(JSON.stringify(asDa)).not.toContain(TOPIC_EN);
+    expect(asDa.find((r: { id: string }) => r.id === topic.body.id).definition_en).toBe('');
+    expect(asSa.find((r: { id: string }) => r.id === topic.body.id).definition_en).toBe(TOPIC_EN);
   });
 
   it('Department Admin lists the rules of their department and edits only the ones that apply to it alone', async () => {
@@ -423,7 +429,7 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
       }
     };
     walk(res.body);
-    expect([...keys].sort()).toEqual(['action', 'category_code', 'definition', 'enabled', 'id', 'kind', 'name', 'policy', 'risk_level', 'rules', 'version'].sort());
+    expect([...keys].sort()).toEqual(['action', 'category_code', 'definition', 'definition_en', 'enabled', 'id', 'kind', 'name', 'policy', 'risk_level', 'rules', 'threshold', 'version'].sort());
     expect((await bundle(saToken)).status).toBe(401);
     expect((await t.call('GET', '/api/policy/bundle')).status).toBe(401);
   });
@@ -441,8 +447,8 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     expect((await save({ definition: '   ' })).body.details.definition).toContain('rule.definition_required');
     expect((await save({ definition: Array.from({ length: 201 }, (_, i) => `w${i}`).join(String.fromCharCode(10)) })).body.details.definition).toContain('rule.too_many_keywords');
     expect((await save({ definition: 'x'.repeat(65) })).body.details.definition).toContain('rule.keyword_too_long');
-    expect((await save({ kind: 'TOPIC', definition: 'x'.repeat(4001) })).status).toBe(400);
-    expect((await save({ kind: 'TOPIC', definition: 'x'.repeat(4000), name: `Topic ${fx.salt}` })).status).toBe(201);
+    expect((await save({ kind: 'TOPIC', definition: 'x'.repeat(4001), definition_en: TOPIC_EN })).status).toBe(400);
+    expect((await save({ kind: 'TOPIC', definition: 'x'.repeat(4000), definition_en: TOPIC_EN, name: `Topic ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptB] })).status).toBe(201);
     expect((await save({ department_ids: [], scope: 'DEPARTMENTS', definition: 'ok' })).status).toBe(400);
   });
 
@@ -488,6 +494,119 @@ describe.skipIf(!dbEnabled)('policy, rules and bundle (B6)', () => {
     const created = await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `Old ${fx.salt}` }) });
     await t.call('PUT', `/api/admin/rules/${created.body.id}`, { bearer: saToken, body: rule({ name: `Old ${fx.salt}`, action: 'BLOCK', risk_level: 'HIGH', enabled: false }) });
     expect((await audits('RULE_CHANGED')).at(-1)!.detail).toMatchObject({ old_action: 'WARN', old_risk_level: 'MEDIUM', old_enabled: true });
+  });
+
+  // ---------- TOPIC rules (decision 66) ----------
+
+  const topicRule = (over: Record<string, unknown> = {}) =>
+    rule({ kind: 'TOPIC', definition: 'أي حديث عن خطط تسريح موظفين', definition_en: TOPIC_EN, scope: 'DEPARTMENTS', department_ids: [deptB], ...over });
+  const saveTopic = (over: Record<string, unknown> = {}) => t.call('POST', '/api/admin/rules', { bearer: saToken, body: topicRule(over) });
+
+  it('TOPIC: validates the English description, the threshold and the action', async () => {
+    const details = async (over: Record<string, unknown>) => (await saveTopic(over)).body.details ?? {};
+    expect((await details({ definition_en: undefined })).definition_en).toContain('rule.definition_en_required');
+    expect((await details({ definition_en: '   ' })).definition_en).toContain('rule.definition_en_required');
+    expect((await details({ definition_en: 'Too short' })).definition_en).toContain('rule.definition_en_length');
+    expect((await details({ definition_en: `This text discusses ${'x'.repeat(290)}` })).definition_en).toContain('rule.definition_en_length');
+    expect((await details({ definition_en: 'This text discusses تسريح الموظفين in the company.' })).definition_en).toContain('rule.definition_en_not_english');
+    expect((await details({ threshold: 0.1 })).threshold).toContain('rule.threshold_range');
+    expect((await details({ threshold: 0.95 })).threshold).toContain('rule.threshold_range');
+    expect((await details({ action: 'BLOCK' })).action).toContain('rule.topic_block_not_allowed');
+    // A disabled TOPIC rule may stay without an English description (rules saved before decision 66).
+    expect((await saveTopic({ name: `Legacy ${fx.salt}`, definition_en: null, enabled: false })).status).toBe(201);
+  });
+
+  it('TOPIC: stores the trimmed English text and the threshold (default 0.3); other kinds drop both', async () => {
+    const plain = await saveTopic({ name: `T default ${fx.salt}`, definition_en: `  ${TOPIC_EN}  `, threshold: undefined, action: 'ALLOW' });
+    expect(plain.status).toBe(201);
+    expect(CustomRuleResponseSchema.safeParse(plain.body).success).toBe(true);
+    expect(plain.body).toMatchObject({ definition_en: TOPIC_EN, threshold: 0.3, action: 'ALLOW' });
+    expect((await saveTopic({ name: `T low ${fx.salt}`, threshold: 0.5 })).body.threshold).toBe(0.5);
+    const kw = await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `KW extra ${fx.salt}`, definition_en: TOPIC_EN, threshold: 0.5 }) });
+    expect(kw.body).toMatchObject({ definition_en: null, threshold: null });
+    // The audit records the threshold but never either description.
+    const last = JSON.stringify((await audits('RULE_CHANGED')).at(-1)!.detail);
+    expect(last).not.toContain(TOPIC_EN);
+  });
+
+  it('TOPIC: a change of only the threshold or the English text bumps the version and changes the bundle', async () => {
+    const created = await saveTopic({ name: `T bump ${fx.salt}`, department_ids: [deptA] });
+    const before = await bundle(extA);
+    const v0 = await version();
+    await t.call('PUT', `/api/admin/rules/${created.body.id}`, { bearer: saToken, body: topicRule({ name: `T bump ${fx.salt}`, department_ids: [deptA], threshold: 0.4 }) });
+    expect(await version()).toBe(v0 + 1);
+    const enText = 'This text discusses plans to lay off employees or cut positions.';
+    await t.call('PUT', `/api/admin/rules/${created.body.id}`, {
+      bearer: saToken,
+      body: topicRule({ name: `T bump ${fx.salt}`, department_ids: [deptA], threshold: 0.4, definition_en: enText }),
+    });
+    expect(await version()).toBe(v0 + 2);
+    expect((await audits('RULE_CHANGED')).at(-1)!.detail).toMatchObject({ changed_fields: ['definition_en'] });
+    const after = await bundle(extA, { 'if-none-match': before.headers.etag as string });
+    expect(after.status).toBe(200);
+    expect(PolicyBundleResponseSchema.safeParse(after.body).success).toBe(true);
+    const inBundle = after.body.rules.find((r: { id: string }) => r.id === created.body.id);
+    expect(inBundle).toEqual({
+      id: created.body.id,
+      name: `T bump ${fx.salt}`,
+      kind: 'TOPIC',
+      definition: 'أي حديث عن خطط تسريح موظفين',
+      definition_en: enText,
+      threshold: 0.4,
+      risk_level: 'MEDIUM',
+      action: 'WARN',
+    });
+    // Other kinds carry the two fields as null.
+    const other = after.body.rules.find((r: { kind: string }) => r.kind !== 'TOPIC');
+    expect(other).toMatchObject({ definition_en: null, threshold: null });
+  });
+
+  it('TOPIC: the database itself refuses BLOCK, an out-of-range threshold and TOPIC fields on another kind', async () => {
+    const created = await saveTopic({ name: `T db ${fx.salt}` });
+    const tryUpdate = (set: string) => fx.owner.query(`UPDATE "CustomRule" SET ${set} WHERE id = $1`, [created.body.id]);
+    await expect(tryUpdate(`action = 'BLOCK'`)).rejects.toThrow(/CustomRule_topic_never_blocks/);
+    await expect(tryUpdate(`threshold = 0.95`)).rejects.toThrow(/CustomRule_threshold_range/);
+    await expect(tryUpdate(`kind = 'KEYWORD'`)).rejects.toThrow(/CustomRule_topic_fields_only_on_topic/);
+  });
+
+  it('TOPIC: at most 10 enabled TOPIC rules apply to one department, org-wide rules counting for every department', async () => {
+    const deptC = await fx.department('Pol C');
+    const { rows } = await fx.owner.query(`SELECT count(*)::int AS n FROM "CustomRule" WHERE kind = 'TOPIC' AND enabled AND scope = 'ORG_WIDE'`);
+    const room = 10 - rows[0].n;
+    expect(room).toBeGreaterThan(1);
+    for (let i = 0; i < room; i += 1) {
+      expect((await saveTopic({ name: `Cap ${i} ${fx.salt}`, department_ids: [deptC] })).status).toBe(201);
+    }
+    const v0 = await version();
+    const over = await saveTopic({ name: `Cap over ${fx.salt}`, department_ids: [deptC] });
+    expect(over.status).toBe(400);
+    expect(over.body.details.enabled).toContain('rule.topic_limit');
+    expect(await version()).toBe(v0); // refused writes roll back, the bump included
+    // a disabled one is fine, but enabling it is refused
+    const off = await saveTopic({ name: `Cap off ${fx.salt}`, department_ids: [deptC], enabled: false });
+    expect(off.status).toBe(201);
+    const enable = await t.call('PUT', `/api/admin/rules/${off.body.id}`, { bearer: saToken, body: topicRule({ name: `Cap off ${fx.salt}`, department_ids: [deptC] }) });
+    expect(enable.body.details.enabled).toContain('rule.topic_limit');
+    // an org-wide TOPIC rule would take deptC to 11
+    const org = await saveTopic({ name: `Cap org ${fx.salt}`, scope: 'ORG_WIDE', department_ids: [] });
+    expect(org.body.details.enabled).toContain('rule.topic_limit');
+    // a full department does not block another department, nor other kinds
+    expect((await saveTopic({ name: `Cap other ${fx.salt}`, department_ids: [deptB] })).status).toBe(201);
+    expect((await t.call('POST', '/api/admin/rules', { bearer: saToken, body: rule({ name: `Cap kw ${fx.salt}`, scope: 'DEPARTMENTS', department_ids: [deptC] }) })).status).toBe(201);
+  });
+
+  it('TOPIC: a rule saved before decision 66 (no English text) reaches a Department Admin as null, not hidden', async () => {
+    // Runs after the cap test: this enabled org-wide rule would otherwise take a department's count.
+    const id = randomUUID();
+    await fx.owner.query(
+      `INSERT INTO "CustomRule" (id, created_by, kind, name, definition, threshold, risk_level, action, scope, enabled)
+       VALUES ($1, $2, 'TOPIC', $3, 'old topic', 0.3, 'MEDIUM', 'WARN', 'ORG_WIDE', true)`,
+      [id, sa.id, `Legacy on ${fx.salt}`],
+    );
+    const asDa = (await t.call('GET', '/api/admin/rules', { bearer: daToken })).body.items;
+    expect(asDa.find((r: { id: string }) => r.id === id)).toMatchObject({ definition: '', definition_en: null, editable: false });
+    const inBundle = (await bundle(extA)).body.rules.find((r: { id: string }) => r.id === id);
+    expect(inBundle).toMatchObject({ definition_en: null, threshold: 0.3 });
   });
 
   it('a password check keeps the fixtures valid', () => {

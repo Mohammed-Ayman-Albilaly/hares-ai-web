@@ -22,7 +22,8 @@ import {
  *
  * PATTERN rules are validated under the flag `i` (PATTERN_FLAGS in ./policy-admin): the
  * extension MUST compile `definition` with `new RegExp(definition, 'i')`. KEYWORD
- * definitions are one word or phrase per line; TOPIC definitions are free text.
+ * definitions are one word or phrase per line; TOPIC definitions are free text, and a TOPIC rule
+ * also carries `definition_en` and `threshold` (decision 66).
  */
 
 /**
@@ -59,7 +60,15 @@ export const PolicyRuleSchema = z.object({
   name: z.string(),
   kind: RuleKindSchema,
   definition: z.string(),
+  /**
+   * TOPIC: the English description the on-device model reads (decision 66); null for a TOPIC rule saved
+   * before it existed (the extension skips such a rule) and for every other kind.
+   */
+  definition_en: z.string().nullable(),
+  /** TOPIC: the score (0.2 to 0.9) at or above which the rule matches; null for every other kind. */
+  threshold: z.number().nullable(),
   risk_level: RiskLevelSchema,
+  /** Never BLOCK for a TOPIC rule (decision 66). */
   action: PolicyActionSchema,
 });
 export type PolicyRule = z.infer<typeof PolicyRuleSchema>;

@@ -4,8 +4,13 @@ import {
   RISK_LEVELS,
   RULE_KINDS,
   RULE_SCOPES,
+  TOPIC_ACTIONS,
+  TOPIC_DEFINITION_EN_MAX_LENGTH,
+  TOPIC_SENSITIVITY,
+  TOPIC_THRESHOLD_DEFAULT,
   type CustomRuleRequest,
   type CustomRuleResponse,
+  type TopicSensitivity,
 } from '@hares/contract';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -27,9 +32,13 @@ import { zodResolver } from '@/lib/form';
 /**
  * Create or edit a detection rule (WEB-FR-042..044). The same Zod schema the API
  * uses checks the form; the API additionally proves a PATTERN safe (ReDoS), and
- * its answer is shown under the definition. A TOPIC description is free text the
- * extension's classifier reads: the form warns not to put real secrets in it.
+ * its answer is shown under the definition. A TOPIC rule also has an English
+ * description (what the extension's on-device model reads), a sensitivity stored as
+ * a threshold, and no BLOCK action (decision 66); the form warns not to put real
+ * secrets in either description.
  */
+const SENSITIVITY_LEVELS = Object.keys(TOPIC_SENSITIVITY) as TopicSensitivity[];
+const isTopicAction = (a: string) => (TOPIC_ACTIONS as readonly string[]).includes(a);
 export function RuleForm({
   rule,
   onClose,
@@ -55,6 +64,8 @@ export function RuleForm({
           scope: rule.scope,
           department_ids: rule.department_ids,
           enabled: rule.enabled,
+          definition_en: rule.definition_en ?? '',
+          threshold: rule.threshold ?? TOPIC_THRESHOLD_DEFAULT,
         }
       : {
           name: '',
@@ -65,6 +76,8 @@ export function RuleForm({
           scope: fixedDepartmentId ? 'DEPARTMENTS' : 'ORG_WIDE',
           department_ids: fixedDepartmentId ? [fixedDepartmentId] : [],
           enabled: true,
+          definition_en: '',
+          threshold: TOPIC_THRESHOLD_DEFAULT,
         },
   });
   const { register, watch, setValue, formState } = form;
@@ -73,6 +86,19 @@ export function RuleForm({
   const enabled = watch('enabled');
   const selected = watch('department_ids');
   const definition = watch('definition');
+  const definitionEn = watch('definition_en');
+  const threshold = watch('threshold');
+  const action = watch('action');
+  const isTopic = kind === 'TOPIC';
+  // A stored threshold that is not one of the three levels (set through the API) stays selectable as it is.
+  const customThreshold =
+    threshold != null && !Object.values(TOPIC_SENSITIVITY).some((v) => v === threshold) ? threshold : null;
+  const level = SENSITIVITY_LEVELS.find((l) => TOPIC_SENSITIVITY[l] === threshold);
+
+  // A TOPIC rule never blocks: switching to TOPIC moves BLOCK to WARN, the recommended action.
+  useEffect(() => {
+    if (isTopic && !isTopicAction(action)) setValue('action', 'WARN');
+  }, [isTopic]);
 
   const m = useMutation({
     mutationFn: (v: CustomRuleRequest) => {
@@ -88,7 +114,7 @@ export function RuleForm({
   // The server's verdict belongs to what was submitted: once the admin edits those fields it is stale.
   useEffect(() => {
     if (m.isError) m.reset();
-  }, [definition, kind, selected]);
+  }, [definition, definitionEn, threshold, action, enabled, kind, selected]);
 
   /** Server-side validation messages for one field (keys like `rule.pattern_unsafe`). */
   const serverField = (field: string): string | undefined => {
@@ -98,7 +124,12 @@ export function RuleForm({
   };
   const defErr = formState.errors.definition?.message ?? serverField('definition');
   const depErr = formState.errors.department_ids?.message ?? serverField('department_ids');
-  const generalError = m.isError && !serverField('definition') && !serverField('department_ids') ? apiErrorMessage(t, m.error) : null;
+  const enErr = formState.errors.definition_en?.message ?? serverField('definition_en');
+  const thresholdErr = formState.errors.threshold?.message ?? serverField('threshold');
+  const actionErr = formState.errors.action?.message ?? serverField('action');
+  const enabledErr = serverField('enabled'); // rule.topic_limit
+  const fieldKeys = ['definition', 'department_ids', 'definition_en', 'threshold', 'action', 'enabled'];
+  const generalError = m.isError && !fieldKeys.some((f) => serverField(f)) ? apiErrorMessage(t, m.error) : null;
 
   const toggleDepartment = (id: string, on: boolean) =>
     setValue('department_ids', on ? [...selected, id] : selected.filter((d) => d !== id), { shouldValidate: formState.isSubmitted });
@@ -126,10 +157,42 @@ export function RuleForm({
           hint={t(`rules.definitionHint.${kind}`)}
           {...register('definition')}
         />
-        {kind === 'TOPIC' && (
-          <div className="card px-3.5 py-3 text-[13px]" role="note" style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }}>
-            {t('rules.topicWarning')} {t('rules.topicNotEnforced')}
-          </div>
+        {isTopic && (
+          <>
+            <Textarea
+              id="rule-def-en"
+              label={t('rules.definitionEnLabel')}
+              rows={3}
+              dir="ltr"
+              lang="en"
+              maxLength={TOPIC_DEFINITION_EN_MAX_LENGTH}
+              error={enErr}
+              hint={t('rules.definitionEnHint')}
+              {...register('definition_en')}
+            />
+            <div className="field">
+              <SelectField
+                label={t('rules.sensitivity')}
+                aria-describedby="rule-sensitivity-hint"
+                {...register('threshold', { setValueAs: (v) => (v === '' || v == null ? null : Number(v)) })}
+              >
+                {SENSITIVITY_LEVELS.map((l) => (
+                  <option key={l} value={TOPIC_SENSITIVITY[l]}>
+                    {t(`rules.sensitivityLevels.${l}`)}
+                  </option>
+                ))}
+                {customThreshold != null && (
+                  <option value={customThreshold}>{t('rules.sensitivityCustom', { value: customThreshold })}</option>
+                )}
+              </SelectField>
+              <div id="rule-sensitivity-hint" className={thresholdErr ? 'err' : 'hint'} role={thresholdErr ? 'alert' : undefined}>
+                {thresholdErr ?? (level ? t(`rules.sensitivityHints.${level}`) : null)}
+              </div>
+            </div>
+            <div className="card px-3.5 py-3 text-[13px]" role="note" style={{ background: 'var(--warning-soft)', color: 'var(--warning)' }}>
+              {t('rules.topicWarning')} {t('rules.topicModelNote')}
+            </div>
+          </>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -140,13 +203,24 @@ export function RuleForm({
               </option>
             ))}
           </SelectField>
-          <SelectField label={t('rules.actionLabel')} {...register('action')}>
-            {POLICY_ACTIONS.map((a) => (
-              <option key={a} value={a}>
-                {t(`policyAction.${a}`)}
-              </option>
-            ))}
-          </SelectField>
+          <div className="field">
+            <SelectField
+              label={t('rules.actionLabel')}
+              aria-describedby={isTopic || actionErr ? 'rule-action-hint' : undefined}
+              {...register('action')}
+            >
+              {POLICY_ACTIONS.filter((a) => !isTopic || isTopicAction(a)).map((a) => (
+                <option key={a} value={a}>
+                  {t(`policyAction.${a}`)}
+                </option>
+              ))}
+            </SelectField>
+            {(isTopic || actionErr) && (
+              <div id="rule-action-hint" className={actionErr ? 'err' : 'hint'} role={actionErr ? 'alert' : undefined}>
+                {actionErr ?? t('rules.topicActionHint')}
+              </div>
+            )}
+          </div>
         </div>
 
         {!fixedDepartmentId && (
@@ -198,6 +272,11 @@ export function RuleForm({
           </span>
           <Toggle checked={enabled} onChange={(v) => setValue('enabled', v)} label={t('rules.enabledLabel')} />
         </div>
+        {enabledErr && (
+          <div className="err" role="alert">
+            {enabledErr}
+          </div>
+        )}
 
         {generalError && (
           <div className="err" role="alert">
