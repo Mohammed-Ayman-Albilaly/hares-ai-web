@@ -4,6 +4,17 @@ import { PolicyActionBadge, RiskBadge } from '@/components/ui/badges';
 import { Button } from '@/components/ui/Button';
 import { Card, TableScroller } from '@/components/ui/layout';
 
+/** Decision 66: the extension skips an enabled TOPIC rule without an English description, so say it is not in effect. */
+export function TopicNotInEffect({ rule }: { rule: CustomRuleResponse }) {
+  const { t } = useTranslation();
+  if (rule.kind !== 'TOPIC' || !rule.enabled || rule.definition_en !== null) return null;
+  return (
+    <div className="mt-1 text-xs font-normal" style={{ color: 'var(--warning)' }}>
+      {t('rules.needsEnglish')}
+    </div>
+  );
+}
+
 /**
  * Detection rules; with `onEdit`, editable rows get an Edit button. The text of a TOPIC rule is never shown here: it
  * describes what to look for and is treated as confidential (decision 30: examples may hold sensitive hints).
@@ -34,7 +45,10 @@ export function RulesTable({ items, onEdit }: { items: CustomRuleResponse[]; onE
           <tbody>
             {items.map((r) => (
               <tr key={r.id}>
-                <td className="font-medium text-ink">{r.name}</td>
+                <td className="font-medium text-ink">
+                  {r.name}
+                  <TopicNotInEffect rule={r} />
+                </td>
                 <td>{t(`rules.kinds.${r.kind}`)}</td>
                 <td style={{ maxWidth: 280 }}>
                   {r.kind === 'TOPIC' ? (

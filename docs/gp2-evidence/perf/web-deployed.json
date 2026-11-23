@@ -1,0 +1,117 @@
+{
+  "label": "deployed (Vercel + Render + Supabase)",
+  "base": "https://hares-ai.vercel.app",
+  "date": "2026-11-23T19:05:35.314Z",
+  "machine": {
+    "os": "Windows_NT 10.0.26300",
+    "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "memory_gb": 16,
+    "node": "v26.13.1"
+  },
+  "browser": "Chromium (Playwright), 1366x768, ar-SA",
+  "dashboard_cold": {
+    "runs": 10,
+    "median_ms": 2065,
+    "max_ms": 5444,
+    "min_ms": 1585,
+    "all_ms": [
+      5444,
+      2065,
+      2018,
+      2077,
+      2167,
+      2075,
+      2035,
+      2047,
+      2357,
+      1585
+    ]
+  },
+  "dashboard_warm": {
+    "runs": 10,
+    "median_ms": 1525,
+    "max_ms": 1660,
+    "min_ms": 1181,
+    "all_ms": [
+      1585,
+      1605,
+      1511,
+      1583,
+      1488,
+      1525,
+      1547,
+      1660,
+      1520,
+      1181
+    ]
+  },
+  "logs_page_cold": {
+    "runs": 10,
+    "median_ms": 1524,
+    "max_ms": 1679,
+    "min_ms": 1034,
+    "all_ms": [
+      1510,
+      1034,
+      1577,
+      1549,
+      1545,
+      1063,
+      1524,
+      1555,
+      1679,
+      1514
+    ]
+  },
+  "logs_page_warm": {
+    "runs": 10,
+    "median_ms": 1523,
+    "max_ms": 1563,
+    "min_ms": 1005,
+    "all_ms": [
+      1523,
+      1005,
+      1500,
+      1563,
+      1505,
+      1502,
+      1548,
+      1545,
+      1532,
+      1561
+    ]
+  },
+  "log_api_first_page": {
+    "runs": 10,
+    "median_ms": 330,
+    "max_ms": 449,
+    "min_ms": 306,
+    "all_ms": [
+      324,
+      320,
+      443,
+      332,
+      345,
+      449,
+      306,
+      341,
+      330,
+      328
+    ]
+  },
+  "csv_export": {
+    "runs": 5,
+    "median_ms": 445,
+    "max_ms": 486,
+    "min_ms": 319,
+    "all_ms": [
+      445,
+      330,
+      470,
+      486,
+      319
+    ],
+    "rows": 199,
+    "bytes": 31041
+  }
+}

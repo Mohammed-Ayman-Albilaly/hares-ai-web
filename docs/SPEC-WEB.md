@@ -422,7 +422,7 @@ Full name, email, password hash, role, department_id, status, registration/appro
 ### What the backend MAY store for policy, custom rules, and departments
 
 - **Policy (organization + per department):** for each sensitive-data category, an action (`allow` / `warn` / `block`) and an enabled flag, plus the policy bundle version it belongs to.
-- **Custom Detection Rules:** id, kind (`PATTERN` / `KEYWORD` / `TOPIC`), name, definition, risk level, action, scope (org-wide or specific departments), enabled flag, and the bundle version it belongs to. A `TOPIC` definition is **admin-authored free text** (natural-language description) — it is not parsed or executed by the backend; the extension decides how to interpret it. The UI warning in WEB-FR-037 about not putting real secrets in TOPIC examples remains in force.
+- **Custom Detection Rules:** id, kind (`PATTERN` / `KEYWORD` / `TOPIC`), name, definition, risk level, action, scope (org-wide or specific departments), enabled flag, and the bundle version it belongs to. A `TOPIC` definition is **admin-authored free text** (natural-language description) — it is not parsed or executed by the backend. A `TOPIC` rule also has `definition_en` (English description read by the extension's on-device model) and `threshold` (0.2–0.9, default 0.3), may only WARN or ALLOW, and at most 10 enabled `TOPIC` rules apply to one department (DECISIONS.md #66). The UI warning in WEB-FR-037 about not putting real secrets in TOPIC examples remains in force.
 - **Departments:** id, name, active/status, and member count (derived from users).
 
 ### What the backend MAY store for admin audit

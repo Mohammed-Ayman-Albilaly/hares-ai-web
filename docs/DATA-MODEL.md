@@ -142,6 +142,8 @@ Notes:
 | `action` | `policy_action` | no | — | ALLOW/WARN/BLOCK (D#5). |
 | `scope` | `rule_scope` | no | — | ORG_WIDE/DEPARTMENTS (D#5). |
 | `enabled` | `boolean` | no | `true` | Enabled flag (D#5). |
+| `definition_en` | `text` | yes | — | TOPIC only: English description the extension's model reads, 20–300 chars, required when enabled; null for other kinds (D#66, CHECK `CustomRule_topic_fields_only_on_topic`). |
+| `threshold` | `double precision` | yes | — | TOPIC only: match threshold 0.2–0.9, 0.3 by default; null for other kinds (D#66, CHECK `CustomRule_threshold_range`). A TOPIC rule never has action BLOCK (CHECK `CustomRule_topic_never_blocks`). |
 
 ### 7. CustomRuleDepartment
 

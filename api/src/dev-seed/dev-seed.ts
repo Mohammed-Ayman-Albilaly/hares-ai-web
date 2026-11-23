@@ -26,6 +26,8 @@ export interface DevSeedOptions {
   domain?: string;
   /** Prefix for department names. */
   namePrefix?: string;
+  /** Department names (default: five). The GP2 demo uses three. */
+  departments?: readonly string[];
   usersPerDepartment?: number;
   daysBack?: number;
   /** Average events per user per day. */
@@ -192,7 +194,8 @@ export async function seedDevData(prisma: PrismaClient, opts: DevSeedOptions = {
   let skipped = 0;
   const dayMs = 86_400_000;
 
-  for (const [di, dname] of DEPARTMENTS.entries()) {
+  const departments = opts.departments ?? DEPARTMENTS;
+  for (const [di, dname] of departments.entries()) {
     const name = `${prefix}${dname}`;
     const dept =
       (await prisma.department.findFirst({ where: { name } })) ??
@@ -231,5 +234,5 @@ export async function seedDevData(prisma: PrismaClient, opts: DevSeedOptions = {
     }
   }
 
-  return { departments: DEPARTMENTS.length, users: userCount, logsCreated: created, logsSkipped: skipped, accounts };
+  return { departments: departments.length, users: userCount, logsCreated: created, logsSkipped: skipped, accounts };
 }

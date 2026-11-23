@@ -10,6 +10,7 @@ import { Card, TableScroller } from '@/components/ui/layout';
 import { DataState, EmptyState, TableSkeleton } from '@/components/ui/states';
 import { useDepartments } from '@/features/common/useDepartments';
 import { RuleForm } from '@/features/policy/RuleForm';
+import { TopicNotInEffect } from '@/features/policy/RulesTable';
 import { useLang } from '@/i18n/useLang';
 import { api } from '@/lib/api';
 
@@ -63,7 +64,10 @@ export function AdminRulesPage() {
               <tbody>
                 {items.map((r) => (
                   <tr key={r.id}>
-                    <td className="font-medium text-ink">{r.name}</td>
+                    <td className="font-medium text-ink">
+                      {r.name}
+                      <TopicNotInEffect rule={r} />
+                    </td>
                     <td>{t(`rules.kinds.${r.kind}`)}</td>
                     <td>
                       <RiskBadge level={r.risk_level} />

@@ -1,0 +1,51 @@
+# GP2 demo seed on a throwaway database (dropped afterwards), 2026-11-23T20:41:52Z, commit d1b35c4 plus the uncommitted files
+
+$ pnpm --filter api seed:gp2-demo
+Departments: 3, users: 16 (+1 pending), logs created: 304, already present: 0
+Department policy changes: 2. Rules: Demo employee number, Demo confidential projects
+Demo accounts (password Demo#Pass123):
+  SYSTEM_ADMIN     admin.demo@example.test
+  DEPARTMENT_ADMIN engineering.admin@example.test
+  USER             engineering.user1@example.test
+  DEPARTMENT_ADMIN finance.admin@example.test
+  USER             finance.user1@example.test
+  DEPARTMENT_ADMIN human-resources.admin@example.test
+  USER             human-resources.user1@example.test
+  PENDING          pending.demo@example.test   (waiting for approval)
+
+events: 304
+first and last event: 2026-10-25 | 2026-11-23
+-- platform
+CHATGPT | 178
+GEMINI | 74
+CLAUDE | 52
+-- risk_level
+HIGH | 146
+NONE | 83
+MEDIUM | 70
+LOW | 5
+-- action
+ALLOWED | 108
+WARNED | 102
+BLOCKED | 94
+-- user_decision
+NONE | 119
+CANCELLED | 61
+EDITED | 59
+SUBMITTED_ANYWAY | 43
+REVISION_USED | 22
+-- audit trail
+POLICY_CHANGED | 2
+RULE_CHANGED | 2
+-- departments / users by role / pending
+3
+(none) PENDING | 1
+DEPARTMENT_ADMIN ACTIVE | 3
+SYSTEM_ADMIN ACTIVE | 2
+USER ACTIVE | 12
+-- rules
+KEYWORD | DEPARTMENTS | Demo confidential projects
+PATTERN | DEPARTMENTS | Demo employee number
+-- department policies
+Demo Finance | CONTACT_INFO | ALLOW | t
+Demo Human Resources | HEALTH_MEDICAL | WARN | t

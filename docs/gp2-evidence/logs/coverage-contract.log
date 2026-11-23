@@ -1,0 +1,22 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/hares-ai-web/contract[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32m✓[39m src/web-auth.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 81[2mms[22m[39m
+ [32m✓[39m src/openapi.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m20 passed[39m[22m[90m (20)[39m
+[2m   Start at [22m 03:04:26
+[2m   Duration [22m 1.50s[2m (transform 195ms, setup 0ms, collect 1.62s, tests 87ms, environment 0ms, prepare 301ms)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+
+=============================== Coverage summary ===============================
+Statements   : 96.57% ( 1607/1664 )
+Branches     : 85.71% ( 12/14 )
+Functions    : 35.29% ( 6/17 )
+Lines        : 96.57% ( 1607/1664 )
+================================================================================
+contract exit=0

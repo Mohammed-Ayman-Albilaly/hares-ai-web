@@ -1,0 +1,17 @@
+== api-e2e: pnpm --filter api e2e
+$ vitest run --config vitest.e2e.config.ts
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/hares-ai-web/api[39m
+
+ [32m✓[39m e2e/full-flow.e2e.ts [2m([22m[2m10 tests[22m[2m)[22m[33m 19312[2mms[22m[39m
+   [33m[2m✓[22m[39m end to end: real server process[2m > [22mthe bootstrap System Admin signs in [33m551[2mms[22m[39m
+   [33m[2m✓[22m[39m end to end: real server process[2m > [22madmin creates a department; a visitor registers and stays PENDING [33m994[2mms[22m[39m
+   [33m[2m✓[22m[39m end to end: real server process[2m > [22madmin approves; the user signs in on the web and in the extension [33m914[2mms[22m[39m
+   [33m[2m✓[22m[39m end to end: real server process[2m > [22mdeactivation ends every session at once [33m467[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m10 passed[39m[22m[90m (10)[39m
+[2m   Start at [22m 02:49:27
+[2m   Duration [22m 25.13s[2m (transform 95ms, setup 0ms, collect 80ms, tests 19.31s, environment 0ms, prepare 112ms)[22m
+
+exit=0 seconds=27

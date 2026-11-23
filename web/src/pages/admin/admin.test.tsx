@@ -417,6 +417,42 @@ describe('rules', () => {
     expect(within(dialog).getByRole('note').textContent).toContain('لا تكتب أسراراً حقيقية');
   });
 
+  it('an enabled TOPIC rule without an English description is marked as not in effect (decision 66)', async () => {
+    const base = { kind: 'TOPIC', definition: '', risk_level: 'MEDIUM', action: 'WARN', scope: 'ORG_WIDE', department_ids: [], threshold: 0.3, editable: true };
+    const items = [
+      { ...base, id: '00000000-0000-4000-8000-0000000000a1', name: 'Old topic', enabled: true, definition_en: null },
+      { ...base, id: '00000000-0000-4000-8000-0000000000a2', name: 'New topic', enabled: true, definition_en: 'This text discusses layoffs, job cuts or restructuring.' },
+      { ...base, id: '00000000-0000-4000-8000-0000000000a3', name: 'Off topic', enabled: false, definition_en: null },
+    ];
+    mockFetch(rulesRoutes({ 'GET /api/admin/rules': () => json({ version: 1, items }) }));
+    renderRoute('/admin/rules');
+    const marks = await screen.findAllByText('غير مطبّقة حتى يُضاف لها وصف بالإنجليزية.');
+    expect(marks).toHaveLength(1);
+    expect(marks[0]!.closest('tr')!.textContent).toContain('Old topic');
+  });
+
+  it('a TOPIC rule offers no BLOCK, needs an English description and sends the chosen sensitivity (decision 66)', async () => {
+    const m = mockFetch(rulesRoutes({ 'POST /api/admin/rules': () => json({}) }));
+    const sent = () => m.calls.find((c) => c.key === 'POST /api/admin/rules')?.body ?? null;
+    renderRoute('/admin/rules');
+    await userEvent.click((await screen.findAllByRole('button', { name: /إضافة قاعدة/ }))[0]!);
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.type(within(dialog).getByLabelText('الاسم'), 'Layoffs');
+    await userEvent.selectOptions(within(dialog).getByLabelText('النوع'), 'TOPIC');
+    const actions = within(dialog).getByLabelText('الإجراء') as HTMLSelectElement;
+    expect([...actions.options].map((o) => o.value)).not.toContain('BLOCK');
+    expect(actions.value).toBe('WARN'); // the new-rule default BLOCK moved to WARN
+    await userEvent.type(within(dialog).getByLabelText('وصف الموضوع'), 'أي حديث عن خطط تسريح موظفين');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'حفظ' }));
+    expect(await within(dialog).findByText('اكتب الوصف بالإنجليزية.')).toBeTruthy();
+    expect(sent()).toBeNull();
+    await userEvent.type(within(dialog).getByLabelText(/الوصف بالإنجليزية/), 'This text discusses plans to lay off employees.');
+    await userEvent.selectOptions(within(dialog).getByLabelText('الحساسية'), '0.5');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'حفظ' }));
+    await waitFor(() => expect(sent()).not.toBeNull());
+    expect(sent()).toMatchObject({ kind: 'TOPIC', action: 'WARN', threshold: 0.5, definition_en: 'This text discusses plans to lay off employees.' });
+  });
+
   it('an unsafe pattern refused by the server is explained under the definition', async () => {
     mockFetch(
       rulesRoutes({

@@ -1,0 +1,11 @@
+$ vitest run
+
+ RUN  v5.0.5 D:/hares-ai-web/web
+
+
+ Test Files  8 passed (8)
+      Tests  100 passed (100)
+   Start at  02:53:31
+   Duration  24.69s (environment 62%, setup 21%, tests 13%, import 2%, transform 1%)
+
+exit=0
