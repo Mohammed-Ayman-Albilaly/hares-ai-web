@@ -22,7 +22,9 @@ if (!['localhost', '127.0.0.1', '::1', '[::1]'].includes(host)) {
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: url }) });
 
-seedDevData(prisma)
+// Optional sizes for a load measurement (GP2 report, P4): SEED_EVENTS_PER_USER_PER_DAY, SEED_DAYS_BACK.
+const num = (v: string | undefined) => (v && Number.isFinite(Number(v)) ? Number(v) : undefined);
+seedDevData(prisma, { eventsPerUserPerDay: num(process.env.SEED_EVENTS_PER_USER_PER_DAY), daysBack: num(process.env.SEED_DAYS_BACK) })
   .then((r) => {
     console.log(`Departments: ${r.departments}, users: ${r.users}, logs created: ${r.logsCreated}, already present: ${r.logsSkipped}`);
     console.log(`Demo accounts (password ${DEV_PASSWORD}):`);

@@ -1,0 +1,4 @@
+2026-11-23T20:31:11Z request 1: status=200 connect=0.616436s tls=0.914275s first-byte=84.318718s total=84.319833s
+2026-11-23T20:32:38Z request 2: status=200 connect=0.316408s tls=0.536866s first-byte=0.753032s total=0.753190s
+2026-11-23T20:32:41Z request 3: status=200 connect=0.123329s tls=0.264884s first-byte=0.479485s total=0.479847s
+2026-11-23T20:32:43Z via Vercel: status=200 total=0.585755s
