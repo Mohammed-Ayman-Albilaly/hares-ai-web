@@ -1,0 +1,110 @@
+$ vitest run
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mD:/hares-ai-web/api[39m
+
+ [32m✓[39m src/prisma/app-role.test.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 151[2mms[22m[39m
+ [32m✓[39m src/prisma/raw-db-guards.test.ts [2m([22m[2m34 tests[22m[2m)[22m[33m 339[2mms[22m[39m
+ [32m✓[39m src/departments/departments.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 2503[2mms[22m[39m
+ [32m✓[39m src/logs/logs.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 3305[2mms[22m[39m
+   [33m[2m✓[22m[39m log review and export (B7b)[2m > [22mstreams large exports in chunks without gaps (more rows than one chunk) [33m518[2mms[22m[39m
+ [32m✓[39m src/ingestion/ingestion.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 4037[2mms[22m[39m
+   [33m[2m✓[22m[39m log ingestion (B7a)[2m > [22mevents with the same categories in opposite order never deadlock on the shared counters [33m828[2mms[22m[39m
+ [32m✓[39m src/analytics/analytics.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 4461[2mms[22m[39m
+   [33m[2m✓[22m[39m dashboards (B8)[2m > [22mtop risky users: ordered by HIGH events, then blocked, then total; the range is clamped to 90 days [33m405[2mms[22m[39m
+ [32m✓[39m src/common/filters/error-format.spec.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 25[2mms[22m[39m
+ [32m✓[39m src/retention/retention.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 5865[2mms[22m[39m
+   [33m[2m✓[22m[39m reconcile and purge (B8)[2m > [22mrepairs drifted counters: lost increments, phantom counts and missing rows [33m407[2mms[22m[39m
+   [33m[2m✓[22m[39m reconcile and purge (B8)[2m > [22mforced interleaving: reconcile waits for an in-flight ingestion and then counts its row [33m663[2mms[22m[39m
+   [33m[2m✓[22m[39m reconcile and purge (B8)[2m > [22mconcurrent ingestion during a reconcile ends consistent (no lost increments) [33m957[2mms[22m[39m
+   [33m[2m✓[22m[39m reconcile and purge (B8)[2m > [22mpurges in batches (more rows than one batch) and a reconcile afterwards leaves old counters alone [33m1736[2mms[22m[39m
+ [32m✓[39m src/users/users.test.ts [2m([22m[2m23 tests[22m[2m)[22m[33m 7532[2mms[22m[39m
+   [33m[2m✓[22m[39m users lifecycle (B5b)[2m > [22mapproves in ONE update: status, role, department, approver together; audited; can log in [33m633[2mms[22m[39m
+   [33m[2m✓[22m[39m users lifecycle (B5b)[2m > [22mrejects (terminal, cannot log in), then a System Admin may re-open it to PENDING [33m739[2mms[22m[39m
+   [33m[2m✓[22m[39m users lifecycle (B5b)[2m > [22mdeactivation bumps token_version and kills outstanding access and refresh tokens at once [33m2270[2mms[22m[39m
+   [33m[2m✓[22m[39m users lifecycle (B5b)[2m > [22mreactivation (System Admin only) keeps the role; needs an active department [33m738[2mms[22m[39m
+ [32m✓[39m src/audit/audit-query.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 2643[2mms[22m[39m
+ [32m✓[39m src/policy/policy.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 7862[2mms[22m[39m
+   [33m[2m✓[22m[39m policy, rules and bundle (B6)[2m > [22mcopies the policy in force for one department onto another in one version bump, audited [33m399[2mms[22m[39m
+   [33m[2m✓[22m[39m policy, rules and bundle (B6)[2m > [22mrejects an unsafe, invalid or backreferencing PATTERN at save, accepts a safe one [33m1579[2mms[22m[39m
+   [33m[2m✓[22m[39m policy, rules and bundle (B6)[2m > [22ma Department Admin never receives the text of a TOPIC rule (confidential description), a System Admin does [33m353[2mms[22m[39m
+   [33m[2m✓[22m[39m policy, rules and bundle (B6)[2m > [22ma PATTERN is stored verbatim (not trimmed) and checked under the extension flags [33m1333[2mms[22m[39m
+ [32m✓[39m src/prisma/seed.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 10630[2mms[22m[39m
+   [33m[2m✓[22m[39m prisma/seed.ts[2m > [22mis idempotent: two runs leave 24 categories, 1 policy version and 1 active SYSTEM_ADMIN with no department [33m3310[2mms[22m[39m
+   [33m[2m✓[22m[39m prisma/seed.ts[2m > [22mrejects a weak password, prints only the clear message and creates no user [33m599[2mms[22m[39m
+   [33m[2m✓[22m[39m prisma/seed.ts[2m > [22mrejects a password longer than 72 bytes, prints only the clear message and creates no user [33m648[2mms[22m[39m
+ [32m✓[39m src/config/env.validation.spec.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 20[2mms[22m[39m
+ [32m✓[39m src/common/interceptors/redact-logging.interceptor.spec.ts [2m([22m[2m4 tests[22m[2m)[22m[90m 11[2mms[22m[39m
+ [32m✓[39m src/audit/audit.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 2320[2mms[22m[39m
+ [32m✓[39m src/common/middleware/correlation.middleware.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 1024[2mms[22m[39m
+ [32m✓[39m src/common/pipes/zod-validation.pipe.spec.ts [2m([22m[2m6 tests[22m[2m)[22m[90m 13[2mms[22m[39m
+ [32m✓[39m src/common/guards/matrix.spec.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 3600[2mms[22m[39m
+   [33m[2m✓[22m[39m RBAC matrix over every guarded route[2m > [22manswers 403 for every DENY cell; ALLOW cells are never 403 [33m1586[2mms[22m[39m
+ [32m✓[39m src/common/guards/roles.guard.spec.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m src/mail/mailer.service.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 423[2mms[22m[39m
+   [33m[2m✓[22m[39m MailerService over SMTP (Mailpit)[2m > [22mdelivers the reset email with only the link in it [33m421[2mms[22m[39m
+ [32m✓[39m src/app.bootstrap.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[33m 1217[2mms[22m[39m
+ [32m✓[39m src/logs/csv.spec.ts [2m([22m[2m9 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/auth/client-ip.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 16[2mms[22m[39m
+ [32m✓[39m src/prisma/prisma.service.spec.ts [2m([22m[2m2 tests[22m[2m)[22m[90m 15[2mms[22m[39m
+ [32m✓[39m src/auth/throttle.spec.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/auth/extension/extension-auth.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 13447[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mlogs in and returns an access token (<= 1h) and a refresh token in the body [33m831[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22muses the extension error codes for denied logins [33m3213[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mstores only the SHA-256 hash of the refresh token [33m551[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22manswers INVALID_TOKEN for an expired refresh token [33m693[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mExtensionGuard by itself refuses a web token with 403 FORBIDDEN [33m727[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mrotates on each use and revokes the whole family when a used token is replayed [33m807[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22maccepts a just-replaced token once more within the grace window (the answer was lost) [33m603[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mkeeps rotating normally after a grace retry [33m676[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mthe grace window does not apply to the web cookie [33m601[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mlogout revokes the family (204); a second logout or refresh gets 401 [33m729[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mkeeps web and extension tokens apart in both directions [33m1355[2mms[22m[39m
+   [33m[2m✓[22m[39m extension auth (B4b)[2m > [22mrevokes extension tokens immediately when token_version changes (WEB-FR-059) [33m741[2mms[22m[39m
+ [32m✓[39m src/auth/auth.test.ts [2m([22m[2m21 tests[22m[2m)[22m[33m 13880[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mregisters a PENDING account with no role/department and a bcrypt-12 hash [33m698[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22manswers a wrong password and an unknown email identically [33m1128[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mdenies a PENDING account with the right password and issues no session [33m764[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mlogs in an ACTIVE account: access token in the body, refresh in an HttpOnly Strict cookie [33m684[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mserves /auth/me with a valid bearer token and rejects missing or garbage tokens [33m701[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mrotates the refresh cookie and detects reuse by revoking the whole family [33m676[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mlets only one of two concurrent refreshes with the same token succeed [33m652[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mnever lets a logout racing a refresh leave a live successor token [33m3134[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mrefuses refresh without a cookie, with an unknown cookie, or from a foreign Origin [33m617[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mlogout returns 204, clears the cookie, and revokes the family [33m709[2mms[22m[39m
+   [33m[2m✓[22m[39m web auth (B4a)[2m > [22mrevokes access and refresh tokens when token_version changes, and denies non-ACTIVE users [33m2170[2mms[22m[39m
+ [32m✓[39m src/auth/rate-limits.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 1433[2mms[22m[39m
+ [32m✓[39m src/policy/regex-validation.spec.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 5396[2mms[22m[39m
+   [33m[2m✓[22m[39m PATTERN validation (WEB-FR-036)[2m > [22maccepts the safe pattern (\d{3}-?){3} [33m338[2mms[22m[39m
+   [33m[2m✓[22m[39m PATTERN validation (WEB-FR-036)[2m > [22manalyses under the same flags as the extension (case-insensitive) [33m1052[2mms[22m[39m
+   [33m[2m✓[22m[39m PATTERN validation (WEB-FR-036)[2m > [22mruns at most a few validations at once and still answers every one [33m530[2mms[22m[39m
+   [33m[2m✓[22m[39m PATTERN validation (WEB-FR-036)[2m > [22mrejects the catastrophic pattern (a|a)*b [33m1199[2mms[22m[39m
+   [33m[2m✓[22m[39m PATTERN validation (WEB-FR-036)[2m > [22mrejects the catastrophic pattern (x+x+)+y [33m944[2mms[22m[39m
+ [32m✓[39m src/auth/security-claims.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 5639[2mms[22m[39m
+   [33m[2m✓[22m[39m security claims (P5)[2m > [22mpasswords and hashes are never returned: login, profile, user lists and the extension login [33m1699[2mms[22m[39m
+   [33m[2m✓[22m[39m security claims (P5)[2m > [22maccess tokens last 15 minutes (web) and 1 hour (extension), exactly [33m933[2mms[22m[39m
+   [33m[2m✓[22m[39m security claims (P5)[2m > [22mrefresh tokens last 30 days: the web cookie and the stored extension token [33m844[2mms[22m[39m
+ [32m✓[39m src/dev-seed/dev-seed.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 6749[2mms[22m[39m
+   [33m[2m✓[22m[39m dev seed (B11)[2m > [22mcreates users and logs, and the counters equal the logs [33m5433[2mms[22m[39m
+   [33m[2m✓[22m[39m dev seed (B11)[2m > [22mrunning it again changes nothing (idempotent) [33m1207[2mms[22m[39m
+ [32m✓[39m src/dev-seed/gp2-demo.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 10350[2mms[22m[39m
+   [33m[2m✓[22m[39m GP2 demo seed[2m > [22mcreates what the screenshots need, and a second run adds nothing [33m10295[2mms[22m[39m
+ [32m✓[39m src/auth/password/password.test.ts [2m([22m[2m17 tests[22m[2m)[22m[33m 33737[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22manswers 202 the same way for a registered and an unknown email [33m899[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mresets once, revokes every session, then rejects reuse of the link [33m4110[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mrejects an expired token and a superseded token [33m1357[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mchanges the password with the current one, ends other sessions and issues a new one [33m3168[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mslows down after 5 failures, never locks out, and a success clears the counter [33m5970[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mcounts attempts up front: a parallel burst of guesses cannot pass the gate [33m868[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mdoubles the stored delay on each further failure, using the database clock [33m2877[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mthrottles wrong current passwords on change-password [33m2610[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mthrottles the extension login too and ends extension sessions on change-password [33m3863[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22ma change-password invalidates reset links issued before it [33m1627[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22mthrottles unknown emails exactly like real ones (no enumeration) [33m1968[2mms[22m[39m
+   [33m[2m✓[22m[39m password reset, change and login throttle (B4c)[2m > [22ma password reset clears the account throttle [33m3013[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m33 passed[39m[22m[90m (33)[39m
+[2m      Tests [22m [1m[32m328 passed[39m[22m[90m (328)[39m
+[2m   Start at [22m 23:43:23
+[2m   Duration [22m 42.00s[2m (transform 2.62s, setup 0ms, collect 57.64s, tests 148.66s, environment 11ms, prepare 6.88s)[22m
+
+exit=0
