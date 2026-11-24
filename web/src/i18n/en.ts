@@ -404,7 +404,7 @@ export const en: Widen<typeof ar> = {
     },
     topicWarning: 'Do not put real secrets or actual data in a topic description: anyone allowed to view rules may see it.',
     definitionEnLabel: 'Description in English (read by the extension)',
-    definitionEnHint: 'One sentence of 20 to 300 characters that starts with "This text discusses ...". Name the things that count in plain words, for example "plans to lay off employees, cut positions or restructure departments", and say what makes it sensitive when that matters ("not announced publicly"). Avoid a bare title such as "Layoffs".',
+    definitionEnHint: 'Write one sentence in English that says what the text is about. Start with "This text discusses" and name two or three things at most, for example: "This text discusses layoffs, job cuts or restructuring." Avoid long lists of verbs and alternatives: they make the rule miss messages. 20 to 300 characters.',
     sensitivity: 'Sensitivity',
     sensitivityLevels: { HIGH: 'High (recommended)', MEDIUM: 'Medium', LOW: 'Low' },
     sensitivityHints: {
@@ -414,7 +414,7 @@ export const en: Widen<typeof ar> = {
     },
     sensitivityCustom: 'Custom ({{value}})',
     topicActionHint: 'A topic rule can warn or allow, not block: a topic match is a likelihood, not a certainty. Warn is recommended.',
-    topicModelNote: 'The extension checks topics with a model on the user’s device, downloaded the first time a topic rule applies to them. Until it is ready, the first messages are not checked for topics (all other protection still works).',
+    topicModelNote: 'The extension checks topics with a model on the user’s device (about 268 MB). In the first minutes after installation, while it downloads, messages are not checked for topics; all other protection still works.',
     needsEnglish: 'Not in effect until it has an English description.',
     deptRulesNote: 'Your rules apply to your department only. Organisation-wide and shared rules are shown read-only.',
     readOnly: 'View only',
