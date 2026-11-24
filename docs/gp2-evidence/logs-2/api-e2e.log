@@ -1,0 +1,15 @@
+$ vitest run --config vitest.e2e.config.ts
+
+ RUN  v2.1.9 D:/hares-ai-web/api
+
+ ✓ e2e/full-flow.e2e.ts (10 tests) 52632ms
+   ✓ end to end: real server process > the bootstrap System Admin signs in 1790ms
+   ✓ end to end: real server process > admin creates a department; a visitor registers and stays PENDING 2671ms
+   ✓ end to end: real server process > admin approves; the user signs in on the web and in the extension 3082ms
+   ✓ end to end: real server process > deactivation ends every session at once 1272ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  00:04:16
+   Duration  58.84s (transform 274ms, setup 0ms, collect 239ms, tests 52.63s, environment 0ms, prepare 197ms)
+

@@ -1,0 +1,18 @@
+
+ RUN  v5.0.5 D:/hares-ai-web/web
+      Coverage enabled with v8
+
+
+ Test Files  8 passed (8)
+      Tests  102 passed (102)
+   Start at  00:13:02
+   Duration  22.52s (tests 50%, import 17%, environment 16%, setup 10%, transform 6%, worker 1%)
+
+ % Coverage report from v8
+
+=============================== Coverage summary ===============================
+Statements   : 80.79% ( 1153/1427 )
+Branches     : 75.31% ( 848/1126 )
+Functions    : 78.49% ( 438/558 )
+Lines        : 82.06% ( 1034/1260 )
+================================================================================

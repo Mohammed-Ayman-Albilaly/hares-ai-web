@@ -1,0 +1,21 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 D:/hares-ai-web/contract
+      Coverage enabled with v8
+
+ ✓ src/web-auth.test.ts (12 tests) 83ms
+ ✓ src/openapi.test.ts (8 tests) 6ms
+
+ Test Files  2 passed (2)
+      Tests  20 passed (20)
+   Start at  00:13:28
+   Duration  1.52s (transform 207ms, setup 0ms, collect 1.30s, tests 89ms, environment 1ms, prepare 482ms)
+
+ % Coverage report from v8
+
+=============================== Coverage summary ===============================
+Statements   : 95.8% ( 1623/1694 )
+Branches     : 85.71% ( 12/14 )
+Functions    : 35.29% ( 6/17 )
+Lines        : 95.8% ( 1623/1694 )
+================================================================================

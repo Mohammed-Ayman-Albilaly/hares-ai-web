@@ -15,7 +15,7 @@ Files changed for this answer (not committed yet): `api/src/dev-seed/gp2-demo.ts
 | Q3 TOPIC facts | all ten confirmed; item 6 made more precise |
 | Q4 demo data | done: 2 TOPIC rules and 5 TOPIC events, idempotent, with a test |
 | Q5 accessibility | done: the audit now opens the TOPIC fields and the "not in effect" marker; 55 of 55 |
-| Q6 deployment | deployed commits and migration confirmed; deployed measurements need the owner (sign-in); cold sample not obtained (the API was awake) |
+| Q6 deployment | deployed commits and migration confirmed; deployed measurements re-run on 833e73b with the commit recorded; cold sample not obtained (the API was awake) |
 
 ## Q1. Test results on `833e73b`
 
@@ -135,14 +135,32 @@ Screenshots: sign in as `admin.demo@example.test` for the rule list (both TOPIC 
    - **Two deployment changes the same day,** both seen on the owner's dashboards:
      - Vercel's production branch was set to `testing-for-different-deployment`, a branch that does not exist, so merges to `main` built only Preview deployments and production was promoted by hand. It is now `main`, and PR #4 was the first production deployment made automatically.
      - The live API now sends e-mail through **Brevo** (`smtp-relay.brevo.com`, port **2525**). Render's free plan blocks outbound SMTP on ports 25, 465 and 587 (Render changelog, September 2025), so the usual ports cannot work there. Sender `Hares AI <m.ay.albilaly@gmail.com>`, verified in Brevo. Brevo warns that a free-mail sender domain is not recommended, so messages may land in spam. First password-reset e-mail received on 2026-11-24 at 07:51 +03:00. Only Render's environment changed; the code did not.
-2. **Deployed measurements: not re-run.** Both scripts sign in, and the agent does not enter the owner's passwords on the live system, so the owner has to run them. They now take `--commit` and write it into the result file as `deployed_commit`. Commands, from the repository root, with the deployed commit `833e73b`:
+2. **Deployed measurements: re-run on 2026-11-24, deployed commit `833e73b` recorded in both result files** (`deployed_commit`). Same scripts and same laptop as the first answer (Windows build 10.0.26300, Node v26.13.1). The script was started by the agent; the owner typed the two passwords at its prompts, and they were not stored. Path: browser or script, Vercel rewrite, Render (Frankfurt, free instance, awake), Supabase (Ireland). Raw results: `perf/api-deployed-2.json` (22:04 UTC) and `perf/web-deployed-2.json` (22:05 UTC). Logs: `logs-2/perf-*-deployed.log`.
+   - **Account for the API run:** a new test employee, `perf.employee2@example.test` (department "Perf Test"). It was registered and approved through the normal screens on 2026-11-24 (about 21:55 UTC) because the password of the first test account was lost. The run uploaded 50 synthetic events under that account, as the first run did under `perf.employee@example.test`.
+   - **Account for the browser run:** the owner's System Admin account.
 
-   ```
-   HARES_PERF_PASSWORD='...' node scripts/perf/measure-api.mjs --base https://hares-ai.vercel.app --email perf.employee@example.test --out docs/gp2-evidence/perf/api-deployed-2.json --label "deployed, 833e73b" --commit 833e73b
-   HARES_PERF_PASSWORD='...' node scripts/perf/measure-web.mjs --base https://hares-ai.vercel.app --email <System Admin e-mail> --out docs/gp2-evidence/perf/web-deployed-2.json --label "deployed, 833e73b" --commit 833e73b
-   ```
+   | Extension endpoint | Requests | Median | p95 | Max | First answer (median / p95) |
+   | --- | --- | --- | --- | --- | --- |
+   | Sign-in | 50 | 1866 ms | 2224 ms | 2317 ms | 1892 / 2242 ms |
+   | Policy fetch, full bundle (200) | 50 | 567 ms | 1497 ms | 2654 ms | 529 / 628 ms |
+   | Policy fetch, unchanged (304) | 50 | 469 ms | 832 ms | 1011 ms | 535 / 590 ms |
+   | Event upload | 50 | 380 ms | 564 ms | 653 ms | 474 / 536 ms |
+   | Token refresh | 50 | 465 ms | 909 ms | 1068 ms | 538 / 610 ms |
 
-   **Cold start:** not obtained. At 2026-11-24 21:28 UTC the API answered the first request in 0.55 s (`logs-2/cold-start-attempt.txt`), and the health route reported an uptime of 9,720 s, so the instance had been awake since about 18:46 UTC. An extension that is signed in keeps the free instance awake, because it calls the API regularly. A cold sample needs at least 15 minutes with no extension signed in and no other use.
+   All 250 requests succeeded, and no connection reset was retried. Medians are close to the first answer. The p95 of the full bundle rose (1497 ms against 628 ms), with a maximum of 2654 ms. The bundle now carries two more fields per rule, but a few slow answers in one run over the public internet are as likely a cause; one run cannot tell which.
+
+   | Browser measurement (System Admin, 10 runs) | Median | Max | Min | First answer (median) |
+   | --- | --- | --- | --- | --- |
+   | Dashboard, cold | 1615 ms | 5427 ms (first run) | 1446 ms | 2065 ms |
+   | Dashboard, warm | 1191 ms | 1576 ms | 1002 ms | 1525 ms |
+   | Log page, cold: first row | 971 ms | 1020 ms | 951 ms | 1524 ms |
+   | Log page, warm | 976 ms | 1507 ms | 953 ms | 1523 ms |
+   | Log list API, first page | 272 ms | 321 ms | 265 ms | 330 ms |
+   | CSV export (313 rows, 48,663 bytes), 5 runs | 309 ms | 415 ms | 289 ms | 445 ms |
+
+   **Against the GP1 requirement** "the administrator dashboard loads within 3 seconds": the same picture as in the first answer. Cold median 1.62 s, warm median 1.19 s, nine of ten cold runs between 1.45 s and 2.64 s. **The first cold run took 5.4 s**, so the requirement is met for the typical load but not for every load.
+
+   **Cold start:** not obtained. At 2026-11-24 21:28 UTC the API answered the first request in 0.55 s (`logs-2/cold-start-attempt.txt`), and the health route reported an uptime of 9,720 s, so the instance had been awake since about 18:46 UTC. An extension that is signed in keeps the free instance awake, because it calls the API regularly. A cold sample needs at least 15 minutes with no extension signed in and no other use; the first answer's single sample (84 s) stays the only one.
 3. **Owner questions.**
    - **Vercel plan:** **Hobby**, shown on the owner's Vercel dashboard screenshots of 2026-11-24 ("Hares-AI Hobby").
    - **Where secrets are kept besides the Render environment variables:** still to be confirmed by the owner. What is known from the repository and from the work of 2026-11-24:
