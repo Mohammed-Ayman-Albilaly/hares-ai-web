@@ -1,0 +1,29 @@
+Scope: all 4 workspace projects
+✓ Lockfile passes supply-chain policies (verified 1d ago)
+Lockfile is up to date, resolution step is skipped
+Packages: -6
+------
+
+   ╭──────────────────────────────────────────╮
+   │                                          │
+   │   Update available! 11.13.0 → 12.23.0.   │
+   │   Changelog: https://pnpm.io/v/12.23.0   │
+   │     To update, run: pnpm add -g pnpm     │
+   │                                          │
+   ╰──────────────────────────────────────────╯
+
+
+Done in 2.3s using pnpm v11.13.0
+$ vitest run
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 D:/hares-ai-web/contract
+
+ ✓ src/web-auth.test.ts (12 tests) 76ms
+ ✓ src/openapi.test.ts (8 tests) 5ms
+
+ Test Files  2 passed (2)
+      Tests  20 passed (20)
+   Start at  23:59:21
+   Duration  2.75s (transform 484ms, setup 0ms, collect 2.51s, tests 81ms, environment 0ms, prepare 1.71s)
+

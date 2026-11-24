@@ -1,0 +1,106 @@
+$ vitest run
+
+ RUN  v5.0.5 D:/hares-ai-web/web
+
+ ❯ src/pages/auth/auth-pages.test.tsx (10 tests | 1 failed) 23994ms
+   ❯ route guards (3)
+     × sends an anonymous visitor from a private page to login 14239ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/pages/auth/auth-pages.test.tsx > route guards > sends an anonymous visitor from a private page to login
+AssertionError: expected '/admin/dashboard' to be '/login' // Object.is equality
+
+Ignored nodes: comments, script, style
+[36m<html[39m
+  [33mdir[39m=[32m"rtl"[39m
+  [33mlang[39m=[32m"ar"[39m
+[36m>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33maria-atomic[39m=[32m"true"[39m
+        [33maria-live[39m=[32m"polite"[39m
+        [33mclass[39m=[32m"sr-only"[39m
+        [33mrole[39m=[32m"status"[39m
+      [36m/>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"grid min-h-dvh place-items-center bg-bg"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"flex flex-col items-center gap-4"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"grid shrink-0 place-items-center text-white"[39m
+            [33mstyle[39m=[32m"width: 44px; height: 44px; border-radius: 12.76px; background: var(--brand-navy);"[39m
+          [36m>[39m
+            [36m<svg[39m
+              [33mfill[39m=[32m"none"[39m
+              [33mheight[39m=[32m"26.4"[39m
+              [33mstroke[39m=[32m"currentColor"[39m
+              [33mstroke-linecap[39m=[32m"round"[39m
+              [33mstroke-linejoin[39m=[32m"round"[39m
+              [33mstroke-width[39m=[32m"1.7"[39m
+              [33mviewBox[39m=[32m"0 0 24 24"[39m
+              [33mwidth[39m=[32m"26.4"[39m
+            [36m>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3Z"[39m
+              [36m/>[39m
+              [36m<circle[39m
+                [33mcx[39m=[32m"12"[39m
+                [33mcy[39m=[32m"11"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mr[39m=[32m"2.2"[39m
+                [33mstroke[39m=[32m"none"[39m
+              [36m/>[39m
+              [36m<path[39m
+                [33md[39m=[32m"M12 13.2v3.4M9.6 11h-2M16.4 11h-2M10.4 9 9 7.6M13.6 9l1.4-1.4"[39m
+              [36m/>[39m
+            [36m</svg>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-hidden[39m=[32m"true"[39m
+            [33mclass[39m=[32m"skeleton"[39m
+            [33mstyle[39m=[32m"height: 6px; width: 120px;"[39m
+          [36m/>[39m
+          [36m<span[39m
+            [33maria-live[39m=[32m"polite"[39m
+            [33mclass[39m=[32m"sr-only"[39m
+            [33mrole[39m=[32m"status"[39m
+          [36m>[39m
+            [0mجارٍ التحميل…[0m
+          [36m</span>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</body>[39m
+[36m</html>[39m
+
+Expected: "/login"
+Received: "/admin/dashboard"
+
+ ❯ src/pages/auth/auth-pages.test.tsx:19:64
+     17|     mockFetch(anonymous);
+     18|     const { router } = renderRoute('/admin/dashboard');
+     19|     await waitFor(() => expect(router.state.location.pathname).toBe('/…
+       |                                                                ^
+     20|   }, 10_000);
+     21|
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../node_modules/.pnpm/@testing-library+dom@10.4.2/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 7 passed (8)
+      Tests  1 failed | 101 passed (102)
+   Start at  23:59:30
+   Duration  58.99s (environment 46%, setup 27%, tests 14%, import 9%, transform 3%)
+
+D:\hares-ai-web\web:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @hares/web@0.0.0 test: `vitest run`
+Exit status 1

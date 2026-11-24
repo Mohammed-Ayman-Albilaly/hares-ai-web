@@ -1,0 +1,122 @@
+
+ RUN  v2.1.9 D:/hares-ai-web/api
+      Coverage enabled with v8
+
+ ✓ src/prisma/app-role.test.ts (9 tests) 155ms
+ ✓ src/prisma/raw-db-guards.test.ts (34 tests) 371ms
+ ✓ src/departments/departments.test.ts (11 tests) 3258ms
+   ✓ departments (B5a) > creates a department (201) and audits it 324ms
+ ✓ src/logs/logs.test.ts (17 tests) 4784ms
+   ✓ log review and export (B7b) > streams large exports in chunks without gaps (more rows than one chunk) 646ms
+ ✓ src/analytics/analytics.test.ts (12 tests) 4864ms
+ ✓ src/ingestion/ingestion.test.ts (24 tests) 4862ms
+   ✓ log ingestion (B7a) > stores a new event (201) with identity from the token and a department snapshot 322ms
+   ✓ log ingestion (B7a) > concurrent posts of the same log_id: one 201, the rest 200, counters +1 405ms
+   ✓ log ingestion (B7a) > events with the same categories in opposite order never deadlock on the shared counters 898ms
+ ✓ src/retention/retention.test.ts (8 tests) 6034ms
+   ✓ reconcile and purge (B8) > repairs drifted counters: lost increments, phantom counts and missing rows 777ms
+   ✓ reconcile and purge (B8) > forced interleaving: reconcile waits for an in-flight ingestion and then counts its row 725ms
+   ✓ reconcile and purge (B8) > concurrent ingestion during a reconcile ends consistent (no lost increments) 486ms
+   ✓ reconcile and purge (B8) > purges in batches (more rows than one batch) and a reconcile afterwards leaves old counters alone 1499ms
+ ✓ src/common/filters/error-format.spec.ts (10 tests) 24ms
+ ✓ src/users/users.test.ts (23 tests) 7882ms
+   ✓ users lifecycle (B5b) > approves in ONE update: status, role, department, approver together; audited; can log in 810ms
+   ✓ users lifecycle (B5b) > rejects (terminal, cannot log in), then a System Admin may re-open it to PENDING 743ms
+   ✓ users lifecycle (B5b) > deactivation bumps token_version and kills outstanding access and refresh tokens at once 1756ms
+   ✓ users lifecycle (B5b) > reactivation (System Admin only) keeps the role; needs an active department 691ms
+ ✓ src/audit/audit-query.test.ts (6 tests) 3161ms
+ ✓ src/policy/policy.test.ts (32 tests) 10462ms
+   ✓ policy, rules and bundle (B6) > serves built-in defaults per risk level when nothing is configured 395ms
+   ✓ policy, rules and bundle (B6) > copies the policy in force for one department onto another in one version bump, audited 367ms
+   ✓ policy, rules and bundle (B6) > rejects an unsafe, invalid or backreferencing PATTERN at save, accepts a safe one 1614ms
+   ✓ policy, rules and bundle (B6) > a PATTERN is stored verbatim (not trimmed) and checked under the extension flags 1598ms
+   ✓ policy, rules and bundle (B6) > TOPIC: at most 10 enabled TOPIC rules apply to one department, org-wide rules counting for every department 764ms
+ ✓ src/common/interceptors/redact-logging.interceptor.spec.ts (4 tests) 12ms
+ ✓ src/audit/audit.test.ts (7 tests) 2918ms
+ ✓ src/common/middleware/correlation.middleware.spec.ts (7 tests) 1567ms
+ ✓ src/config/env.validation.spec.ts (12 tests) 24ms
+ ✓ src/prisma/seed.test.ts (3 tests) 13839ms
+   ✓ prisma/seed.ts > is idempotent: two runs leave 24 categories, 1 policy version and 1 active SYSTEM_ADMIN with no department 2847ms
+   ✓ prisma/seed.ts > rejects a weak password, prints only the clear message and creates no user 706ms
+   ✓ prisma/seed.ts > rejects a password longer than 72 bytes, prints only the clear message and creates no user 872ms
+ ✓ src/common/pipes/zod-validation.pipe.spec.ts (6 tests) 18ms
+ ✓ src/common/guards/matrix.spec.ts (7 tests) 4285ms
+   ✓ RBAC matrix over every guarded route > answers 403 for every DENY cell; ALLOW cells are never 403 1726ms
+   ✓ RBAC matrix over every guarded route > an extension token never passes a web capability route 417ms
+ ✓ src/common/guards/roles.guard.spec.ts (5 tests) 8ms
+ ✓ src/auth/extension/extension-auth.test.ts (14 tests) 14162ms
+   ✓ extension auth (B4b) > logs in and returns an access token (<= 1h) and a refresh token in the body 991ms
+   ✓ extension auth (B4b) > uses the extension error codes for denied logins 2900ms
+   ✓ extension auth (B4b) > stores only the SHA-256 hash of the refresh token 566ms
+   ✓ extension auth (B4b) > answers INVALID_TOKEN for an expired refresh token 719ms
+   ✓ extension auth (B4b) > ExtensionGuard by itself refuses a web token with 403 FORBIDDEN 880ms
+   ✓ extension auth (B4b) > rotates on each use and revokes the whole family when a used token is replayed 898ms
+   ✓ extension auth (B4b) > accepts a just-replaced token once more within the grace window (the answer was lost) 681ms
+   ✓ extension auth (B4b) > keeps rotating normally after a grace retry 869ms
+   ✓ extension auth (B4b) > the grace window does not apply to the web cookie 628ms
+   ✓ extension auth (B4b) > logout revokes the family (204); a second logout or refresh gets 401 689ms
+   ✓ extension auth (B4b) > keeps web and extension tokens apart in both directions 1474ms
+   ✓ extension auth (B4b) > revokes extension tokens immediately when token_version changes (WEB-FR-059) 639ms
+ ✓ src/auth/auth.test.ts (21 tests) 14578ms
+   ✓ web auth (B4a) > registers a PENDING account with no role/department and a bcrypt-12 hash 833ms
+   ✓ web auth (B4a) > answers a wrong password and an unknown email identically 1054ms
+   ✓ web auth (B4a) > denies a PENDING account with the right password and issues no session 630ms
+   ✓ web auth (B4a) > logs in an ACTIVE account: access token in the body, refresh in an HttpOnly Strict cookie 738ms
+   ✓ web auth (B4a) > serves /auth/me with a valid bearer token and rejects missing or garbage tokens 580ms
+   ✓ web auth (B4a) > rotates the refresh cookie and detects reuse by revoking the whole family 612ms
+   ✓ web auth (B4a) > lets only one of two concurrent refreshes with the same token succeed 613ms
+   ✓ web auth (B4a) > never lets a logout racing a refresh leave a live successor token 3876ms
+   ✓ web auth (B4a) > refuses refresh without a cookie, with an unknown cookie, or from a foreign Origin 559ms
+   ✓ web auth (B4a) > logout returns 204, clears the cookie, and revokes the family 839ms
+   ✓ web auth (B4a) > revokes access and refresh tokens when token_version changes, and denies non-ACTIVE users 2048ms
+ ✓ src/app.bootstrap.spec.ts (2 tests) 1196ms
+ ✓ src/mail/mailer.service.test.ts (1 test) 436ms
+   ✓ MailerService over SMTP (Mailpit) > delivers the reset email with only the link in it 434ms
+ ✓ src/logs/csv.spec.ts (9 tests) 6ms
+ ✓ src/auth/client-ip.spec.ts (2 tests) 16ms
+ ✓ src/auth/throttle.spec.ts (3 tests) 5ms
+ ✓ src/prisma/prisma.service.spec.ts (2 tests) 15ms
+ ✓ src/auth/rate-limits.test.ts (1 test) 1771ms
+ ✓ src/policy/regex-validation.spec.ts (17 tests) 7023ms
+   ✓ PATTERN validation (WEB-FR-036) > accepts the safe pattern (\d{3}-?){3} 361ms
+   ✓ PATTERN validation (WEB-FR-036) > rejects a pattern whose safety cannot be proven 355ms
+   ✓ PATTERN validation (WEB-FR-036) > analyses under the same flags as the extension (case-insensitive) 2011ms
+   ✓ PATTERN validation (WEB-FR-036) > runs at most a few validations at once and still answers every one 660ms
+   ✓ PATTERN validation (WEB-FR-036) > rejects the catastrophic pattern (a|a)*b 1132ms
+   ✓ PATTERN validation (WEB-FR-036) > rejects the catastrophic pattern (x+x+)+y 891ms
+ ✓ src/auth/security-claims.test.ts (3 tests) 6715ms
+   ✓ security claims (P5) > passwords and hashes are never returned: login, profile, user lists and the extension login 1966ms
+   ✓ security claims (P5) > access tokens last 15 minutes (web) and 1 hour (extension), exactly 1459ms
+   ✓ security claims (P5) > refresh tokens last 30 days: the web cookie and the stored extension token 917ms
+ ✓ src/dev-seed/dev-seed.test.ts (5 tests) 10549ms
+   ✓ dev seed (B11) > creates users and logs, and the counters equal the logs 8806ms
+   ✓ dev seed (B11) > running it again changes nothing (idempotent) 1417ms
+ ✓ src/dev-seed/gp2-demo.test.ts (1 test) 15240ms
+   ✓ GP2 demo seed > creates what the screenshots need, and a second run adds nothing 15184ms
+ ✓ src/auth/password/password.test.ts (17 tests) 35747ms
+   ✓ password reset, change and login throttle (B4c) > answers 202 the same way for a registered and an unknown email 803ms
+   ✓ password reset, change and login throttle (B4c) > resets once, revokes every session, then rejects reuse of the link 3805ms
+   ✓ password reset, change and login throttle (B4c) > rejects an expired token and a superseded token 1308ms
+   ✓ password reset, change and login throttle (B4c) > changes the password with the current one, ends other sessions and issues a new one 3503ms
+   ✓ password reset, change and login throttle (B4c) > slows down after 5 failures, never locks out, and a success clears the counter 7226ms
+   ✓ password reset, change and login throttle (B4c) > counts attempts up front: a parallel burst of guesses cannot pass the gate 1176ms
+   ✓ password reset, change and login throttle (B4c) > doubles the stored delay on each further failure, using the database clock 3232ms
+   ✓ password reset, change and login throttle (B4c) > throttles wrong current passwords on change-password 2713ms
+   ✓ password reset, change and login throttle (B4c) > throttles the extension login too and ends extension sessions on change-password 3085ms
+   ✓ password reset, change and login throttle (B4c) > a change-password invalidates reset links issued before it 1755ms
+   ✓ password reset, change and login throttle (B4c) > throttles unknown emails exactly like real ones (no enumeration) 2034ms
+   ✓ password reset, change and login throttle (B4c) > a password reset clears the account throttle 3225ms
+
+ Test Files  33 passed (33)
+      Tests  335 passed (335)
+   Start at  00:12:10
+   Duration  44.70s (transform 2.72s, setup 0ms, collect 62.25s, tests 175.98s, environment 12ms, prepare 7.62s)
+
+ % Coverage report from v8
+
+=============================== Coverage summary ===============================
+Statements   : 96.67% ( 3667/3793 )
+Branches     : 91.3% ( 1081/1184 )
+Functions    : 98.57% ( 345/350 )
+Lines        : 96.67% ( 3667/3793 )
+================================================================================

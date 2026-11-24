@@ -2,7 +2,7 @@
 // Dashboard and log-page timings in a real browser, and the CSV export (GP2 report, P4).
 //
 //   HARES_PERF_PASSWORD='...' node scripts/perf/measure-web.mjs --base http://localhost:1420 --email admin.demo@example.test
-//   options: --runs 10  --out docs/gp2-evidence/perf/web-local.json  --label "local run"
+//   options: --runs 10  --out docs/gp2-evidence/perf/web-local.json  --label "local run"  --commit <sha of the deployed code>
 //
 // Needs Chromium (`pnpm e2e:browser-install`) and a System Admin demo account (the dashboard and log pages of that
 // role). The password comes from the environment only. What is measured (Chromium, Arabic UI, desktop 1366x768):
@@ -101,6 +101,8 @@ await browser.close();
 
 const report = {
   label: args.label ?? '',
+  // The commit the measured system runs (read from the Render and Vercel deploy lists); not checked by the script.
+  deployed_commit: args.commit ?? null,
   base,
   date: new Date().toISOString(),
   machine: { os: `${os.type()} ${os.release()}`, cpu: os.cpus()[0]?.model, memory_gb: Math.round(os.totalmem() / 2 ** 30), node: process.version },

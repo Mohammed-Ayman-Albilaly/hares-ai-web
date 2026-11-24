@@ -1,0 +1,53 @@
+# GP2 demo seed on a throwaway database (dropped afterwards), 2026-11-24T21:29:02Z, commit 833e73b plus the uncommitted evidence files
+
+$ pnpm --filter api seed:gp2-demo
+Departments: 3, users: 16 (+1 pending), logs created: 312, already present: 0
+Department policy changes: 2. Rules: Demo employee number, Demo confidential projects, Demo old topic rule (no English description), Demo layoff plans
+TOPIC events created: 5
+Demo accounts (password Demo#Pass123):
+  SYSTEM_ADMIN     admin.demo@example.test
+  DEPARTMENT_ADMIN engineering.admin@example.test
+  USER             engineering.user1@example.test
+  DEPARTMENT_ADMIN finance.admin@example.test
+  USER             finance.user1@example.test
+  DEPARTMENT_ADMIN human-resources.admin@example.test
+  USER             human-resources.user1@example.test
+  PENDING          pending.demo@example.test   (waiting for approval)
+
+events: 317
+first and last event: 2026-10-25 | 2026-11-24
+-- platform
+CHATGPT | 194
+GEMINI | 78
+CLAUDE | 45
+-- risk
+HIGH | 165
+MEDIUM | 76
+NONE | 73
+LOW | 3
+-- action
+WARNED | 116
+ALLOWED | 104
+BLOCKED | 97
+-- user decision
+NONE | 116
+EDITED | 62
+SUBMITTED_ANYWAY | 60
+CANCELLED | 54
+REVISION_USED | 25
+-- rules (name | kind | action | threshold | english description set | enabled)
+Demo employee number | PATTERN | WARN |  | f | t
+Demo confidential projects | KEYWORD | BLOCK |  | f | t
+Demo layoff plans | TOPIC | WARN | 0.3 | t | t
+Demo old topic rule (no English description) | TOPIC | WARN | 0.3 | f | t
+-- events per rule
+Demo layoff plans | WARNED | LOCAL_AI | 5
+-- audit entries
+POLICY_CHANGED | 2
+RULE_CHANGED | 3
+
+$ pnpm --filter api seed:gp2-demo   (second run)
+Departments: 3, users: 16 (+1 pending), logs created: 0, already present: 312
+Department policy changes: 0. Rules: Demo employee number, Demo confidential projects, Demo old topic rule (no English description), Demo layoff plans
+TOPIC events created: 0
+events after the second run: 317, rules: 4

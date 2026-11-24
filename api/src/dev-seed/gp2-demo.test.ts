@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PrismaClient } from '../prisma/generated/client';
 import { testPool } from '../test/global-setup';
 import { dbEnabled, ownerUrl } from '../test/http-test-app';
-import { seedGp2Demo } from './gp2-demo';
+import { GP2_OLD_TOPIC_RULE, GP2_TOPIC_RULE, seedGp2Demo } from './gp2-demo';
 
 // GP2 demo data (P6): what the report's screenshots need. Runs in the per-run test database. SYNTHETIC DATA ONLY.
 
@@ -64,7 +64,29 @@ describe.skipIf(!dbEnabled)('GP2 demo seed', () => {
     expect(rules).toEqual([
       { kind: 'PATTERN', scope: 'DEPARTMENTS' }, // enum order: PATTERN, KEYWORD, TOPIC
       { kind: 'KEYWORD', scope: 'DEPARTMENTS' },
+      { kind: 'TOPIC', scope: 'DEPARTMENTS' },
+      { kind: 'TOPIC', scope: 'DEPARTMENTS' },
     ]);
+
+    // TOPIC (decision 66): one rule in effect with its English description, one old rule without it (enabled,
+    // so the screens mark it "not in effect"), and 5 events of the rule in effect as the extension sends them.
+    const topics = await sql(
+      `SELECT name, definition_en, threshold, action, enabled FROM "CustomRule" WHERE kind = 'TOPIC' AND created_by IN (SELECT id FROM "User" WHERE email LIKE $1) ORDER BY name`,
+      [`%@${domain}`],
+    );
+    expect(topics).toEqual([
+      { name: GP2_TOPIC_RULE, definition_en: 'This text discusses layoffs, job cuts or restructuring.', threshold: 0.3, action: 'WARN', enabled: true },
+      { name: GP2_OLD_TOPIC_RULE, definition_en: null, threshold: 0.3, action: 'WARN', enabled: true },
+    ]);
+    expect(first.topicLogsCreated).toBe(5);
+    const topicLogs = await sql(
+      `SELECT l.action, l.classification_source, count(lc.log_id)::int AS categories
+         FROM "ActivityLog" l JOIN "CustomRule" r ON r.id = l.rule_id LEFT JOIN "LogCategory" lc ON lc.log_id = l.log_id
+        WHERE r.name = $1 AND l.department_id IN (SELECT id FROM "Department" WHERE name LIKE $2) GROUP BY l.log_id, l.action, l.classification_source`,
+      [GP2_TOPIC_RULE, like],
+    );
+    expect(topicLogs).toHaveLength(5);
+    expect(topicLogs.every((l) => l.action === 'WARNED' && l.classification_source === 'LOCAL_AI' && l.categories === 0)).toBe(true);
 
     // The changes are in the audit trail under the names of the Department Admins who made them.
     const audit = await sql(
@@ -73,7 +95,7 @@ describe.skipIf(!dbEnabled)('GP2 demo seed', () => {
     );
     expect(audit).toEqual([
       { action_type: 'POLICY_CHANGED', n: 2 },
-      { action_type: 'RULE_CHANGED', n: 2 },
+      { action_type: 'RULE_CHANGED', n: 3 }, // the old TOPIC rule bypasses the API, so it has no entry
     ]);
 
     // About 300 events over 30 days: several platforms, all risk levels, all user decisions.
@@ -83,8 +105,8 @@ describe.skipIf(!dbEnabled)('GP2 demo seed', () => {
          FROM "ActivityLog" WHERE department_id IN (${inDepts})`,
       [like],
     );
-    expect(logs[0].n).toBeGreaterThanOrEqual(250);
-    expect(logs[0].n).toBeLessThanOrEqual(350);
+    expect(logs[0].n).toBeGreaterThanOrEqual(255); // about 300 generated events plus the 5 TOPIC events
+    expect(logs[0].n).toBeLessThanOrEqual(355);
     expect(logs[0].platforms).toBe(3);
     expect(logs[0].risks).toBe(4); // HIGH, MEDIUM, LOW and NONE
     expect(logs[0].decisions).toBe(5);
@@ -94,6 +116,7 @@ describe.skipIf(!dbEnabled)('GP2 demo seed', () => {
     const again = await seedGp2Demo(prisma, { domain, namePrefix: prefix, withSystemAdmin: false });
     expect(again.logsCreated).toBe(0);
     expect(again.policyChanges).toBe(0);
-    expect(Number((await sql(`SELECT count(*) c FROM "CustomRule" WHERE name LIKE 'Demo %' AND created_by IN (SELECT id FROM "User" WHERE email LIKE $1)`, [`%@${domain}`]))[0].c)).toBe(2);
+    expect(again.topicLogsCreated).toBe(0);
+    expect(Number((await sql(`SELECT count(*) c FROM "CustomRule" WHERE name LIKE 'Demo %' AND created_by IN (SELECT id FROM "User" WHERE email LIKE $1)`, [`%@${domain}`]))[0].c)).toBe(4);
   });
 });

@@ -27,6 +27,7 @@ seedGp2Demo(prisma)
   .then((r) => {
     console.log(`Departments: ${r.departments}, users: ${r.users} (+1 pending), logs created: ${r.logsCreated}, already present: ${r.logsSkipped}`);
     console.log(`Department policy changes: ${r.policyChanges}. Rules: ${r.rules.join(', ')}`);
+    console.log(`TOPIC events created: ${r.topicLogsCreated}`);
     console.log(`Demo accounts (password ${DEV_PASSWORD}):`);
     for (const a of r.accounts) console.log(`  ${a.role.padEnd(16)} ${a.email}`);
     console.log(`  ${'PENDING'.padEnd(16)} ${r.pending}   (waiting for approval)`);

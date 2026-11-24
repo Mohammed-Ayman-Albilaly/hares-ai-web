@@ -1,0 +1,77 @@
+﻿{
+  "label": "deployed, 833e73b",
+  "deployed_commit": "833e73b",
+  "base": "https://hares-ai.vercel.app",
+  "date": "2026-11-24T22:04:16.220Z",
+  "requests_per_endpoint": 50,
+  "connection_resets_retried": 0,
+  "machine": {
+    "os": "Windows_NT 10.0.26300",
+    "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "memory_gb": 16,
+    "node": "v26.13.1"
+  },
+  "results": {
+    "login": {
+      "requests": 50,
+      "succeeded": 50,
+      "failed": 0,
+      "statuses": {
+        "200": 50
+      },
+      "median_ms": 1866.3,
+      "p95_ms": 2223.9,
+      "max_ms": 2317.4,
+      "min_ms": 1758.3
+    },
+    "policy_fetch_200": {
+      "requests": 50,
+      "succeeded": 50,
+      "failed": 0,
+      "statuses": {
+        "200": 50
+      },
+      "median_ms": 566.8,
+      "p95_ms": 1496.9,
+      "max_ms": 2654.1,
+      "min_ms": 421.2
+    },
+    "policy_fetch_304": {
+      "requests": 50,
+      "succeeded": 50,
+      "failed": 0,
+      "statuses": {
+        "304": 50
+      },
+      "median_ms": 468.5,
+      "p95_ms": 832.4,
+      "max_ms": 1011.4,
+      "min_ms": 408.7
+    },
+    "event_upload": {
+      "requests": 50,
+      "succeeded": 50,
+      "failed": 0,
+      "statuses": {
+        "201": 50
+      },
+      "median_ms": 380.1,
+      "p95_ms": 564.1,
+      "max_ms": 653.3,
+      "min_ms": 341.4
+    },
+    "refresh": {
+      "requests": 50,
+      "succeeded": 50,
+      "failed": 0,
+      "statuses": {
+        "200": 50
+      },
+      "median_ms": 464.9,
+      "p95_ms": 909.4,
+      "max_ms": 1067.8,
+      "min_ms": 413.1,
+      "relogins_after_failure": 0
+    }
+  }
+}

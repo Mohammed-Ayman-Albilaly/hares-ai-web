@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { config as loadEnv } from 'dotenv';
@@ -31,6 +32,24 @@ export async function startE2eDatabase(): Promise<{
   try {
     // A small organisation: 5 departments, 3 people each, 3 weeks of activity.
     await seedDevData(prisma, { domain: E2E_DOMAIN, namePrefix: 'E2E ', usersPerDepartment: 3, daysBack: 21, eventsPerUserPerDay: 2 });
+    // A TOPIC rule saved before decision 66 (enabled, no English description), so the rule lists show their
+    // "not in effect" marker in the accessibility audit. The API no longer accepts such a rule, hence the direct write.
+    const admin = await prisma.user.findFirstOrThrow({ where: { role: 'SYSTEM_ADMIN', email: { endsWith: `@${E2E_DOMAIN}` } } });
+    await prisma.customRule.create({
+      data: {
+        id: randomUUID(),
+        createdBy: admin.id,
+        kind: 'TOPIC',
+        name: 'E2E old topic rule',
+        definition: 'old topic rule saved before decision 66',
+        definitionEn: null,
+        threshold: 0.3,
+        riskLevel: 'MEDIUM',
+        action: 'WARN',
+        scope: 'ORG_WIDE',
+        enabled: true,
+      },
+    });
   } finally {
     await prisma.$disconnect();
   }

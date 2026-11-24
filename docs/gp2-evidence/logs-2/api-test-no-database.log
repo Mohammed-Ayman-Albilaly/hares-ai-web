@@ -1,0 +1,1588 @@
+$ vitest run
+
+ RUN  v2.1.9 D:/hares-ai-web/api
+
+[test-db] database server not reachable — database suites will skip.
+ ↓ src/prisma/app-role.test.ts (9 tests | 9 skipped)
+stderr | src/prisma/app-role.test.ts
+[app-role] APP_DATABASE_URL is not set — skipping the hares_app privilege suite.
+
+ ❯ src/prisma/raw-db-guards.test.ts (34 tests | 31 failed | 3 skipped) 113ms
+   × CHECK constraints reject bad data > chk_user_status_role: ACTIVE requires a role 7ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_user_status_role: a PENDING user with a role is rejected 4ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_user_role_department: a department-scoped role needs a department 3ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_user_role_department: an ACTIVE user with role USER and no department is rejected 3ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_event_counter_event_count: negative count is rejected 3ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_category_counter_event_count: negative count is rejected 3ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_activity_log_schema_version: schema_version >= 1 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_policy_version_id: only id = 1 is allowed 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_policy_version_version: version >= 1 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_custom_rule_pattern_length: a PATTERN rule longer than 512 is rejected 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_custom_rule_nonpattern_length: a non-PATTERN rule longer than 4000 is rejected 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_custom_rule_definition_nonempty: empty definition is rejected 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_admin_audit_log_target: a non-POLICY target needs a target_id 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_refresh_token_expires: expires_at must be after created_at 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints reject bad data > chk_password_reset_token_expires: expires_at must be after created_at 2ms
+     → expected 'ECONNREFUSED' to be '23514' // Object.is equality
+   × CHECK constraints accept valid data > chk_user_role_department: an ACTIVE SYSTEM_ADMIN with no department is accepted 2ms
+     → 
+   × raw unique indexes reject duplicates > uq_user_email_lower: case-insensitive uniqueness on email 3ms
+     → expected 'ECONNREFUSED' to be '23505' // Object.is equality
+   × raw unique indexes reject duplicates > uq_department_name_lower: case-insensitive uniqueness on name 4ms
+     → expected 'ECONNREFUSED' to be '23505' // Object.is equality
+   × raw unique indexes reject duplicates > uq_policy_category_action: NULL department_id is treated as a duplicate (NULLS NOT DISTINCT) 3ms
+     → expected 'ECONNREFUSED' to be '23505' // Object.is equality
+   × raw unique indexes reject duplicates > uq_event_counter: duplicate key with NULL department/rule is rejected (NULLS NOT DISTINCT) 3ms
+     → expected 'ECONNREFUSED' to be '23505' // Object.is equality
+   × raw unique indexes reject duplicates > uq_category_counter: duplicate key with NULL department is rejected (NULLS NOT DISTINCT) 2ms
+     → expected 'ECONNREFUSED' to be '23505' // Object.is equality
+   × immutability guards (append-only tables) > AdminAuditLog: UPDATE is rejected 3ms
+     → expected '' to contain 'append-only'
+   × immutability guards (append-only tables) > AdminAuditLog: DELETE is rejected 2ms
+     → expected '' to contain 'append-only'
+   × immutability guards (append-only tables) > AdminAuditLog: TRUNCATE is rejected 2ms
+     → expected '' to contain 'append-only'
+   × immutability guards (append-only tables) > ActivityLog: UPDATE is rejected (immutable after insert) 2ms
+     → expected '' to contain 'immutable'
+   × immutability guards (append-only tables) > ActivityLog: DELETE is permitted and cascades to LogCategory 2ms
+     → 
+   × CustomRule scope guard (deferred constraint triggers) > rejects DEPARTMENTS scope with no linked department 2ms
+     → expected '' to contain 'linked to no department'
+   × CustomRule scope guard (deferred constraint triggers) > rejects ORG_WIDE scope with a linked department 2ms
+     → expected '' to contain 'linked to department'
+   × CustomRule scope guard (deferred constraint triggers) > accepts DEPARTMENTS scope with a linked department 2ms
+     → 
+   × CustomRule scope guard (deferred constraint triggers) > accepts ORG_WIDE scope with no linked department 2ms
+     → 
+   × CustomRule scope guard (deferred constraint triggers) > rejects moving a CustomRuleDepartment row out of a DEPARTMENTS rule at commit 3ms
+     → expected '' to contain 'linked to no department'
+ ↓ src/prisma/seed.test.ts (3 tests | 3 skipped)
+stderr | src/prisma/seed.test.ts
+[seed] DATABASE_URL is not set — skipping the prisma/seed suite.
+
+ ↓ src/audit/audit-query.test.ts (6 tests | 6 skipped)
+ ↓ src/auth/auth.test.ts (21 tests | 21 skipped)
+ ↓ src/departments/departments.test.ts (11 tests | 11 skipped)
+ ↓ src/analytics/analytics.test.ts (12 tests | 12 skipped)
+ ↓ src/logs/logs.test.ts (17 tests | 17 skipped)
+ ↓ src/retention/retention.test.ts (8 tests | 8 skipped)
+stderr | src/audit/audit-query.test.ts
+[audit-query] database not configured — skipping.
+
+ ↓ src/auth/extension/extension-auth.test.ts (14 tests | 14 skipped)
+stderr | src/auth/auth.test.ts
+[auth] DATABASE_URL / APP_DATABASE_URL not set — skipping the web auth suite.
+
+stderr | src/departments/departments.test.ts
+[departments] database not configured — skipping.
+
+ ↓ src/auth/password/password.test.ts (17 tests | 17 skipped)
+ ↓ src/policy/policy.test.ts (32 tests | 32 skipped)
+stderr | src/analytics/analytics.test.ts
+[analytics] database not configured — skipping.
+
+stderr | src/logs/logs.test.ts
+[logs] database not configured — skipping.
+
+stderr | src/retention/retention.test.ts
+[retention] database not configured — skipping.
+
+stderr | src/auth/extension/extension-auth.test.ts
+[extension-auth] database not configured — skipping.
+
+stderr | src/auth/password/password.test.ts
+[password] database not configured — skipping.
+
+stderr | src/policy/policy.test.ts
+[policy] database not configured — skipping.
+
+ ↓ src/users/users.test.ts (23 tests | 23 skipped)
+ ↓ src/ingestion/ingestion.test.ts (24 tests | 24 skipped)
+stderr | src/users/users.test.ts
+[users] database not configured — skipping.
+
+stderr | src/ingestion/ingestion.test.ts
+[ingestion] database not configured — skipping.
+
+ ✓ src/config/env.validation.spec.ts (12 tests) 16ms
+ ✓ src/common/filters/error-format.spec.ts (10 tests) 23ms
+ ✓ src/common/interceptors/redact-logging.interceptor.spec.ts (4 tests) 9ms
+ ✓ src/common/pipes/zod-validation.pipe.spec.ts (6 tests) 13ms
+stderr | src/common/guards/matrix.spec.ts
+[matrix] database not configured — skipping the HTTP matrix.
+
+ ✓ src/common/guards/matrix.spec.ts (7 tests | 5 skipped) 6ms
+ ↓ src/dev-seed/gp2-demo.test.ts (1 test | 1 skipped)
+ ↓ src/auth/security-claims.test.ts (3 tests | 3 skipped)
+stderr | src/auth/security-claims.test.ts
+[security-claims] database not configured — skipping.
+
+ ✓ src/dev-seed/dev-seed.test.ts (5 tests | 3 skipped) 35ms
+(node:30992) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 3)
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ src/common/middleware/correlation.middleware.spec.ts (7 tests | 2 skipped) 13ms
+ ↓ src/app.bootstrap.spec.ts (2 tests | 2 skipped)
+stderr | src/app.bootstrap.spec.ts
+[app-boot] DATABASE_URL is not set — skipping the API boot smoke test.
+
+ ↓ src/audit/audit.test.ts (7 tests | 7 skipped)
+stderr | src/audit/audit.test.ts
+[audit] database not configured — skipping.
+
+ ↓ src/mail/mailer.service.test.ts (1 test | 1 skipped)
+stderr | src/mail/mailer.service.test.ts
+[mailer] Mailpit is not reachable — skipping the SMTP delivery test.
+
+ ✓ src/logs/csv.spec.ts (9 tests) 5ms
+ ✓ src/auth/client-ip.spec.ts (2 tests) 13ms
+ ✓ src/auth/throttle.spec.ts (3 tests) 4ms
+ ✓ src/common/guards/roles.guard.spec.ts (5 tests) 6ms
+ ✓ src/prisma/prisma.service.spec.ts (2 tests) 11ms
+ ↓ src/auth/rate-limits.test.ts (1 test | 1 skipped)
+stderr | src/auth/rate-limits.test.ts
+[rate-limits] database not configured — skipping.
+
+ ✓ src/policy/regex-validation.spec.ts (17 tests) 3389ms
+   ✓ PATTERN validation (WEB-FR-036) > accepts the safe pattern \b\d{10}\b 634ms
+   ✓ PATTERN validation (WEB-FR-036) > analyses under the same flags as the extension (case-insensitive) 641ms
+   ✓ PATTERN validation (WEB-FR-036) > rejects the catastrophic pattern (a|a)*b 530ms
+   ✓ PATTERN validation (WEB-FR-036) > rejects the catastrophic pattern (x+x+)+y 489ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > raw objects created by the four migrations are present
+{
+  stack: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:134:15\n' +
+    '    at callSuiteHook (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:964:22)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1175:29)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/vitest@2.1.9_@types+node@22_d4fe6a128c1dd05233bfadbc7a08d529/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11\n' +
+    '    at withEnv (file:///D:/hares-ai-web/node_modules/.pnpm/vitest@2.1.9_@types+node@22_d4fe6a128c1dd05233bfadbc7a08d529/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:90:5)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:134:15\n' +
+    '    at callSuiteHook (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:964:22)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1175:29)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/vitest@2.1.9_@types+node@22_d4fe6a128c1dd05233bfadbc7a08d529/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:126:11\n' +
+    '    at withEnv (file:///D:/hares-ai-web/node_modules/.pnpm/vitest@2.1.9_@types+node@22_d4fe6a128c1dd05233bfadbc7a08d529/node_modules/vitest/dist/chunks/runBaseTests.3qpJUEJM.js:90:5)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'D:/hares-ai-web/node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: '',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 134,
+      column: 15
+    }
+  ]
+}
+ ❯ ../node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js:45:11
+ ❯ src/prisma/raw-db-guards.test.ts:134:15
+    132| 
+    133|   beforeAll(async () => {
+    134|     const c = await pool.connect();
+       |               ^
+    135|     try {
+    136|       const idx = await c.query(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/33]⎯
+
+ FAIL  src/common/middleware/correlation.middleware.spec.ts > correlation + body parsing
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ src/common/middleware/correlation.middleware.spec.ts:4:31
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/33]⎯
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 31 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_user_status_role: ACTIVE requires a role
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:218:20
+    216|       ),
+    217|     );
+    218|     expect(e.code).toBe('23514');
+       |                    ^
+    219|     expect(e.constraint).toBe('chk_user_status_role');
+    220|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_user_status_role: a PENDING user with a role is rejected
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:230:20
+    228|       ),
+    229|     );
+    230|     expect(e.code).toBe('23514');
+       |                    ^
+    231|     expect(e.constraint).toBe('chk_user_status_role');
+    232|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_user_role_department: a department-scoped role needs a department
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:242:20
+    240|       ),
+    241|     );
+    242|     expect(e.code).toBe('23514');
+       |                    ^
+    243|     expect(e.constraint).toBe('chk_user_role_department');
+    244|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_user_role_department: an ACTIVE user with role USER and no department is rejected
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:254:20
+    252|       ),
+    253|     );
+    254|     expect(e.code).toBe('23514');
+       |                    ^
+    255|     expect(e.constraint).toBe('chk_user_role_department');
+    256|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_event_counter_event_count: negative count is rejected
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:266:20
+    264|       ),
+    265|     );
+    266|     expect(e.code).toBe('23514');
+       |                    ^
+    267|     expect(e.constraint).toBe('chk_event_counter_event_count');
+    268|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_category_counter_event_count: negative count is rejected
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:279:20
+    277|       );
+    278|     });
+    279|     expect(e.code).toBe('23514');
+       |                    ^
+    280|     expect(e.constraint).toBe('chk_category_counter_event_count');
+    281|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_activity_log_schema_version: schema_version >= 1
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:293:20
+    291|       );
+    292|     });
+    293|     expect(e.code).toBe('23514');
+       |                    ^
+    294|     expect(e.constraint).toBe('chk_activity_log_schema_version');
+    295|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_policy_version_id: only id = 1 is allowed
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:301:20
+    299|       c.query(`insert into "PolicyVersion" (id, version) values (2, 1)…
+    300|     );
+    301|     expect(e.code).toBe('23514');
+       |                    ^
+    302|     expect(e.constraint).toBe('chk_policy_version_id');
+    303|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_policy_version_version: version >= 1
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:309:20
+    307|       c.query(`insert into "PolicyVersion" (id, version) values (1, 0)…
+    308|     );
+    309|     expect(e.code).toBe('23514');
+       |                    ^
+    310|     expect(e.constraint).toBe('chk_policy_version_version');
+    311|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_custom_rule_pattern_length: a PATTERN rule longer than 512 is rejected
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:323:20
+    321|       );
+    322|     });
+    323|     expect(e.code).toBe('23514');
+       |                    ^
+    324|     expect(e.constraint).toBe('chk_custom_rule_pattern_length');
+    325|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_custom_rule_nonpattern_length: a non-PATTERN rule longer than 4000 is rejected
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:337:20
+    335|       );
+    336|     });
+    337|     expect(e.code).toBe('23514');
+       |                    ^
+    338|     expect(e.constraint).toBe('chk_custom_rule_nonpattern_length');
+    339|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_custom_rule_definition_nonempty: empty definition is rejected
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:350:20
+    348|       );
+    349|     });
+    350|     expect(e.code).toBe('23514');
+       |                    ^
+    351|     expect(e.constraint).toBe('chk_custom_rule_definition_nonempty');
+    352|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_admin_audit_log_target: a non-POLICY target needs a target_id
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:363:20
+    361|       );
+    362|     });
+    363|     expect(e.code).toBe('23514');
+       |                    ^
+    364|     expect(e.constraint).toBe('chk_admin_audit_log_target');
+    365|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_refresh_token_expires: expires_at must be after created_at
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:376:20
+    374|       );
+    375|     });
+    376|     expect(e.code).toBe('23514');
+       |                    ^
+    377|     expect(e.constraint).toBe('chk_refresh_token_expires');
+    378|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints reject bad data > chk_password_reset_token_expires: expires_at must be after created_at
+AssertionError: expected 'ECONNREFUSED' to be '23514' // Object.is equality
+
+Expected: "23514"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:389:20
+    387|       );
+    388|     });
+    389|     expect(e.code).toBe('23514');
+       |                    ^
+    390|     expect(e.constraint).toBe('chk_password_reset_token_expires');
+    391|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CHECK constraints accept valid data > chk_user_role_department: an ACTIVE SYSTEM_ADMIN with no department is accepted
+{
+  stack: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:396:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:396:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'D:/hares-ai-web/node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'withTx',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 37,
+      column: 13
+    },
+    {
+      method: '',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 396,
+      column: 5
+    }
+  ]
+}
+ ❯ ../node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js:45:11
+ ❯ withTx src/prisma/raw-db-guards.test.ts:37:13
+     35| /** Run a callback inside a BEGIN/ROLLBACK transaction. */
+     36| async function withTx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T…
+     37|   const c = await pool.connect();
+       |             ^
+     38|   try {
+     39|     await c.query('BEGIN');
+ ❯ src/prisma/raw-db-guards.test.ts:396:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > raw unique indexes reject duplicates > uq_user_email_lower: case-insensitive uniqueness on email
+AssertionError: expected 'ECONNREFUSED' to be '23505' // Object.is equality
+
+Expected: "23505"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:410:20
+    408|       await seedUser(c, { email: uniqEmail('synthetic.user') });
+    409|     });
+    410|     expect(e.code).toBe('23505');
+       |                    ^
+    411|     expect(e.constraint).toBe('uq_user_email_lower');
+    412|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > raw unique indexes reject duplicates > uq_department_name_lower: case-insensitive uniqueness on name
+AssertionError: expected 'ECONNREFUSED' to be '23505' // Object.is equality
+
+Expected: "23505"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:419:20
+    417|       await seedDepartment(c, 'sales');
+    418|     });
+    419|     expect(e.code).toBe('23505');
+       |                    ^
+    420|     expect(e.constraint).toBe('uq_department_name_lower');
+    421|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > raw unique indexes reject duplicates > uq_policy_category_action: NULL department_id is treated as a duplicate (NULLS NOT DISTINCT)
+AssertionError: expected 'ECONNREFUSED' to be '23505' // Object.is equality
+
+Expected: "23505"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:431:20
+    429|       await c.query(stmt, [id(), cat]);
+    430|     });
+    431|     expect(e.code).toBe('23505');
+       |                    ^
+    432|     expect(e.constraint).toBe('uq_policy_category_action');
+    433|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > raw unique indexes reject duplicates > uq_event_counter: duplicate key with NULL department/rule is rejected (NULLS NOT DISTINCT)
+AssertionError: expected 'ECONNREFUSED' to be '23505' // Object.is equality
+
+Expected: "23505"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:442:20
+    440|       await c.query(stmt, [id()]);
+    441|     });
+    442|     expect(e.code).toBe('23505');
+       |                    ^
+    443|     expect(e.constraint).toBe('uq_event_counter');
+    444|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > raw unique indexes reject duplicates > uq_category_counter: duplicate key with NULL department is rejected (NULLS NOT DISTINCT)
+AssertionError: expected 'ECONNREFUSED' to be '23505' // Object.is equality
+
+Expected: "23505"
+Received: "ECONNREFUSED"
+
+ ❯ src/prisma/raw-db-guards.test.ts:454:20
+    452|       await c.query(stmt, [id(), cat]);
+    453|     });
+    454|     expect(e.code).toBe('23505');
+       |                    ^
+    455|     expect(e.constraint).toBe('uq_category_counter');
+    456|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > immutability guards (append-only tables) > AdminAuditLog: UPDATE is rejected
+AssertionError: expected '' to contain 'append-only'
+
+- Expected
++ Received
+
+- append-only
+
+ ❯ src/prisma/raw-db-guards.test.ts:473:23
+    471|       await c.query(`update "AdminAuditLog" set detail = '{"x":1}'::js…
+    472|     });
+    473|     expect(e.message).toContain('append-only');
+       |                       ^
+    474|   });
+    475| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > immutability guards (append-only tables) > AdminAuditLog: DELETE is rejected
+AssertionError: expected '' to contain 'append-only'
+
+- Expected
++ Received
+
+- append-only
+
+ ❯ src/prisma/raw-db-guards.test.ts:487:23
+    485|       await c.query(`delete from "AdminAuditLog" where id = $1`, [audi…
+    486|     });
+    487|     expect(e.message).toContain('append-only');
+       |                       ^
+    488|   });
+    489| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > immutability guards (append-only tables) > AdminAuditLog: TRUNCATE is rejected
+AssertionError: expected '' to contain 'append-only'
+
+- Expected
++ Received
+
+- append-only
+
+ ❯ src/prisma/raw-db-guards.test.ts:500:23
+    498|       await c.query(`truncate table "AdminAuditLog"`);
+    499|     });
+    500|     expect(e.message).toContain('append-only');
+       |                       ^
+    501|   });
+    502| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > immutability guards (append-only tables) > ActivityLog: UPDATE is rejected (immutable after insert)
+AssertionError: expected '' to contain 'immutable'
+
+- Expected
++ Received
+
+- immutable
+
+ ❯ src/prisma/raw-db-guards.test.ts:514:23
+    512|       await c.query(`update "ActivityLog" set schema_version = 2 where…
+    513|     });
+    514|     expect(e.message).toContain('immutable');
+       |                       ^
+    515|   });
+    516| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > immutability guards (append-only tables) > ActivityLog: DELETE is permitted and cascades to LogCategory
+{
+  stack: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:518:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:518:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'D:/hares-ai-web/node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'withTx',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 37,
+      column: 13
+    },
+    {
+      method: '',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 518,
+      column: 5
+    }
+  ]
+}
+ ❯ ../node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js:45:11
+ ❯ withTx src/prisma/raw-db-guards.test.ts:37:13
+     35| /** Run a callback inside a BEGIN/ROLLBACK transaction. */
+     36| async function withTx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T…
+     37|   const c = await pool.connect();
+       |             ^
+     38|   try {
+     39|     await c.query('BEGIN');
+ ❯ src/prisma/raw-db-guards.test.ts:518:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CustomRule scope guard (deferred constraint triggers) > rejects DEPARTMENTS scope with no linked department
+AssertionError: expected '' to contain 'linked to no department'
+
+- Expected
++ Received
+
+- linked to no department
+
+ ❯ src/prisma/raw-db-guards.test.ts:564:23
+    562|       await c.query(fire);
+    563|     });
+    564|     expect(e.message).toContain('linked to no department');
+       |                       ^
+    565|   });
+    566| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CustomRule scope guard (deferred constraint triggers) > rejects ORG_WIDE scope with a linked department
+AssertionError: expected '' to contain 'linked to department'
+
+- Expected
++ Received
+
+- linked to department
+
+ ❯ src/prisma/raw-db-guards.test.ts:583:23
+    581|       await c.query(fire);
+    582|     });
+    583|     expect(e.message).toContain('linked to department');
+       |                       ^
+    584|   });
+    585| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CustomRule scope guard (deferred constraint triggers) > accepts DEPARTMENTS scope with a linked department
+{
+  stack: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:587:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:587:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'D:/hares-ai-web/node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'withTx',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 37,
+      column: 13
+    },
+    {
+      method: '',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 587,
+      column: 5
+    }
+  ]
+}
+ ❯ ../node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js:45:11
+ ❯ withTx src/prisma/raw-db-guards.test.ts:37:13
+     35| /** Run a callback inside a BEGIN/ROLLBACK transaction. */
+     36| async function withTx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T…
+     37|   const c = await pool.connect();
+       |             ^
+     38|   try {
+     39|     await c.query('BEGIN');
+ ❯ src/prisma/raw-db-guards.test.ts:587:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CustomRule scope guard (deferred constraint triggers) > accepts ORG_WIDE scope with no linked department
+{
+  stack: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:605:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  errors: [
+    {
+      stack: 'Error: connect ECONNREFUSED ::1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED ::1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '::1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    },
+    {
+      stack: 'Error: connect ECONNREFUSED 127.0.0.1:5432\n' +
+        '    at createConnectionError (node:net:2124:14)\n' +
+        '    at afterConnectMultiple (node:net:2154:16)',
+      message: 'connect ECONNREFUSED 127.0.0.1:5432',
+      errno: -4078,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '127.0.0.1',
+      port: 5432,
+      constructor: 'Function<Error>',
+      name: 'Error',
+      toString: 'Function<toString>'
+    }
+  ],
+  code: 'ECONNREFUSED',
+  stackStr: 'AggregateError: \n' +
+    '    at D:\\hares-ai-web\\node_modules\\.pnpm\\pg-pool@3.14.0_pg@8.23.1\\node_modules\\pg-pool\\index.js:45:11\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:104:5)\n' +
+    '    at withTx (D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:37:13)\n' +
+    '    at D:\\hares-ai-web\\api\\src\\prisma\\raw-db-guards.test.ts:605:5\n' +
+    '    at file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:533:5\n' +
+    '    at runTest (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1056:11)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runSuite (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1205:15)\n' +
+    '    at runFiles (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1262:5)\n' +
+    '    at startTests (file:///D:/hares-ai-web/node_modules/.pnpm/@vitest+runner@2.1.9/node_modules/@vitest/runner/dist/index.js:1271:3)',
+  nameStr: 'AggregateError',
+  expected: 'undefined',
+  actual: 'undefined',
+  message: '',
+  constructor: 'Function<AggregateError>',
+  name: 'AggregateError',
+  toString: 'Function<toString>',
+  stacks: [
+    {
+      method: '',
+      file: 'D:/hares-ai-web/node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js',
+      line: 45,
+      column: 11
+    },
+    {
+      method: 'withTx',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 37,
+      column: 13
+    },
+    {
+      method: '',
+      file: 'D:/hares-ai-web/api/src/prisma/raw-db-guards.test.ts',
+      line: 605,
+      column: 5
+    }
+  ]
+}
+ ❯ ../node_modules/.pnpm/pg-pool@3.14.0_pg@8.23.1/node_modules/pg-pool/index.js:45:11
+ ❯ withTx src/prisma/raw-db-guards.test.ts:37:13
+     35| /** Run a callback inside a BEGIN/ROLLBACK transaction. */
+     36| async function withTx<T>(fn: (c: PoolClient) => Promise<T>): Promise<T…
+     37|   const c = await pool.connect();
+       |             ^
+     38|   try {
+     39|     await c.query('BEGIN');
+ ❯ src/prisma/raw-db-guards.test.ts:605:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/33]⎯
+
+ FAIL  src/prisma/raw-db-guards.test.ts > CustomRule scope guard (deferred constraint triggers) > rejects moving a CustomRuleDepartment row out of a DEPARTMENTS rule at commit
+AssertionError: expected '' to contain 'linked to no department'
+
+- Expected
++ Received
+
+- linked to no department
+
+ ❯ src/prisma/raw-db-guards.test.ts:657:23
+    655|       await c.query(fire);
+    656|     });
+    657|     expect(e.message).toContain('linked to no department');
+       |                       ^
+    658|   });
+    659| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/33]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 19 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/users/users.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/users/users.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/analytics/analytics.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/analytics/analytics.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/auth/extension/extension-auth.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/auth/extension/extension-auth.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/retention/retention.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/retention/retention.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/audit/audit-query.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/audit/audit-query.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/ingestion/ingestion.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/ingestion/ingestion.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/auth/auth.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/auth/auth.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/departments/departments.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/departments/departments.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/auth/password/password.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/auth/password/password.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/logs/logs.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/logs/logs.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/policy/policy.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/policy/policy.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/common/guards/matrix.spec.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/common/guards/matrix.spec.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/dev-seed/dev-seed.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/dev-seed/dev-seed.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/dev-seed/gp2-demo.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/dev-seed/gp2-demo.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/auth/security-claims.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/auth/security-claims.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/common/middleware/correlation.middleware.spec.ts:4:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/common/middleware/correlation.middleware.spec.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/common/middleware/correlation.middleware.spec.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/app.bootstrap.spec.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/app.bootstrap.spec.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/app.bootstrap.spec.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/audit/audit.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/audit/audit.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: Invalid environment configuration:
+  - DATABASE_URL: DATABASE_URL is required outside production
+ ❯ Object.validateEnv [as validate] src/config/env.validation.ts:164:11
+    162|       .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.me…
+    163|       .join('\n  - ');
+    164|     throw new Error(`Invalid environment configuration:\n  - ${issues}…
+       |           ^
+    165|   }
+    166|   // `.default()` fills in the defaults, so the returned object is com…
+ ❯ ConfigModule.forRoot ../node_modules/.pnpm/@nestjs+config@12.0.0_@nest_535980e3b7f4dd309dac5c88ff472205/node_modules/@nestjs/config/dist/config.module.js:53:45
+ ❯ src/app.module.ts:19:18
+ ❯ processTicksAndRejections node:internal/process/task_queues:104:5
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+ ❯ VitestExecutor.directRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:381:5
+ ❯ VitestExecutor.cachedRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:206:14
+ ❯ VitestExecutor.dependencyRequest ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:259:12
+ ❯ src/test/http-test-app.ts:6:31
+ ❯ VitestExecutor.runModule ../node_modules/.pnpm/vite-node@2.1.9_@types+node@22.20.5_lightningcss@1.33.0/node_modules/vite-node/dist/client.mjs:399:5
+
+This error originated in "src/auth/rate-limits.test.ts" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "src/auth/rate-limits.test.ts". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+ Test Files  2 failed | 12 passed | 19 skipped (33)
+      Tests  31 failed | 79 passed | 225 skipped (335)
+     Errors  19 errors
+   Start at  00:00:56
+   Duration  18.33s (transform 3.50s, setup 0ms, collect 150.52s, tests 3.66s, environment 8ms, prepare 5.48s)
+
+D:\hares-ai-web\api:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @hares/api@0.0.0 test: `vitest run`
+Exit status 1
