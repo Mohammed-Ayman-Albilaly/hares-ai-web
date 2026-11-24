@@ -2,7 +2,7 @@
 // Response-time measurement of the endpoints the browser extension calls (GP2 report, P4).
 //
 //   HARES_PERF_PASSWORD='...' node scripts/perf/measure-api.mjs --base http://localhost:3000 --email engineering.user1@example.test
-//   options: --n 50 (requests per endpoint)  --out docs/gp2-evidence/perf/api-local.json  --label "local run"
+//   options: --n 50 (requests per endpoint)  --out docs/gp2-evidence/perf/api-local.json  --label "local run"  --commit <sha of the deployed code>
 //
 // The password is read from the environment only (never from an argument, never printed or written to a file).
 // Use a demo account on a demo database. It sends real requests: login, policy fetch, event upload and token refresh.
@@ -171,6 +171,8 @@ let { access_token: access, refresh_token: refresh } = globalThis.session;
 
 const report = {
   label: args.label ?? '',
+  // The commit the measured system runs (read from the Render and Vercel deploy lists); not checked by the script.
+  deployed_commit: args.commit ?? null,
   base,
   date: new Date().toISOString(),
   requests_per_endpoint: n,

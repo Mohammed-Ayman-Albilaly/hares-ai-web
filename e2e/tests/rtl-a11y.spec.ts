@@ -37,6 +37,7 @@ async function expectDialogInsideViewport(page: Page): Promise<void> {
   expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(2);
 }
 
+const NOT_IN_EFFECT = 'غير مطبّقة حتى يُضاف لها وصف بالإنجليزية.';
 const PUBLIC = ['/', '/login', '/register', '/forgot-password'];
 const BY_ROLE: Record<string, { email: string; paths: string[] }> = {
   USER: { email: accounts.engUser, paths: ['/dashboard', '/activity', '/blocked', '/profile'] },
@@ -151,10 +152,24 @@ test.describe('automated accessibility audit (axe, WCAG 2.2 AA)', () => {
     await expect(page.getByRole('dialog')).toBeHidden();
 
     await open(page, '/admin/rules');
+    // The old TOPIC rule of the e2e data (no English description) carries its marker in the audited list.
+    await expect(page.getByText(NOT_IN_EFFECT).first()).toBeVisible();
     await page.getByRole('button', { name: /إضافة قاعدة/ }).first().click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await expectDialogInsideViewport(page);
     await expectNoViolations(page, 'rule dialog');
+    // TOPIC (decision 66): the English description, the sensitivity, the notes and the action hint are open too.
+    await page.getByRole('dialog').getByLabel('النوع').selectOption('TOPIC');
+    await expect(page.getByRole('dialog').getByLabel(/الوصف بالإنجليزية/)).toBeVisible();
+    await expect(page.getByRole('dialog').getByLabel('الحساسية')).toBeVisible();
+    await expectNoViolations(page, 'rule dialog, TOPIC');
+  });
+
+  test('the Department Admin rule list shows the "not in effect" marker and stays accessible', async ({ page }) => {
+    await signIn(page, accounts.engAdmin);
+    await open(page, '/department/rules');
+    await expect(page.getByText(NOT_IN_EFFECT).first()).toBeVisible();
+    await expectNoViolations(page, 'DEPARTMENT_ADMIN /department/rules with the marker');
   });
 
 });

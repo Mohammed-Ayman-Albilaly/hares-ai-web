@@ -3,10 +3,11 @@ import * as bcrypt from 'bcrypt';
 import type { Role } from '@hares/contract';
 import { AuditService } from '../audit/audit.service';
 import type { AuthUser } from '../common/auth-user';
+import { IngestionService } from '../ingestion/ingestion.service';
 import { PolicyService } from '../policy/policy.service';
 import type { PrismaClient } from '../prisma/generated/client';
 import type { PrismaService } from '../prisma/prisma.service';
-import { DEV_PASSWORD, seedDevData, type DevSeedOptions, type DevSeedResult } from './dev-seed';
+import { DEV_PASSWORD, seedDevData, stableUuid, type DevSeedOptions, type DevSeedResult } from './dev-seed';
 
 /**
  * Demo data for the GP2 report screenshots. Development only: the script that calls this refuses to run
@@ -19,7 +20,11 @@ import { DEV_PASSWORD, seedDevData, type DevSeedOptions, type DevSeedResult } fr
  *  - two department policies that differ from the default, set by the Department Admins of those departments
  *    (so the audit trail shows who changed what);
  *  - two custom rules, one PATTERN (Engineering) and one KEYWORD (Finance), also written by their Department Admins;
- *  - about 300 activity-log events over the last 30 days.
+ *  - two TOPIC rules (decision 66): one in effect (Human Resources, with its English description, written by
+ *    that department's admin) and one saved the old way without an English description (Finance), which the
+ *    screens mark "not in effect" and the extension skips;
+ *  - about 300 activity-log events over the last 30 days, plus 5 events matched by the TOPIC rule in effect
+ *    (rule id, no category, LOCAL_AI), as the extension sends them.
  *
  * Re-running is safe: users and departments are found by name or e-mail, events keep their ids, an unchanged
  * policy writes nothing, and a rule is created only when no rule of that name exists.
@@ -31,7 +36,13 @@ export interface Gp2DemoResult extends DevSeedResult {
   pending: string;
   policyChanges: number;
   rules: string[];
+  /** Events matched by the TOPIC rule in effect that this run created (0 on a second run). */
+  topicLogsCreated: number;
 }
+
+export const GP2_TOPIC_RULE = 'Demo layoff plans';
+export const GP2_OLD_TOPIC_RULE = 'Demo old topic rule (no English description)';
+const TOPIC_EVENTS = 5;
 
 export async function seedGp2Demo(prisma: PrismaClient, opts: Pick<DevSeedOptions, 'domain' | 'namePrefix' | 'seed' | 'now' | 'withSystemAdmin'> = {}): Promise<Gp2DemoResult> {
   const domain = opts.domain ?? 'example.test';
@@ -77,10 +88,16 @@ export async function seedGp2Demo(prisma: PrismaClient, opts: Pick<DevSeedOption
   const hr = await adminOf('human-resources');
   const finance = await adminOf('finance');
   const engineering = await adminOf('engineering');
-  const before = await policy.currentVersion();
-  await policy.setDepartment(hr.actor, hr.departmentId, 'HEALTH_MEDICAL', { action: 'WARN', enabled: true });
-  await policy.setDepartment(finance.actor, finance.departmentId, 'CONTACT_INFO', { action: 'ALLOW', enabled: true });
-  const policyChanges = (await policy.currentVersion()) - before;
+  // Counted here, not from the global policy version: other writers (tests running at the same time) bump it too.
+  let policyChanges = 0;
+  const setPolicy = async (who: typeof hr, category: 'HEALTH_MEDICAL' | 'CONTACT_INFO', action: 'WARN' | 'ALLOW') => {
+    const current = await prisma.policyCategoryAction.findFirst({ where: { departmentId: who.departmentId, categoryCode: category } });
+    if (current?.action === action && current.enabled) return;
+    await policy.setDepartment(who.actor, who.departmentId, category, { action, enabled: true });
+    policyChanges++;
+  };
+  await setPolicy(hr, 'HEALTH_MEDICAL', 'WARN');
+  await setPolicy(finance, 'CONTACT_INFO', 'ALLOW');
 
   // Two rules, each for the department of the administrator who wrote it.
   const rules: string[] = [];
@@ -110,5 +127,71 @@ export async function seedGp2Demo(prisma: PrismaClient, opts: Pick<DevSeedOption
     enabled: true,
   });
 
-  return { ...base, pending: pendingEmail, policyChanges, rules };
+  // A TOPIC rule as it was saved before decision 66: enabled, no English description. The API no longer accepts
+  // that, so it is written directly (rule and department link in one transaction for the scope trigger), without
+  // an audit entry, as the migration left such rules. It goes first: the version bump of the
+  // API-written TOPIC rule below then covers it, so clients refetch (no extra bump of its own).
+  rules.push(GP2_OLD_TOPIC_RULE);
+  if (!(await prisma.customRule.findFirst({ where: { name: GP2_OLD_TOPIC_RULE } }))) {
+    await prisma.$transaction(async (tx) => {
+      const id = randomUUID();
+      await tx.customRule.create({
+        data: {
+          id,
+          createdBy: finance.actor.id,
+          kind: 'TOPIC',
+          name: GP2_OLD_TOPIC_RULE,
+          definition: 'أي حديث عن ميزانية الربع القادم قبل اعتمادها',
+          definitionEn: null,
+          threshold: 0.3,
+          riskLevel: 'MEDIUM',
+          action: 'WARN',
+          scope: 'DEPARTMENTS',
+          enabled: true,
+        },
+      });
+      await tx.customRuleDepartment.create({ data: { customRuleId: id, departmentId: finance.departmentId } });
+    });
+  }
+
+  // A TOPIC rule in effect, written through the API like any other rule.
+  await ensureRule(hr, {
+    name: GP2_TOPIC_RULE,
+    kind: 'TOPIC',
+    definition: 'أي حديث عن خطط تسريح موظفين أو إلغاء وظائف أو إعادة هيكلة',
+    definition_en: 'This text discusses layoffs, job cuts or restructuring.',
+    threshold: 0.3,
+    risk_level: 'MEDIUM',
+    action: 'WARN',
+    scope: 'DEPARTMENTS',
+    department_ids: [],
+    enabled: true,
+  });
+
+  // Events matched by the TOPIC rule in effect, sent by Human Resources employees as the extension sends them:
+  // the rule id, no category, LOCAL_AI. Stable ids, so a second run adds nothing.
+  const topicRule = await prisma.customRule.findFirstOrThrow({ where: { name: GP2_TOPIC_RULE } });
+  const ingestion = new IngestionService(prisma as unknown as PrismaService);
+  const decisions = ['EDITED', 'CANCELLED', 'SUBMITTED_ANYWAY', 'EDITED', 'CANCELLED'] as const;
+  let topicLogsCreated = 0;
+  for (let i = 0; i < TOPIC_EVENTS; i++) {
+    const user = await prisma.user.findFirstOrThrow({ where: { email: `human-resources.user${(i % 4) + 1}@${domain}` } });
+    const day = new Date(now.getTime() - (i + 1) * 24 * 60 * 60 * 1000);
+    const eventTime = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 8 + i, 15, 0));
+    const res = await ingestion.ingest({ id: user.id, departmentId: user.departmentId } as unknown as AuthUser, {
+      log_id: stableUuid(`gp2-topic:${domain}:${i}`),
+      event_time: eventTime.toISOString(),
+      platform: (['CHATGPT', 'GEMINI', 'CLAUDE'] as const)[i % 3],
+      risk_level: 'MEDIUM',
+      action: 'WARNED',
+      categories: [],
+      classification_source: 'LOCAL_AI',
+      user_decision: decisions[i],
+      rule_id: topicRule.id,
+      schema_version: 1,
+    }, now);
+    if (res.created) topicLogsCreated++;
+  }
+
+  return { ...base, pending: pendingEmail, policyChanges, rules, topicLogsCreated };
 }

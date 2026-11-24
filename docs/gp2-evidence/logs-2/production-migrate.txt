@@ -1,0 +1,43 @@
+# Production database migration, run by the owner from his machine on 2026-11-24 (about 01:50 +03:00),
+# before PR #3 was merged. Output as pasted by the owner; the Docker build lines are left out.
+
+PS D:\hares-ai-web> docker compose -f docker-compose.prod.yml --env-file .env.prod run --rm --build migrate
+[+] Building 109.9s (26/26) FINISHED
+...
+[init] migrations
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+Datasource "db": PostgreSQL database "postgres", schema "public" at "aws-0-eu-west-1.pooler.supabase.com:5432"
+
+10 migrations found in prisma/migrations
+
+Applying migration `20261124090000_add_topic_rule_fields`
+
+The following migration(s) have been applied:
+
+migrations/
+  └─ 20261124090000_add_topic_rule_fields/
+    └─ migration.sql
+
+All migrations have been successfully applied.
+[init] application role, grants, audit trail lock and Supabase API roles
+[init] seed
+Loaded Prisma config from prisma.config.ts.
+
+Running seed command `tsx prisma/seed.ts` ...
+(node:181) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+...
+🌱  The seed command has been executed.
+[init] done
+
+# Check run by the owner in the Supabase SQL editor (project hares-ai, environment main, PRODUCTION) right after:
+
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'CustomRule' AND column_name IN ('definition_en', 'threshold');
+
+column_name
+-----------
+threshold
+definition_en
+(2 rows)
